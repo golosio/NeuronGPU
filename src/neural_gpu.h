@@ -1,0 +1,121 @@
+/*
+Copyright (C) 2016 Bruno Golosio
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#ifndef NEURAL_GPU_H
+#define NEURAL_GPU_H
+
+#include "connect.h"
+#include "connect_mpi.h"
+#include "poisson.h"
+#include "aeif.h"
+#include "prefix_scan.h"
+#include "spike_generator.h"
+#include "multimeter.h"
+
+class NeuralGPU
+{
+  float time_resolution_; // time resolution in ms
+ public:
+  PoissonGenerator poiss_generator_;
+  SpikeGenerator spike_generator_;
+  Multimeter multimeter_;
+  AEIF aeif_;
+  
+  NetConnection net_connection_;
+  ConnectMpi connect_mpi_;
+
+  PrefixScan prefix_scan_;
+  
+  int max_spike_buffer_num_;
+  int max_spike_num_;
+  int max_spike_per_host_;
+
+  float t_min_;
+  float sim_time_; // Simulation time in ms
+  int n_neurons_;
+  int n_poiss_nodes_;
+  int n_spike_gen_nodes_;
+
+  double start_real_time_;
+  double build_real_time_;
+  double end_real_time_;
+    
+  NeuralGPU();
+
+  //~NeuralGPU();
+
+  int SetTimeResolution(float time_res);
+
+  inline float GetTimeResolution() {
+    return time_resolution_;
+  }
+
+  int CreateNeuron(int n_neurons, int n_receptors);
+  int CreatePoissonGenerator(int n_nodes, float rate);
+  int CreateSpikeGenerator(int n_nodes);
+  int CreateRecord(std::string file_name, std::string var_name, int *i_neurons,
+		   int n_neurons);
+  
+  int Simulate();
+
+  int ConnectFixedIndegree
+    (
+     int i_source_neuron_0, int n_source_neurons,
+     int i_target_neuron_0, int n_target_neurons,
+     unsigned char i_port, float weight, float delay, int indegree
+     );
+
+  int RemoteConnectFixedIndegree
+    (
+     int i_source_host, int i_source_neuron_0, int n_source_neurons,
+     int i_target_host, int i_target_neuron_0, int n_target_neurons,
+     unsigned char i_port, float weight, float delay, int indegree
+     );
+  
+  int ConnectAllToAll
+    (
+     int i_source_neuron_0, int n_source_neurons,
+     int i_target_neuron_0, int n_target_neurons,
+     unsigned char i_port, float weight, float delay
+     );
+
+  int RemoteConnectAllToAll
+    (
+     int i_source_host, int i_source_neuron_0, int n_source_neurons,
+     int i_target_host, int i_target_neuron_0, int n_target_neurons,
+     unsigned char i_port, float weight, float delay
+     );
+
+  int ConnectOneToOne
+    (
+     int i_source_neuron_0, int i_target_neuron_0, int n_neurons,
+     unsigned char i_port, float weight, float delay
+     );
+
+  int RemoteConnectOneToOne
+    (
+     int i_source_host, int i_source_neuron_0,
+     int i_target_host, int i_target_neuron_0, int n_neurons,
+     unsigned char i_port, float weight, float delay
+     );
+
+  int SetNeuronParams(std::string param_name, int i_node, int n_neurons,
+		      float val);
+
+  int SetNeuronVectParams(std::string param_name, int i_node, int n_neurons,
+			  float *params, int vect_size);
+
+};
+
+#endif

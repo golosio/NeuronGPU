@@ -1,0 +1,57 @@
+/*
+Copyright (C) 2016 Bruno Golosio
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#ifndef POISSONH
+#define POISSONH
+#include <cuda.h>
+#include <curand.h>
+
+extern __device__ unsigned int *PoissonData;
+
+class PoissonGenerator
+{
+  curandGenerator_t random_generator_;
+  unsigned int *dev_poisson_data_;
+  int poisson_data_size_;
+
+  int buffer_size_;
+  int n_steps_;
+  int i_step_;
+  float lambda_;
+  int more_steps_;
+  int i_node_0_;
+
+  
+  int Init(unsigned int n);
+
+ public:
+  int n_nodes_;
+    
+  PoissonGenerator();
+
+  ~PoissonGenerator();
+
+  int Free();
+  
+  int Create(int i_node_0, int n_nodes, float lambda);
+  
+  int Generate();
+
+  int Generate(int max_n_steps);
+
+  int Update(int max_n_steps);
+
+};
+
+#endif

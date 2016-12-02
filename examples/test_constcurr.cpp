@@ -12,19 +12,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <mpi.h>
-#include "connect.h"
-#include "spike_buffer.h"
-#include "rk5.h"
-#include "cuda_error.h"
-#include "aeif.h"
-#include "send_spike.h"
-#include "get_spike.h"
-#include "connect_mpi.h"
-#include "spike_mpi.h"
 #include "neural_gpu.h"
 
 using namespace std;
@@ -32,9 +23,8 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   NeuralGPU neural_gpu;
-  neural_gpu.connect_mpi_.MpiInit(argc, argv);
-  cout << "Building on host " << neural_gpu.connect_mpi_.mpi_id_
-       << " ..." <<endl;
+  neural_gpu.ConnectMpiInit(argc, argv);
+  cout << "Building on host " << neural_gpu.MpiId() << " ..." <<endl;
   
   //////////////////////////////////////////////////////////////////////
   // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
@@ -59,7 +49,7 @@ int main(int argc, char *argv[])
 
   neural_gpu.Simulate();
 
-  MPI_Finalize();
+  neural_gpu.MpiFinalize();
 
   return 0;
 }

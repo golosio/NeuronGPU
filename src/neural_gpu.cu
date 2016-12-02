@@ -560,3 +560,9 @@ int NeuralGPU::MpiFinalize()
   return MPI_Finalize();
 }
 
+int NeuralGPU::SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
+				 float *spike_height)
+{
+  return spike_generator_->Set(i_node, n_spikes, spike_time, spike_height);
+}
+

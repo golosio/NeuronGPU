@@ -139,6 +139,9 @@ class NeuralGPU
 
   int MpiFinalize();
 
+  int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
+			float *spike_height);
+  
 };
 
 #endif

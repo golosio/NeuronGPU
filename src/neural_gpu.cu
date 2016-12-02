@@ -23,10 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "aeif.h"
 #include "send_spike.h"
 #include "get_spike.h"
-//#include "connect_mpi.h"
+#include "connect_mpi.h"
 #include "spike_mpi.h"
-#include "neural_gpu.h"
+#include "spike_generator.h"
+#include "multimeter.h"
+#include "prefix_scan.h"
 #include "getRealTime.h"
+#include "neural_gpu.h"
+
 
 using namespace std;
 
@@ -34,6 +38,14 @@ using namespace std;
 
 NeuralGPU::NeuralGPU()
 {
+  poiss_generator_ = new PoissonGenerator;
+  spike_generator_ = new SpikeGenerator;
+  multimeter_ = new Multimeter;
+  aeif_ = new AEIF;
+  net_connection_ = new NetConnection;
+  connect_mpi_ = new ConnectMpi;
+  prefix_scan_ = new PrefixScan;
+  
   start_real_time_ = getRealTime();
   max_spike_buffer_num_ = 100;
   //net_connection_.max_delay_num_ = 100;
@@ -46,14 +58,25 @@ NeuralGPU::NeuralGPU()
   n_spike_gen_nodes_ = 0;
   SetTimeResolution(0.1);  // time resolution in ms
   /////ConnectMpiInit(&argc, &argv, time_resolution_);
-  connect_mpi_.net_connection_ = &net_connection_;
-  prefix_scan_.Init();
+  connect_mpi_->net_connection_ = net_connection_;
+  prefix_scan_->Init();
+}
+
+NeuralGPU::~NeuralGPU()
+{
+  delete poiss_generator_;
+  delete spike_generator_;
+  delete multimeter_;
+  delete aeif_;
+  delete net_connection_;
+  delete connect_mpi_;
+  delete prefix_scan_;
 }
 
 int NeuralGPU::SetTimeResolution(float time_res)
 {
   time_resolution_ = time_res;
-  net_connection_.time_resolution_ = time_res;
+  net_connection_->time_resolution_ = time_res;
   
   return 0;
 }
@@ -75,20 +98,20 @@ int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
 
   n_neurons_ = n_neurons;               
 
-  int i_node_0 = net_connection_.connection_.size();
+  int i_node_0 = net_connection_->connection_.size();
   
   vector<ConnGroup> conn;
   vector<vector<ConnGroup> >:: iterator it
-    = net_connection_.connection_.end();
-  net_connection_.connection_.insert(it, n_neurons_, conn);
+    = net_connection_->connection_.end();
+  net_connection_->connection_.insert(it, n_neurons_, conn);
 
   vector<ExternalConnectionNode > conn_node;
   vector<vector< ExternalConnectionNode> >::iterator it1
-    = connect_mpi_.extern_connection_.end();
-  connect_mpi_.extern_connection_.insert(it1, n_neurons_, conn_node);
+    = connect_mpi_->extern_connection_.end();
+  connect_mpi_->extern_connection_.insert(it1, n_neurons_, conn_node);
 
   //SpikeInit(max_spike_num_);
-  aeif_.Init(i_node_0, n_neurons_, n_receptors);
+  aeif_->Init(i_node_0, n_neurons_, n_receptors);
   
   return i_node_0;
 }
@@ -106,24 +129,24 @@ int NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
 
   n_poiss_nodes_ = n_nodes;               
 
-  int i_node_0 = net_connection_.connection_.size();
+  int i_node_0 = net_connection_->connection_.size();
   
   vector<ConnGroup> conn;
   vector<vector<ConnGroup> >:: iterator it
-    = net_connection_.connection_.end();
-  net_connection_.connection_.insert(it, n_poiss_nodes_, conn);
+    = net_connection_->connection_.end();
+  net_connection_->connection_.insert(it, n_poiss_nodes_, conn);
 
-  if ((int)connect_mpi_.extern_connection_.size() != i_node_0) {
+  if ((int)connect_mpi_->extern_connection_.size() != i_node_0) {
     cerr << "Error: net_connection_.connection_ and "
       "connect_mpi_.extern_connection_ must have the same size!\n";
   }
   vector<ExternalConnectionNode > conn_node;
   vector<vector< ExternalConnectionNode> >::iterator it1
-    = connect_mpi_.extern_connection_.end();
-  connect_mpi_.extern_connection_.insert(it1, n_poiss_nodes_, conn_node);
+    = connect_mpi_->extern_connection_.end();
+  connect_mpi_->extern_connection_.insert(it1, n_poiss_nodes_, conn_node);
 
   float lambda = rate*time_resolution_ / 1000.0; // rate is in Hz, time in ms
-  poiss_generator_.Create(i_node_0, n_poiss_nodes_, lambda);
+  poiss_generator_->Create(i_node_0, n_poiss_nodes_, lambda);
   
   return i_node_0;
 }
@@ -141,23 +164,23 @@ int NeuralGPU::CreateSpikeGenerator(int n_nodes)
 
   n_spike_gen_nodes_ = n_nodes;               
 
-  int i_node_0 = net_connection_.connection_.size();
+  int i_node_0 = net_connection_->connection_.size();
   
   vector<ConnGroup> conn;
   vector<vector<ConnGroup> >:: iterator it
-    = net_connection_.connection_.end();
-  net_connection_.connection_.insert(it, n_spike_gen_nodes_, conn);
+    = net_connection_->connection_.end();
+  net_connection_->connection_.insert(it, n_spike_gen_nodes_, conn);
 
-  if ((int)connect_mpi_.extern_connection_.size() != i_node_0) {
+  if ((int)connect_mpi_->extern_connection_.size() != i_node_0) {
     cerr << "Error: net_connection_.connection_ and "
       "connect_mpi_.extern_connection_ must have the same size!\n";
   }
   vector<ExternalConnectionNode > conn_node;
   vector<vector< ExternalConnectionNode> >::iterator it1
-    = connect_mpi_.extern_connection_.end();
-  connect_mpi_.extern_connection_.insert(it1, n_spike_gen_nodes_, conn_node);
+    = connect_mpi_->extern_connection_.end();
+  connect_mpi_->extern_connection_.insert(it1, n_spike_gen_nodes_, conn_node);
 
-  spike_generator_.Create(i_node_0, n_spike_gen_nodes_,
+  spike_generator_->Create(i_node_0, n_spike_gen_nodes_,
 			  t_min_, time_resolution_);
   
   return i_node_0;
@@ -181,28 +204,28 @@ int NeuralGPU::Simulate()
   
   float t_min = 0.0;
 
-  max_spike_num_ = net_connection_.connection_.size();
-  max_spike_per_host_ = net_connection_.connection_.size();
+  max_spike_num_ = net_connection_->connection_.size();
+  max_spike_per_host_ = net_connection_->connection_.size();
 
   SpikeInit(max_spike_num_);
   SpikeBufferInit(net_connection_, max_spike_buffer_num_);
 
   // remove superfluous argument mpi_np
-  connect_mpi_.ExternalSpikeInit(connect_mpi_.extern_connection_.size(),
-				 max_spike_num_, connect_mpi_.mpi_np_,
+  connect_mpi_->ExternalSpikeInit(connect_mpi_->extern_connection_.size(),
+				 max_spike_num_, connect_mpi_->mpi_np_,
 				 max_spike_per_host_);
-  InitGetSpikeArray(n_neurons_, aeif_.n_receptors_);
+  InitGetSpikeArray(n_neurons_, aeif_->n_receptors_);
 
   //////////////////////////////////////////////////
   //char filename[100];
   //sprintf(filename, "test_arr_%d.dat", connect_mpi_.mpi_id_);
   //FILE *fp=fopen(filename, "wb");
-  multimeter_.OpenFiles();
+  multimeter_->OpenFiles();
   
   int Nt=(int)round(sim_time_/time_resolution_);
   printf("%d\n", Nt);
 
-  aeif_.Calibrate(t_min);
+  aeif_->Calibrate(t_min);
 
   //float x;
   //float y;
@@ -211,11 +234,11 @@ int NeuralGPU::Simulate()
   //fprintf(fp,"%f\t%f\n", x, y);
 
 ///////////////////////////////////
-  multimeter_.WriteRecords();
+  multimeter_->WriteRecords();
   
   build_real_time_ = getRealTime();
   
-  cout << "Simulating on host " << connect_mpi_.mpi_id_ << " ..." <<endl;
+  cout << "Simulating on host " << connect_mpi_->mpi_id_ << " ..." <<endl;
 
   for (int it=0; it<Nt; it++) {
     float t1 = t_min_ + time_resolution_*(it + 1);
@@ -223,7 +246,7 @@ int NeuralGPU::Simulate()
       printf("%d\n", it);
 
     time_mark = getRealTime();
-    SpikeBufferUpdate<<<(net_connection_.connection_.size()+1023)/1024,
+    SpikeBufferUpdate<<<(net_connection_->connection_.size()+1023)/1024,
       1024>>>();
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -231,39 +254,21 @@ int NeuralGPU::Simulate()
 
     time_mark = getRealTime();
     if (n_poiss_nodes_>0) {
-      poiss_generator_.Update(Nt-it);
+      poiss_generator_->Update(Nt-it);
       poisson_generator_time += (getRealTime() - time_mark);
     }
 
     time_mark = getRealTime();
     if (n_spike_gen_nodes_>0) {
-      spike_generator_.Update(it);
+      spike_generator_->Update(it);
       spike_generator_time += (getRealTime() - time_mark);
     }
 
     time_mark = getRealTime();
-    aeif_.Update(it, t1);
+    aeif_->Update(it, t1);
     aeif_Update_time += (getRealTime() - time_mark);
     
-    //aeif_.GetX(test_arr_idx, 1, &x);
-    //aeif_.GetY(test_var_idx, test_arr_idx, 1, &y);
-    //fprintf(fp,"%f\t%f\n", x, y);
-
-/////////////////////////////
-// temp, remove
-/*
-  float yold=0;
-  for (int i=0; i<12500; i++) {
-    float y;
-    aeif_.GetY(0, i, 1, &y);
-    if (i>0 && y!=yold) {
-      cout << "here y " << y << " yold " << yold << endl;
-      exit(0);
-    }
-    yold = y;
-  }
-*/
-    multimeter_.WriteRecords();
+    multimeter_->WriteRecords();
     
     int n_ext_spike;
     time_mark = getRealTime();
@@ -280,17 +285,17 @@ int NeuralGPU::Simulate()
       SendExternalSpike_time += (getRealTime() - time_mark);
       
     }
-    for (int ih=0; ih<connect_mpi_.mpi_np_; ih++) {
+    for (int ih=0; ih<connect_mpi_->mpi_np_; ih++) {
 
-      if (ih == connect_mpi_.mpi_id_) {
+      if (ih == connect_mpi_->mpi_id_) {
 	time_mark = getRealTime();
-	connect_mpi_.SendSpikeToRemote(connect_mpi_.mpi_np_,
+	connect_mpi_->SendSpikeToRemote(connect_mpi_->mpi_np_,
 				       max_spike_per_host_);
 	SendSpikeToRemote_time += (getRealTime() - time_mark);
       }
       else {
 	time_mark = getRealTime();
-	connect_mpi_.RecvSpikeFromRemote(ih, max_spike_per_host_);
+	connect_mpi_->RecvSpikeFromRemote(ih, max_spike_per_host_);
 	RecvSpikeFromRemote_time += (getRealTime() - time_mark);
       }
     }
@@ -301,27 +306,17 @@ int NeuralGPU::Simulate()
 			 cudaMemcpyDeviceToHost));
     //cout << "n_spikes: " << n_spikes << endl;
     if (n_spikes > 0) {
-      prefix_scan_.Scan(d_SpikeTargetNumSum, d_SpikeTargetNum, n_spikes);
+      prefix_scan_->Scan(d_SpikeTargetNumSum, d_SpikeTargetNum, n_spikes);
       uint n_get_spikes;
       gpuErrchk(cudaMemcpy(&n_get_spikes, &d_SpikeTargetNumSum[n_spikes],
 			   sizeof(uint), cudaMemcpyDeviceToHost));
       PrefixScan_time += (getRealTime() - time_mark);
       if(n_get_spikes>0) {
-        ClearGetSpikeArray(n_neurons_, aeif_.n_receptors_);
-	// temporary, remove
-/*
-	uint myarr[4];
-	gpuErrchk(cudaMemcpy(myarr, d_SpikeTargetNum,
-			     4*sizeof(uint), cudaMemcpyDeviceToHost));
-	cout << "myarr " << myarr[0] << " "  << myarr[1] << " " 
-	     << myarr[2] << " "  << myarr[3] << endl;
-	////////////////////////////////
-	cout << "n_get_spikes: " << n_get_spikes << endl;
-*/
+        ClearGetSpikeArray(n_neurons_, aeif_->n_receptors_);
+
 	time_mark = getRealTime();
 	uint grid_dim_x, grid_dim_y;
 	if (n_get_spikes<65536*1024) { // max grid dim * max block dim
-	  //cout << "ok " << (n_get_spikes+1023)/1024 << endl;
 	  grid_dim_x = (n_get_spikes+1023)/1024;
 	  grid_dim_y = 1;
 	}
@@ -335,15 +330,14 @@ int NeuralGPU::Simulate()
 	  grid_dim_y = (n_get_spikes + grid_dim_x*1024 -1) / (grid_dim_x*1024);
 	}
 	dim3 numBlocks(grid_dim_x, grid_dim_y);
-	//cout << "ok " << grid_dim_x << " " << grid_dim_y << endl;
-	CollectSpikes<<<numBlocks, 1024>>>(n_get_spikes, aeif_.n_var_,
-				      aeif_.n_params_);
+	CollectSpikes<<<numBlocks, 1024>>>(n_get_spikes, aeif_->n_var_,
+				      aeif_->n_params_);
 	gpuErrchk( cudaPeekAtLastError() );
 	gpuErrchk( cudaDeviceSynchronize() );
 
         // improve using a grid
-        GetSpikes<<<(n_neurons_*aeif_.n_receptors_+1023)/1024, 1024>>>
-                    (aeif_.n_receptors_);
+        GetSpikes<<<(n_neurons_*aeif_->n_receptors_+1023)/1024, 1024>>>
+                    (aeif_->n_receptors_);
 	gpuErrchk( cudaPeekAtLastError() );
 	gpuErrchk( cudaDeviceSynchronize() );
 
@@ -364,7 +358,7 @@ int NeuralGPU::Simulate()
   }
   end_real_time_ = getRealTime();
   //fclose(fp);
-  multimeter_.CloseFiles();
+  multimeter_->CloseFiles();
   //aeif.rk5.Free();
 
 #ifdef VERBOSE_TIME
@@ -393,7 +387,7 @@ int NeuralGPU::Simulate()
 int NeuralGPU::CreateRecord(string file_name, string var_name, int *i_neurons,
 			    int n_neurons)
 {
-  return multimeter_.CreateRecord(&aeif_, file_name, var_name, i_neurons,
+  return multimeter_->CreateRecord(aeif_, file_name, var_name, i_neurons,
 				  n_neurons);
 }
 
@@ -414,7 +408,7 @@ int NeuralGPU::ConnectFixedIndegree
       int j = i + rand() % (n_source_neurons - i);
       swap(input_array[i], input_array[j]);
       int isn = input_array[i];
-      net_connection_.Connect(isn, itn, i_port, weight, delay);
+      net_connection_->Connect(isn, itn, i_port, weight, delay);
     }
   }
 
@@ -438,7 +432,7 @@ int NeuralGPU::RemoteConnectFixedIndegree
       int j = i + rand() % (n_source_neurons - i);
       swap(input_array[i], input_array[j]);
       int isn = input_array[i];
-      connect_mpi_.RemoteConnect(i_source_host, isn, i_target_host, itn,
+      connect_mpi_->RemoteConnect(i_source_host, isn, i_target_host, itn,
 				 i_port, weight, delay);
     }
   }
@@ -457,7 +451,7 @@ int NeuralGPU::ConnectAllToAll
        itn++) {
     for (int isn=i_source_neuron_0; isn<i_source_neuron_0+n_source_neurons;
 	 isn++) {
-      net_connection_.Connect(isn, itn, i_port, weight, delay);
+      net_connection_->Connect(isn, itn, i_port, weight, delay);
     }
   }
 
@@ -475,7 +469,7 @@ int NeuralGPU::RemoteConnectAllToAll
        itn++) {
     for (int isn=i_source_neuron_0; isn<i_source_neuron_0+n_source_neurons;
 	 isn++) {
-      connect_mpi_.RemoteConnect(i_source_host, isn, i_target_host, itn,
+      connect_mpi_->RemoteConnect(i_source_host, isn, i_target_host, itn,
 				 i_port, weight, delay);
     }
   }
@@ -490,7 +484,7 @@ int NeuralGPU::ConnectOneToOne
  )
 {
   for (int in=0; in<n_neurons; in++) {
-    net_connection_.Connect(i_source_neuron_0+in,i_target_neuron_0+in ,
+    net_connection_->Connect(i_source_neuron_0+in,i_target_neuron_0+in ,
 			    i_port, weight, delay);
   }
 
@@ -505,7 +499,7 @@ int NeuralGPU::RemoteConnectOneToOne
  )
 {
   for (int in=0; in<n_neurons; in++) {
-    connect_mpi_.RemoteConnect(i_source_host, i_source_neuron_0+in,
+    connect_mpi_->RemoteConnect(i_source_host, i_source_neuron_0+in,
 			       i_target_host, i_target_neuron_0+in,
 			       i_port, weight, delay);
   }
@@ -517,17 +511,52 @@ int NeuralGPU::RemoteConnectOneToOne
 int NeuralGPU::SetNeuronParams(string param_name, int i_node, int n_neurons,
 			       float val)
 {
-  int i_neuron = i_node - aeif_.i_node_0_;
+  int i_neuron = i_node - aeif_->i_node_0_;
   
-  return aeif_.SetParams(param_name, i_neuron, n_neurons, val);
+  return aeif_->SetParams(param_name, i_neuron, n_neurons, val);
 }
 
 int NeuralGPU::SetNeuronVectParams(string param_name, int i_node, int n_neurons,
 				   float *params, int vect_size)
 {
-  int i_neuron = i_node - aeif_.i_node_0_;
+  int i_neuron = i_node - aeif_->i_node_0_;
   
-  return aeif_.SetVectParams(param_name, i_neuron, n_neurons, params,
+  return aeif_->SetVectParams(param_name, i_neuron, n_neurons, params,
 			     vect_size);
+}
+
+int NeuralGPU::ConnectMpiInit(int argc, char *argv[])
+{
+  return connect_mpi_->MpiInit(argc, argv);
+}
+
+int NeuralGPU::MpiId()
+{
+  return connect_mpi_->mpi_id_;
+}
+
+int NeuralGPU::MpiNp()
+{
+  return connect_mpi_->mpi_np_;
+}
+
+int NeuralGPU::ProcMaster()
+{
+  return connect_mpi_->ProcMaster();
+}
+
+int NeuralGPU::ConnectMpiQuit()
+{
+  return connect_mpi_->Quit();
+}
+
+int NeuralGPU::ConnectMpiReceiveCommands()
+{
+  return connect_mpi_->ReceiveCommands();
+}
+
+int NeuralGPU::MpiFinalize()
+{
+  return MPI_Finalize();
 }
 

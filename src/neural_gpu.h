@@ -15,27 +15,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef NEURAL_GPU_H
 #define NEURAL_GPU_H
 
-#include "connect.h"
-#include "connect_mpi.h"
-#include "poisson.h"
-#include "aeif.h"
-#include "prefix_scan.h"
-#include "spike_generator.h"
-#include "multimeter.h"
+//#include "connect.h"
+//#include "connect_mpi.h"
+//#include "poisson.h"
+//#include "aeif.h"
+//#include "prefix_scan.h"
+//#include "spike_generator.h"
+//#include "multimeter.h"
+
+class PoissonGenerator;
+class SpikeGenerator;
+class Multimeter;
+class AEIF;
+class NetConnection;
+class ConnectMpi;
+class PrefixScan;
+
 
 class NeuralGPU
 {
   float time_resolution_; // time resolution in ms
  public:
-  PoissonGenerator poiss_generator_;
-  SpikeGenerator spike_generator_;
-  Multimeter multimeter_;
-  AEIF aeif_;
+  PoissonGenerator *poiss_generator_;
+  SpikeGenerator *spike_generator_;
+  Multimeter *multimeter_;
+  AEIF *aeif_;
   
-  NetConnection net_connection_;
-  ConnectMpi connect_mpi_;
+  NetConnection *net_connection_;
+  ConnectMpi *connect_mpi_;
 
-  PrefixScan prefix_scan_;
+  PrefixScan *prefix_scan_;
   
   int max_spike_buffer_num_;
   int max_spike_num_;
@@ -53,7 +62,7 @@ class NeuralGPU
     
   NeuralGPU();
 
-  //~NeuralGPU();
+  ~NeuralGPU();
 
   int SetTimeResolution(float time_res);
 
@@ -115,6 +124,20 @@ class NeuralGPU
 
   int SetNeuronVectParams(std::string param_name, int i_node, int n_neurons,
 			  float *params, int vect_size);
+
+  int ConnectMpiInit(int argc, char *argv[]);
+
+  int MpiId();
+
+  int MpiNp();
+
+  int ProcMaster();
+
+  int ConnectMpiQuit();
+
+  int ConnectMpiReceiveCommands();
+
+  int MpiFinalize();
 
 };
 

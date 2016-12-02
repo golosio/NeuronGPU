@@ -142,10 +142,10 @@ __global__ void SpikeBufferUpdate()
   }
 }
 
-int SpikeBufferInit(NetConnection &net_connection, int max_spike_buffer_size)
+int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
 {
-  int n_spike_buffers = net_connection.connection_.size();
-  int max_delay_num = net_connection.MaxDelayNum();
+  int n_spike_buffers = net_connection->connection_.size();
+  int max_delay_num = net_connection->MaxDelayNum();
   
   int *h_ConnectionGroupSize = new int[n_spike_buffers];
   int *h_ConnectionGroupDelay = new int[n_spike_buffers*max_delay_num];
@@ -178,7 +178,7 @@ int SpikeBufferInit(NetConnection &net_connection, int max_spike_buffer_size)
 		     n_spike_buffers*max_delay_num*sizeof(float*)));
 
   for (int i_source=0; i_source<n_spike_buffers; i_source++) {
-    vector<ConnGroup> *conn = &(net_connection.connection_[i_source]);
+    vector<ConnGroup> *conn = &(net_connection->connection_[i_source]);
     h_ConnectionGroupSize[i_source] = conn->size();
     for (unsigned int id=0; id<conn->size(); id++) {
       h_ConnectionGroupDelay[id*n_spike_buffers+i_source] = conn->at(id).delay;

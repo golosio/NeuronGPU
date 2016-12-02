@@ -78,6 +78,6 @@ __global__ void DeviceSpikeBufferInit(int n_spike_buffer, int max_delay_num,
 				int *spike_buffer_size, int *spike_buffer_time,
 				int *spike_buffer_conn,
 				float *spike_buffer_height);
-int SpikeBufferInit(NetConnection &net_connection, int max_spike_buffer_size);
+int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size);
 
 #endif

@@ -12,18 +12,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <mpi.h>
-#include "connect.h"
-#include "spike_buffer.h"
-#include "rk5.h"
-#include "aeif.h"
-#include "send_spike.h"
-#include "get_spike.h"
-#include "connect_mpi.h"
-#include "spike_mpi.h"
 #include "neural_gpu.h"
 
 using namespace std;
@@ -31,12 +23,17 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   NeuralGPU neural_gpu;
-  neural_gpu.connect_mpi_.MpiInit(argc, argv);
-  int mpi_id = neural_gpu.connect_mpi_.mpi_id_;
-  cout << "Building on host " << neural_gpu.connect_mpi_.mpi_id_
-       << " ..." <<endl;
-
-  neural_gpu.max_spike_buffer_num_=10; //reduce it to save GPU memory
+  neural_gpu.ConnectMpiInit(argc, argv);
+  int mpi_np = neural_gpu.MpiNp();
+  if (mpi_np != 2) {
+    cerr << "Usage: mpirun -np 2 brunel_mpi\n";
+    return -1;
+  }
+  
+  int mpi_id = neural_gpu.MpiId();
+  cout << "Building on host " << mpi_id << " ..." <<endl;
+  
+  neural_gpu.max_spike_buffer_num_=50; //reduce it to save GPU memory
   
   //////////////////////////////////////////////////////////////////////
   // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
@@ -45,8 +42,7 @@ int main(int argc, char *argv[])
 
   float delay = 1.0;       // synaptic delay in ms
 
-
-  int order = 200000;
+  int order = 2500;
   int NE = 4 * order;      // number of excitatory neurons
   int NI = 1 * order;      // number of inhibitory neurons
   int n_neurons = NE + NI; // number of neurons in total
@@ -81,17 +77,17 @@ int main(int argc, char *argv[])
   // create poisson generator
   int pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
 
-  // Excitatory connections
+  // Excitatory local connections, defined on all hosts
   // connect excitatory neurons to port 0 of all neurons
-  // weight Wex and fixed indegree CE
+  // weight Wex and fixed indegree CE*3/4
   neural_gpu.ConnectFixedIndegree(exc_neuron, NE, neuron, n_neurons,
-				  0, Wex, delay, CE);
+				  0, Wex, delay, CE*3/4);
 
-  // Inhibitory connections
+  // Inhibitory local connections, defined on all hosts
   // connect inhibitory neurons to port 1 of all neurons
-  // weight Win and fixed indegree CI
+  // weight Win and fixed indegree CI*3/4
   neural_gpu.ConnectFixedIndegree(inh_neuron, NI, neuron, n_neurons,
-				  1, Win, delay, CI);
+				  1, Win, delay, CI*3/4);
 
   // connect poisson generator to port 0 of all neurons
   neural_gpu.ConnectAllToAll(pg, n_pg, neuron, n_neurons, 0, poiss_weight,
@@ -99,13 +95,51 @@ int main(int argc, char *argv[])
   
   char filename[100];
   sprintf(filename, "test_brunel_%d.dat", mpi_id);
-  int i_neurons[] = {2000, 500000, 800000}; // any set of neuron indexes
+  int i_neurons[] = {2000, 8000, 9999}; // any set of neuron indexes
   // create multimeter record of V_m
   neural_gpu.CreateRecord(string(filename), "V_m", i_neurons, 3);
   
+  if (neural_gpu.ProcMaster()) {
+    //////////////////////////////////////////////////////////////////////
+    // WRITE HERE COMMANDS LAUNCHED BY THE MPI MASTER ON SPECIFIC HOSTS
+    //////////////////////////////////////////////////////////////////////
+
+    // Excitatory remote connections
+    // connect excitatory neurons to port 0 of all neurons
+    // weight Wex and fixed indegree CE-CE*3/4
+    // host 0 to host 1
+    neural_gpu.RemoteConnectFixedIndegree(0, exc_neuron, NE,
+					  1, neuron, n_neurons,
+					  0, Wex, delay, CE-CE*3/4);
+    // host 1 to host 0
+    neural_gpu.RemoteConnectFixedIndegree(1, exc_neuron, NE,
+					  0, neuron, n_neurons,
+					  0, Wex, delay, CE-CE*3/4);
+
+    // Inhibitory remote connections
+    // connect inhibitory neurons to port 1 of all neurons
+    // weight Win and fixed indegree CI-CI*3/4
+    // host 0 to host 1
+    neural_gpu.RemoteConnectFixedIndegree(0, inh_neuron, NI,
+					  1, neuron, n_neurons,
+					  1, Win, delay, CI-CI*3/4);
+    // host 1 to host 0
+    neural_gpu.RemoteConnectFixedIndegree(1, inh_neuron, NI,
+					  0, neuron, n_neurons,
+					  1, Win, delay, CI-CI*3/4);
+
+    neural_gpu.ConnectMpiQuit();
+  }
+  else {
+    neural_gpu.ConnectMpiReceiveCommands();
+  }
+  //////////////////////////////////////////////////////////////////////
+  // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
+  //////////////////////////////////////////////////////////////////////
+
   neural_gpu.Simulate();
 
-  MPI_Finalize();
+  neural_gpu.MpiFinalize();
 
   return 0;
 }

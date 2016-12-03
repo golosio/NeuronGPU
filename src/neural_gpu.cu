@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <algorithm>
 #include <mpi.h>
+#include <curand.h>
 //#include "connect.h"
 #include "spike_buffer.h"
 #include "rk5.h"
@@ -38,6 +39,10 @@ using namespace std;
 
 NeuralGPU::NeuralGPU()
 {
+  random_generator_ = new curandGenerator_t;
+  CURAND_CALL(curandCreateGenerator(random_generator_,
+				    CURAND_RNG_PSEUDO_DEFAULT));
+  SetRandomSeed(1234ULL);                                 
   poiss_generator_ = new PoissonGenerator;
   spike_generator_ = new SpikeGenerator;
   multimeter_ = new Multimeter;
@@ -64,6 +69,7 @@ NeuralGPU::NeuralGPU()
 
 NeuralGPU::~NeuralGPU()
 {
+  CURAND_CALL(curandDestroyGenerator(*random_generator_));
   delete poiss_generator_;
   delete spike_generator_;
   delete multimeter_;
@@ -71,6 +77,13 @@ NeuralGPU::~NeuralGPU()
   delete net_connection_;
   delete connect_mpi_;
   delete prefix_scan_;
+}
+
+int NeuralGPU::SetRandomSeed(unsigned long long seed)
+{
+  CURAND_CALL(curandSetPseudoRandomGeneratorSeed(*random_generator_, seed));
+
+  return 0;
 }
 
 int NeuralGPU::SetTimeResolution(float time_res)
@@ -146,7 +159,7 @@ int NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
   connect_mpi_->extern_connection_.insert(it1, n_poiss_nodes_, conn_node);
 
   float lambda = rate*time_resolution_ / 1000.0; // rate is in Hz, time in ms
-  poiss_generator_->Create(i_node_0, n_poiss_nodes_, lambda);
+  poiss_generator_->Create(random_generator_, i_node_0, n_poiss_nodes_, lambda);
   
   return i_node_0;
 }

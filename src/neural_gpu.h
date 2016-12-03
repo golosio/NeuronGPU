@@ -23,6 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#include "spike_generator.h"
 //#include "multimeter.h"
 
+//class curandGenerator_t;
+struct curandGenerator_st;
+typedef struct curandGenerator_st* curandGenerator_t;
 class PoissonGenerator;
 class SpikeGenerator;
 class Multimeter;
@@ -35,6 +38,7 @@ class PrefixScan;
 class NeuralGPU
 {
   float time_resolution_; // time resolution in ms
+  curandGenerator_t *random_generator_;
  public:
   PoissonGenerator *poiss_generator_;
   SpikeGenerator *spike_generator_;
@@ -63,6 +67,8 @@ class NeuralGPU
   NeuralGPU();
 
   ~NeuralGPU();
+
+  int SetRandomSeed(unsigned long long seed);
 
   int SetTimeResolution(float time_res);
 

@@ -20,13 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "spike_buffer.h"
 #include "cuda_error.h"
 
-#define CUDA_CALL(x) do { if((x) != cudaSuccess) { \
-      printf("Error at %s:%d\n",__FILE__,__LINE__);     \
-      return EXIT_FAILURE;}} while(0)
-#define CURAND_CALL(x) do { if((x) != CURAND_STATUS_SUCCESS) { \
-      printf("Error at %s:%d\n",__FILE__,__LINE__);            \
-      return EXIT_FAILURE;}} while(0)
-
 __device__ unsigned int *PoissonData;
 
 __global__ void PoissonUpdate(unsigned int *poisson_data)
@@ -47,16 +40,13 @@ void PoissonSendSpikes(int i_node_0, int n_nodes)
   }
 }
 
-int PoissonGenerator::Init(unsigned int n)
+int PoissonGenerator::Init(curandGenerator_t *random_generator, unsigned int n)
 {
   poisson_data_size_ = n;
-  // Allocate n floats on device
+  // Allocate n integers on device
   CUDA_CALL(cudaMalloc((void **)&dev_poisson_data_, n * sizeof(unsigned int)));
-  // Create pseudo-random number generator
-  CURAND_CALL(curandCreateGenerator(&random_generator_,
-                                    CURAND_RNG_PSEUDO_DEFAULT));
-  // Set seed
-  CURAND_CALL(curandSetPseudoRandomGeneratorSeed(random_generator_, 1234ULL));
+
+  random_generator_ = random_generator;
 
   return 0;
 }
@@ -75,7 +65,7 @@ int PoissonGenerator::Generate(int max_n_steps)
     more_steps_ = min(n_steps_, max_n_steps);
   }
   // Generate N floats on device
-  CURAND_CALL(curandGeneratePoisson(random_generator_, dev_poisson_data_,
+  CURAND_CALL(curandGeneratePoisson(*random_generator_, dev_poisson_data_,
 				    n_nodes_*more_steps_, lambda_));
 
   return 0;
@@ -83,7 +73,6 @@ int PoissonGenerator::Generate(int max_n_steps)
 
 int PoissonGenerator::Free()
 {
-  CURAND_CALL(curandDestroyGenerator(random_generator_));
   CUDA_CALL(cudaFree(dev_poisson_data_));
 
   return 0;
@@ -100,7 +89,8 @@ PoissonGenerator::PoissonGenerator()
   n_nodes_ = 0;
 }
 
-int PoissonGenerator::Create(int i_node_0, int n_nodes, float lambda)
+int PoissonGenerator::Create(curandGenerator_t *random_generator,
+			     int i_node_0, int n_nodes, float lambda)
 {
   i_node_0_ = i_node_0;
   n_nodes_ = n_nodes;
@@ -109,7 +99,7 @@ int PoissonGenerator::Create(int i_node_0, int n_nodes, float lambda)
   n_steps_ = (buffer_size_ - 1)/n_nodes + 1;
   // with the above formula:
   // buffer_size <= n_nodes*n_steps <= buffer_size + n_nodes - 1
-  Init(n_nodes_*n_steps_);
+  Init(random_generator, n_nodes_*n_steps_);
   i_step_ = 0;
        
   return 0;

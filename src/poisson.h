@@ -21,7 +21,7 @@ extern __device__ unsigned int *PoissonData;
 
 class PoissonGenerator
 {
-  curandGenerator_t random_generator_;
+  curandGenerator_t *random_generator_;
   unsigned int *dev_poisson_data_;
   int poisson_data_size_;
 
@@ -33,7 +33,7 @@ class PoissonGenerator
   int i_node_0_;
 
   
-  int Init(unsigned int n);
+  int Init(curandGenerator_t *random_generator, unsigned int n);
 
  public:
   int n_nodes_;
@@ -44,7 +44,8 @@ class PoissonGenerator
 
   int Free();
   
-  int Create(int i_node_0, int n_nodes, float lambda);
+  int Create(curandGenerator_t *random_generator,
+	     int i_node_0, int n_nodes, float lambda);
   
   int Generate();
 

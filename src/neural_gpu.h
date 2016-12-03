@@ -148,6 +148,8 @@ class NeuralGPU
   int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 			float *spike_height);
   
+  unsigned int *RandomInt(size_t n);
+    
 };
 
 #endif

@@ -6,8 +6,6 @@
 
 unsigned int *curand_int(curandGenerator_t &gen, size_t n)
 {
-  size_t i;
-
   unsigned int *devData, *hostData;
   // Allocate n integers on host
   hostData = (unsigned int *)calloc(n, sizeof(unsigned int));

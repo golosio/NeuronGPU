@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "multimeter.h"
 #include "prefix_scan.h"
 #include "getRealTime.h"
+#include "random.h"
 #include "neural_gpu.h"
 
 
@@ -578,4 +579,10 @@ int NeuralGPU::SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 {
   return spike_generator_->Set(i_node, n_spikes, spike_time, spike_height);
 }
+
+unsigned int *NeuralGPU::RandomInt(size_t n)
+{
+  return curand_int(*random_generator_, n);
+}
+
 

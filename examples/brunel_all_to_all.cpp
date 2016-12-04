@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
   int mpi_id = neural_gpu.MpiId();
   cout << "Building on host " << mpi_id << " ..." <<endl;
 
-  neural_gpu.max_spike_buffer_num_=10; //reduce it to save GPU memory
+  neural_gpu.max_spike_buffer_num_=50; //reduce it to save GPU memory
   
   //////////////////////////////////////////////////////////////////////
   // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
@@ -36,13 +36,10 @@ int main(int argc, char *argv[])
 
   float delay = 1.0;       // synaptic delay in ms
 
-  int order = 200000;
+  int order = 200;
   int NE = 4 * order;      // number of excitatory neurons
   int NI = 1 * order;      // number of inhibitory neurons
   int n_neurons = NE + NI; // number of neurons in total
-
-  int CE = 800;  // number of excitatory synapses per neuron
-  int CI = CE/4;  // number of inhibitory synapses per neuron
 
   float Wex = 0.04995;
   float Win = 0.35;
@@ -71,15 +68,15 @@ int main(int argc, char *argv[])
 
   // Excitatory connections
   // connect excitatory neurons to port 0 of all neurons
-  // weight Wex and fixed indegree CE
-  neural_gpu.ConnectFixedIndegree(exc_neuron, NE, neuron, n_neurons,
-				  0, Wex, delay, CE);
+  // weight Wex
+  neural_gpu.ConnectAllToAll(exc_neuron, NE, neuron, n_neurons,
+  			     0, Wex, delay);
 
   // Inhibitory connections
   // connect inhibitory neurons to port 1 of all neurons
-  // weight Win and fixed indegree CI
-  neural_gpu.ConnectFixedIndegree(inh_neuron, NI, neuron, n_neurons,
-				  1, Win, delay, CI);
+  // weight Win
+  neural_gpu.ConnectAllToAll(inh_neuron, NI, neuron, n_neurons,
+  			     1, Win, delay);
 
   // connect poisson generator to port 0 of all neurons
   neural_gpu.ConnectAllToAll(pg, n_pg, neuron, n_neurons, 0, poiss_weight,
@@ -87,10 +84,10 @@ int main(int argc, char *argv[])
   
   char filename[100];
   sprintf(filename, "test_brunel_%d.dat", mpi_id);
-  int i_neurons[] = {2000, 500000, 800000}; // any set of neuron indexes
+  int i_neurons[] = {200, 800, 999}; // any set of neuron indexes
   // create multimeter record of V_m
   neural_gpu.CreateRecord(string(filename), "V_m", i_neurons, 3);
-  
+
   neural_gpu.SetRandomSeed(1234ULL); // just to have same results in different simulations
   neural_gpu.Simulate();
 

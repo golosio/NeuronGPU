@@ -33,6 +33,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "random.h"
 #include "neural_gpu.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#define THREAD_MAXNUM omp_get_max_threads()
+#define THREAD_IDX omp_get_thread_num()
+#else
+#define THREAD_MAXNUM 1
+#define THREAD_IDX 0
+#endif
 
 using namespace std;
 
@@ -43,7 +51,6 @@ NeuralGPU::NeuralGPU()
   random_generator_ = new curandGenerator_t;
   CURAND_CALL(curandCreateGenerator(random_generator_,
 				    CURAND_RNG_PSEUDO_DEFAULT));
-  SetRandomSeed(1234ULL);                                 
   poiss_generator_ = new PoissonGenerator;
   spike_generator_ = new SpikeGenerator;
   multimeter_ = new Multimeter;
@@ -51,12 +58,11 @@ NeuralGPU::NeuralGPU()
   net_connection_ = new NetConnection;
   connect_mpi_ = new ConnectMpi;
   prefix_scan_ = new PrefixScan;
+
+  SetRandomSeed(54321ULL);
   
   start_real_time_ = getRealTime();
   max_spike_buffer_num_ = 100;
-  //net_connection_.max_delay_num_ = 100;
-  //max_spike_num_ = 30000;
-  //max_spike_per_host_ = 30000;
   t_min_ = 0.0;
   sim_time_ = 1000.0;        //Simulation time in ms
   n_neurons_ = 0;
@@ -82,7 +88,12 @@ NeuralGPU::~NeuralGPU()
 
 int NeuralGPU::SetRandomSeed(unsigned long long seed)
 {
+  CURAND_CALL(curandDestroyGenerator(*random_generator_));
+  random_generator_ = new curandGenerator_t;
+  CURAND_CALL(curandCreateGenerator(random_generator_,
+				    CURAND_RNG_PSEUDO_DEFAULT));
   CURAND_CALL(curandSetPseudoRandomGeneratorSeed(*random_generator_, seed));
+  poiss_generator_->random_generator_ = random_generator_;
 
   return 0;
 }
@@ -412,20 +423,46 @@ int NeuralGPU::ConnectFixedIndegree
  unsigned char i_port, float weight, float delay, int indegree
  )
 {
+  unsigned int *rnd = RandomInt(n_target_neurons*indegree);
   vector<int> input_array;
   for (int i=0; i<n_source_neurons; i++) {
     input_array.push_back(i_source_neuron_0 + i);
   }
-  for (int itn=i_target_neuron_0; itn<i_target_neuron_0+n_target_neurons;
-       itn++) {
+#ifdef _OPENMP
+  omp_lock_t *lock = new omp_lock_t[n_source_neurons];
+  for (int i=0; i<n_source_neurons; i++) {
+    omp_init_lock(&(lock[i]));
+  }
+#pragma omp parallel for default(shared) collapse(2)
+#endif
+  for (int k=0; k<n_target_neurons; k++) {
     for (int i=0; i<indegree; i++) {
-      int j = i + rand() % (n_source_neurons - i);
-      swap(input_array[i], input_array[j]);
+      int j = i + rnd[k*indegree+i] % (n_source_neurons - i);
+#ifdef _OPENMP
+      omp_set_lock(&(lock[i]));
+#endif
+      if (j!=i) {
+#ifdef _OPENMP
+	omp_set_lock(&(lock[j]));
+#endif
+	swap(input_array[i], input_array[j]);
+#ifdef _OPENMP
+	omp_unset_lock(&(lock[j]));
+#endif
+      }
+      int itn = k + i_target_neuron_0;
       int isn = input_array[i];
       net_connection_->Connect(isn, itn, i_port, weight, delay);
+#ifdef _OPENMP
+      omp_unset_lock(&(lock[i]));
+#endif
     }
   }
-
+  delete[] rnd;
+#ifdef _OPENMP
+  delete[] lock;
+#endif
+  
   return 0;
 }
 
@@ -436,21 +473,47 @@ int NeuralGPU::RemoteConnectFixedIndegree
  unsigned char i_port, float weight, float delay, int indegree
  )
 {
+  unsigned int *rnd = RandomInt(n_target_neurons*indegree);
   vector<int> input_array;
   for (int i=0; i<n_source_neurons; i++) {
     input_array.push_back(i_source_neuron_0 + i);
   }
-  for (int itn=i_target_neuron_0; itn<i_target_neuron_0+n_target_neurons;
-       itn++) {
+#ifdef _OPENMP
+  omp_lock_t *lock = new omp_lock_t[n_source_neurons];
+  for (int i=0; i<n_source_neurons; i++) {
+    omp_init_lock(&(lock[i]));
+  }
+#pragma omp parallel for default(shared) collapse(2)
+#endif
+  for (int k=0; k<n_target_neurons; k++) {
     for (int i=0; i<indegree; i++) {
-      int j = i + rand() % (n_source_neurons - i);
-      swap(input_array[i], input_array[j]);
+      int j = i + rnd[k*indegree+i] % (n_source_neurons - i);
+#ifdef _OPENMP
+      omp_set_lock(&(lock[i]));
+#endif
+      if (j!=i) {
+#ifdef _OPENMP
+	omp_set_lock(&(lock[j]));
+#endif
+	swap(input_array[i], input_array[j]);
+#ifdef _OPENMP
+	omp_unset_lock(&(lock[j]));
+#endif
+      }
+      int itn = k + i_target_neuron_0;
       int isn = input_array[i];
       connect_mpi_->RemoteConnect(i_source_host, isn, i_target_host, itn,
 				 i_port, weight, delay);
+#ifdef _OPENMP
+      omp_unset_lock(&(lock[i]));
+#endif
     }
   }
-
+  delete[] rnd;
+#ifdef _OPENMP
+  delete[] lock;
+#endif
+  
   return 0;
 }
 
@@ -461,13 +524,30 @@ int NeuralGPU::ConnectAllToAll
  unsigned char i_port, float weight, float delay
  )
 {
+#ifdef _OPENMP
+  omp_lock_t *lock = new omp_lock_t[n_source_neurons];
+  for (int i=0; i<n_source_neurons; i++) {
+    omp_init_lock(&(lock[i]));
+  }
+#pragma omp parallel for default(shared) collapse(2)
+#endif
   for (int itn=i_target_neuron_0; itn<i_target_neuron_0+n_target_neurons;
        itn++) {
-    for (int isn=i_source_neuron_0; isn<i_source_neuron_0+n_source_neurons;
-	 isn++) {
+    for (int i=0; i<n_source_neurons; i++) {
+      int isn = i_source_neuron_0 + i;
+#ifdef _OPENMP
+      omp_set_lock(&(lock[i]));
+#endif
       net_connection_->Connect(isn, itn, i_port, weight, delay);
+#ifdef _OPENMP
+      omp_unset_lock(&(lock[i]));
+#endif
     }
   }
+
+#ifdef _OPENMP
+  delete[] lock;
+#endif
 
   return 0;
 }
@@ -479,15 +559,31 @@ int NeuralGPU::RemoteConnectAllToAll
  unsigned char i_port, float weight, float delay
  )
 {
+#ifdef _OPENMP
+  omp_lock_t *lock = new omp_lock_t[n_source_neurons];
+  for (int i=0; i<n_source_neurons; i++) {
+    omp_init_lock(&(lock[i]));
+  }
+#pragma omp parallel for default(shared) collapse(2)
+#endif
   for (int itn=i_target_neuron_0; itn<i_target_neuron_0+n_target_neurons;
        itn++) {
-    for (int isn=i_source_neuron_0; isn<i_source_neuron_0+n_source_neurons;
-	 isn++) {
+    for (int i=0; i<n_source_neurons; i++) {
+      int isn = i_source_neuron_0 + i;
+#ifdef _OPENMP
+      omp_set_lock(&(lock[i]));
+#endif
       connect_mpi_->RemoteConnect(i_source_host, isn, i_target_host, itn,
 				 i_port, weight, delay);
+#ifdef _OPENMP
+      omp_unset_lock(&(lock[i]));
+#endif
     }
   }
-  
+#ifdef _OPENMP
+  delete[] lock;
+#endif
+
   return 0;
 }
 

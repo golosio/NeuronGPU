@@ -36,8 +36,6 @@ int main(int argc, char *argv[])
 
   float delay = 1.0;       // synaptic delay in ms
 
-
-  //int order = 2500;
   int order = 2500;
   int NE = 4 * order;      // number of excitatory neurons
   int NI = 1 * order;      // number of inhibitory neurons
@@ -49,8 +47,6 @@ int main(int argc, char *argv[])
   float Wex = 0.04995;
   float Win = 0.35;
 
-  srand(12345); // seed for CPU random numbers
-  
   // each host has n_neurons neurons with n_receptor receptor ports
   int neuron = neural_gpu.CreateNeuron(n_neurons, n_receptors);
   int exc_neuron = neuron;      // excitatory neuron id
@@ -94,7 +90,8 @@ int main(int argc, char *argv[])
   int i_neurons[] = {2000, 8000, 9999}; // any set of neuron indexes
   // create multimeter record of V_m
   neural_gpu.CreateRecord(string(filename), "V_m", i_neurons, 3);
-  
+
+  neural_gpu.SetRandomSeed(1234ULL); // just to have same results in different simulations
   neural_gpu.Simulate();
 
   neural_gpu.MpiFinalize();

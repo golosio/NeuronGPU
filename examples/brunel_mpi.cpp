@@ -53,8 +53,6 @@ int main(int argc, char *argv[])
   float Wex = 0.04995;
   float Win = 0.35;
 
-  srand(12345); // seed for CPU random numbers
-  
   // each host has n_neurons neurons with n_receptor receptor ports
   int neuron = neural_gpu.CreateNeuron(n_neurons, n_receptors);
   int exc_neuron = neuron;      // excitatory neuron id
@@ -137,6 +135,7 @@ int main(int argc, char *argv[])
   // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
   //////////////////////////////////////////////////////////////////////
 
+  neural_gpu.SetRandomSeed(1234ULL); // just to have same results in different simulations
   neural_gpu.Simulate();
 
   neural_gpu.MpiFinalize();

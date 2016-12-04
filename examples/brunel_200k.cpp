@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
   float delay = 1.0;       // synaptic delay in ms
 
-  int order = 200000;
+  int order = 40000;
   int NE = 4 * order;      // number of excitatory neurons
   int NI = 1 * order;      // number of inhibitory neurons
   int n_neurons = NE + NI; // number of neurons in total
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
   
   char filename[100];
   sprintf(filename, "test_brunel_%d.dat", mpi_id);
-  int i_neurons[] = {2000, 500000, 800000}; // any set of neuron indexes
+  int i_neurons[] = {2000, 50000, 190000}; // any set of neuron indexes
   // create multimeter record of V_m
   neural_gpu.CreateRecord(string(filename), "V_m", i_neurons, 3);
   

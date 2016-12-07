@@ -401,10 +401,10 @@ int NeuralGPU::Simulate()
   cout << "  SpikeReset_time: " << SpikeReset_time << endl;
   cout << "  ExternalSpikeReset_time: " << ExternalSpikeReset_time << endl;
 #endif
-  fprintf( stderr, "Build real time = %lf\n",
-	   (build_real_time_ - start_real_time_));
-  fprintf( stderr, "Simulation real time = %lf\n",
-	   (end_real_time_ - build_real_time_));
+  printf("Build real time = %lf\n",
+	 (build_real_time_ - start_real_time_));
+  printf("Simulation real time = %lf\n",
+	 (end_real_time_ - build_real_time_));
 
   return 0;
 }

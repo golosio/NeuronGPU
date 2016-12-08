@@ -478,41 +478,19 @@ int NeuralGPU::RemoteConnectFixedIndegree
   for (int i=0; i<n_source_neurons; i++) {
     input_array.push_back(i_source_neuron_0 + i);
   }
-#ifdef _OPENMP
-  omp_lock_t *lock = new omp_lock_t[n_source_neurons];
-  for (int i=0; i<n_source_neurons; i++) {
-    omp_init_lock(&(lock[i]));
-  }
-#pragma omp parallel for default(shared) collapse(2)
-#endif
   for (int k=0; k<n_target_neurons; k++) {
     for (int i=0; i<indegree; i++) {
       int j = i + rnd[k*indegree+i] % (n_source_neurons - i);
-#ifdef _OPENMP
-      omp_set_lock(&(lock[i]));
-#endif
       if (j!=i) {
-#ifdef _OPENMP
-	omp_set_lock(&(lock[j]));
-#endif
 	swap(input_array[i], input_array[j]);
-#ifdef _OPENMP
-	omp_unset_lock(&(lock[j]));
-#endif
       }
       int itn = k + i_target_neuron_0;
       int isn = input_array[i];
       connect_mpi_->RemoteConnect(i_source_host, isn, i_target_host, itn,
 				 i_port, weight, delay);
-#ifdef _OPENMP
-      omp_unset_lock(&(lock[i]));
-#endif
     }
   }
   delete[] rnd;
-#ifdef _OPENMP
-  delete[] lock;
-#endif
   
   return 0;
 }
@@ -559,30 +537,14 @@ int NeuralGPU::RemoteConnectAllToAll
  unsigned char i_port, float weight, float delay
  )
 {
-#ifdef _OPENMP
-  omp_lock_t *lock = new omp_lock_t[n_source_neurons];
-  for (int i=0; i<n_source_neurons; i++) {
-    omp_init_lock(&(lock[i]));
-  }
-#pragma omp parallel for default(shared) collapse(2)
-#endif
   for (int itn=i_target_neuron_0; itn<i_target_neuron_0+n_target_neurons;
        itn++) {
     for (int i=0; i<n_source_neurons; i++) {
       int isn = i_source_neuron_0 + i;
-#ifdef _OPENMP
-      omp_set_lock(&(lock[i]));
-#endif
       connect_mpi_->RemoteConnect(i_source_host, isn, i_target_host, itn,
 				 i_port, weight, delay);
-#ifdef _OPENMP
-      omp_unset_lock(&(lock[i]));
-#endif
     }
   }
-#ifdef _OPENMP
-  delete[] lock;
-#endif
 
   return 0;
 }

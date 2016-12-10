@@ -466,35 +466,6 @@ int NeuralGPU::ConnectFixedIndegree
   return 0;
 }
 
-int NeuralGPU::RemoteConnectFixedIndegree
-(
- int i_source_host, int i_source_neuron_0, int n_source_neurons,
- int i_target_host, int i_target_neuron_0, int n_target_neurons,
- unsigned char i_port, float weight, float delay, int indegree
- )
-{
-  unsigned int *rnd = RandomInt(n_target_neurons*indegree);
-  vector<int> input_array;
-  for (int i=0; i<n_source_neurons; i++) {
-    input_array.push_back(i_source_neuron_0 + i);
-  }
-  for (int k=0; k<n_target_neurons; k++) {
-    for (int i=0; i<indegree; i++) {
-      int j = i + rnd[k*indegree+i] % (n_source_neurons - i);
-      if (j!=i) {
-	swap(input_array[i], input_array[j]);
-      }
-      int itn = k + i_target_neuron_0;
-      int isn = input_array[i];
-      connect_mpi_->RemoteConnect(i_source_host, isn, i_target_host, itn,
-				 i_port, weight, delay);
-    }
-  }
-  delete[] rnd;
-  
-  return 0;
-}
-
 int NeuralGPU::ConnectAllToAll
 (
  int i_source_neuron_0, int n_source_neurons,
@@ -530,25 +501,6 @@ int NeuralGPU::ConnectAllToAll
   return 0;
 }
 
-int NeuralGPU::RemoteConnectAllToAll
-(
- int i_source_host, int i_source_neuron_0, int n_source_neurons,
- int i_target_host, int i_target_neuron_0, int n_target_neurons,
- unsigned char i_port, float weight, float delay
- )
-{
-  for (int itn=i_target_neuron_0; itn<i_target_neuron_0+n_target_neurons;
-       itn++) {
-    for (int i=0; i<n_source_neurons; i++) {
-      int isn = i_source_neuron_0 + i;
-      connect_mpi_->RemoteConnect(i_source_host, isn, i_target_host, itn,
-				 i_port, weight, delay);
-    }
-  }
-
-  return 0;
-}
-
 int NeuralGPU::ConnectOneToOne
 (
  int i_source_neuron_0, int i_target_neuron_0, int n_neurons,
@@ -562,23 +514,6 @@ int NeuralGPU::ConnectOneToOne
 
   return 0;
 }
-
-int NeuralGPU::RemoteConnectOneToOne
-(
- int i_source_host, int i_source_neuron_0,
- int i_target_host, int i_target_neuron_0, int n_neurons,
- unsigned char i_port, float weight, float delay
- )
-{
-  for (int in=0; in<n_neurons; in++) {
-    connect_mpi_->RemoteConnect(i_source_host, i_source_neuron_0+in,
-			       i_target_host, i_target_neuron_0+in,
-			       i_port, weight, delay);
-  }
-  
-  return 0;
-}
-
 
 int NeuralGPU::SetNeuronParams(string param_name, int i_node, int n_neurons,
 			       float val)
@@ -617,16 +552,6 @@ int NeuralGPU::ProcMaster()
   return connect_mpi_->ProcMaster();
 }
 
-int NeuralGPU::ConnectMpiQuit()
-{
-  return connect_mpi_->Quit();
-}
-
-int NeuralGPU::ConnectMpiReceiveCommands()
-{
-  return connect_mpi_->ReceiveCommands();
-}
-
 int NeuralGPU::MpiFinalize()
 {
   return MPI_Finalize();
@@ -643,4 +568,219 @@ unsigned int *NeuralGPU::RandomInt(size_t n)
   return curand_int(*random_generator_, n);
 }
 
+
+int NeuralGPU::RemoteConnectFixedIndegree
+(
+ int i_source_host, int i_source_neuron_0, int n_source_neurons,
+ int i_target_host, int i_target_neuron_0, int n_target_neurons,
+ unsigned char i_port, float weight, float delay, int indegree
+ )
+{
+  if (MpiId()==i_source_host && i_source_host==i_target_host) {
+    return ConnectFixedIndegree(i_source_neuron_0, n_source_neurons, i_target_neuron_0,
+			 n_target_neurons, i_port, weight, delay, indegree);
+  }
+  else if (MpiId()==i_source_host || MpiId()==i_target_host) {
+    int *i_remote_neuron_arr = new int[n_target_neurons*indegree];
+    int i_new_remote_neuron;
+    if (MpiId() == i_target_host) {
+      i_new_remote_neuron = net_connection_->connection_.size();
+      connect_mpi_->MPI_Send_int(&i_new_remote_neuron, 1, i_source_host);
+      connect_mpi_->MPI_Recv_int(&i_new_remote_neuron, 1, i_source_host);
+      vector<ConnGroup> conn;
+      net_connection_->connection_.insert(net_connection_->connection_.end(),
+					  i_new_remote_neuron
+					  - net_connection_->connection_.size(), conn);
+      connect_mpi_->MPI_Recv_int(i_remote_neuron_arr, n_target_neurons*indegree, i_source_host);
+
+      for (int k=0; k<n_target_neurons; k++) {
+	for (int i=0; i<indegree; i++) {
+      	  int i_remote_neuron = i_remote_neuron_arr[k*indegree+i];
+	  int i_target_neuron = k + i_target_neuron_0;
+	  net_connection_->Connect(i_remote_neuron, i_target_neuron, i_port, weight, delay);
+	}
+      }
+    }
+    else if (MpiId() == i_source_host) {
+      connect_mpi_->MPI_Recv_int(&i_new_remote_neuron, 1, i_target_host);
+      unsigned int *rnd = RandomInt(n_target_neurons*indegree); // check parall. seed problem
+      vector<int> input_array;
+      for (int i=0; i<n_source_neurons; i++) {
+	input_array.push_back(i_source_neuron_0 + i);
+      }
+      for (int k=0; k<n_target_neurons; k++) {
+	for (int i=0; i<indegree; i++) {
+	  int j = i + rnd[k*indegree+i] % (n_source_neurons - i);
+	  if (j!=i) {
+	    swap(input_array[i], input_array[j]);
+	  }
+	  int i_source_neuron = input_array[i];
+	  
+	  int i_remote_neuron = -1;
+	  for (vector<ExternalConnectionNode >::iterator it =
+		 connect_mpi_->extern_connection_[i_source_neuron].begin();
+	       it <  connect_mpi_->extern_connection_[i_source_neuron].end(); it++) {
+	    if ((*it).target_host_id == i_target_host) {
+	      i_remote_neuron = (*it).remote_neuron_id;
+	      break;
+	    }
+	  }
+	  if (i_remote_neuron == -1) {
+	    i_remote_neuron = i_new_remote_neuron;
+	    i_new_remote_neuron++;
+	    ExternalConnectionNode conn_node = {i_target_host, i_remote_neuron};
+	    connect_mpi_->extern_connection_[i_source_neuron].push_back(conn_node);
+	  }
+	  i_remote_neuron_arr[k*indegree+i] = i_remote_neuron;
+	}
+      }
+      connect_mpi_->MPI_Send_int(&i_new_remote_neuron, 1, i_target_host);
+      connect_mpi_->MPI_Send_int(i_remote_neuron_arr, n_target_neurons*indegree, i_target_host);
+      delete[] rnd;
+    }
+    delete[] i_remote_neuron_arr;
+  }
+  MPI_Barrier( MPI_COMM_WORLD );
+
+  return 0;
+}
+
+int NeuralGPU::RemoteConnectAllToAll
+(
+ int i_source_host, int i_source_neuron_0, int n_source_neurons,
+ int i_target_host, int i_target_neuron_0, int n_target_neurons,
+ unsigned char i_port, float weight, float delay
+ )
+{
+  if (MpiId()==i_source_host && i_source_host==i_target_host) {
+    return ConnectAllToAll(i_source_neuron_0, n_source_neurons, i_target_neuron_0,
+			 n_target_neurons, i_port, weight, delay);
+  }
+  else if (MpiId()==i_source_host || MpiId()==i_target_host) {
+    int *i_remote_neuron_arr = new int[n_target_neurons*n_source_neurons];
+    int i_new_remote_neuron;
+    if (MpiId() == i_target_host) {
+      i_new_remote_neuron = net_connection_->connection_.size();
+      connect_mpi_->MPI_Send_int(&i_new_remote_neuron, 1, i_source_host);
+      connect_mpi_->MPI_Recv_int(&i_new_remote_neuron, 1, i_source_host);
+      vector<ConnGroup> conn;
+      net_connection_->connection_.insert(net_connection_->connection_.end(),
+					  i_new_remote_neuron
+					  - net_connection_->connection_.size(), conn);
+      connect_mpi_->MPI_Recv_int(i_remote_neuron_arr, n_target_neurons*n_source_neurons,
+				 i_source_host);
+
+      for (int k=0; k<n_target_neurons; k++) {
+	for (int i=0; i<n_source_neurons; i++) {
+      	  int i_remote_neuron = i_remote_neuron_arr[k*n_source_neurons+i];
+	  int i_target_neuron = k + i_target_neuron_0;
+	  net_connection_->Connect(i_remote_neuron, i_target_neuron, i_port, weight, delay);
+	}
+      }
+    }
+    else if (MpiId() == i_source_host) {
+      connect_mpi_->MPI_Recv_int(&i_new_remote_neuron, 1, i_target_host);
+      for (int k=0; k<n_target_neurons; k++) {
+	for (int i=0; i<n_source_neurons; i++) {
+	  int i_source_neuron = i + i_source_neuron_0;
+	  
+	  int i_remote_neuron = -1;
+	  for (vector<ExternalConnectionNode >::iterator it =
+		 connect_mpi_->extern_connection_[i_source_neuron].begin();
+	       it <  connect_mpi_->extern_connection_[i_source_neuron].end(); it++) {
+	    if ((*it).target_host_id == i_target_host) {
+	      i_remote_neuron = (*it).remote_neuron_id;
+	      break;
+	    }
+	  }
+	  if (i_remote_neuron == -1) {
+	    i_remote_neuron = i_new_remote_neuron;
+	    i_new_remote_neuron++;
+	    ExternalConnectionNode conn_node = {i_target_host, i_remote_neuron};
+	    connect_mpi_->extern_connection_[i_source_neuron].push_back(conn_node);
+	  }
+	  i_remote_neuron_arr[k*n_source_neurons+i] = i_remote_neuron;
+	}
+      }
+      connect_mpi_->MPI_Send_int(&i_new_remote_neuron, 1, i_target_host);
+      connect_mpi_->MPI_Send_int(i_remote_neuron_arr, n_target_neurons*n_source_neurons,
+				 i_target_host);
+    }
+    delete[] i_remote_neuron_arr;
+  }
+  MPI_Barrier( MPI_COMM_WORLD );
+
+  return 0;
+}
+
+int NeuralGPU::RemoteConnectOneToOne
+(
+ int i_source_host, int i_source_neuron_0,
+ int i_target_host, int i_target_neuron_0, int n_neurons,
+ unsigned char i_port, float weight, float delay
+ )
+{
+  if (MpiId()==i_source_host && i_source_host==i_target_host) {
+    return ConnectOneToOne(i_source_neuron_0, i_target_neuron_0,
+			 n_neurons, i_port, weight, delay);
+  }
+  else if (MpiId()==i_source_host || MpiId()==i_target_host) {
+    int *i_remote_neuron_arr = new int[n_neurons];
+    int i_new_remote_neuron;
+    if (MpiId() == i_target_host) {
+      i_new_remote_neuron = net_connection_->connection_.size();
+      connect_mpi_->MPI_Send_int(&i_new_remote_neuron, 1, i_source_host);
+      connect_mpi_->MPI_Recv_int(&i_new_remote_neuron, 1, i_source_host);
+      vector<ConnGroup> conn;
+      net_connection_->connection_.insert(net_connection_->connection_.end(),
+					  i_new_remote_neuron
+					  - net_connection_->connection_.size(), conn);
+      connect_mpi_->MPI_Recv_int(i_remote_neuron_arr, n_neurons, i_source_host);
+
+      for (int i=0; i<n_neurons; i++) {
+	int i_remote_neuron = i_remote_neuron_arr[i];
+	int i_target_neuron = i + i_target_neuron_0;
+	net_connection_->Connect(i_remote_neuron, i_target_neuron, i_port, weight, delay);
+      }
+    }
+    else if (MpiId() == i_source_host) {
+      connect_mpi_->MPI_Recv_int(&i_new_remote_neuron, 1, i_target_host);
+      for (int i=0; i<n_neurons; i++) {
+	int i_source_neuron = i + i_source_neuron_0;
+	  
+	int i_remote_neuron = -1;
+	for (vector<ExternalConnectionNode >::iterator it =
+	       connect_mpi_->extern_connection_[i_source_neuron].begin();
+	     it <  connect_mpi_->extern_connection_[i_source_neuron].end(); it++) {
+	  if ((*it).target_host_id == i_target_host) {
+	    i_remote_neuron = (*it).remote_neuron_id;
+	    break;
+	  }
+	}
+	if (i_remote_neuron == -1) {
+	  i_remote_neuron = i_new_remote_neuron;
+	  i_new_remote_neuron++;
+	  ExternalConnectionNode conn_node = {i_target_host, i_remote_neuron};
+	  connect_mpi_->extern_connection_[i_source_neuron].push_back(conn_node);
+	}
+	i_remote_neuron_arr[i] = i_remote_neuron;
+      }
+      connect_mpi_->MPI_Send_int(&i_new_remote_neuron, 1, i_target_host);
+      connect_mpi_->MPI_Send_int(i_remote_neuron_arr, n_neurons, i_target_host);
+    }
+    delete[] i_remote_neuron_arr;
+  }
+  MPI_Barrier( MPI_COMM_WORLD );
+
+  return 0;
+}
+
+int NeuralGPU::RemoteConnect(int i_source_host, int i_source_neuron,
+			     int i_target_host, int i_target_neuron,
+			     unsigned char i_port, float weight, float delay)
+{
+  return connect_mpi_->RemoteConnect(i_source_host, i_source_neuron,
+				     i_target_host, i_target_neuron,
+				     i_port, weight, delay);
+}
 

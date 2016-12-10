@@ -124,7 +124,11 @@ class NeuralGPU
      int i_target_host, int i_target_neuron_0, int n_neurons,
      unsigned char i_port, float weight, float delay
      );
-
+  
+  int RemoteConnect(int i_source_host, int i_source_neuron,
+		    int i_target_host, int i_target_neuron,
+		    unsigned char i_port, float weight, float delay);
+    
   int SetNeuronParams(std::string param_name, int i_node, int n_neurons,
 		      float val);
 
@@ -139,17 +143,13 @@ class NeuralGPU
 
   int ProcMaster();
 
-  int ConnectMpiQuit();
-
-  int ConnectMpiReceiveCommands();
-
   int MpiFinalize();
 
   int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 			float *spike_height);
   
   unsigned int *RandomInt(size_t n);
-    
+
 };
 
 #endif

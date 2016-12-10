@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
   neural_gpu.ConnectMpiInit(argc, argv);
   int mpi_np = neural_gpu.MpiNp();
   if (mpi_np < 2) {
-    cerr << "Usage: mpirun -np <number-of-mpi-hosts> brunel_mpi\n";
+    cerr << "Usage: mpirun -np <number-of-mpi-hosts> brunel_mpi_nx\n";
     return -1;
   }
   
@@ -97,55 +97,45 @@ int main(int argc, char *argv[])
 			     poiss_delay);
   
   char filename[100];
-  sprintf(filename, "test_brunel_mpi_%d.dat", mpi_id);
+  sprintf(filename, "test_brunel_mpi_nx_%d.dat", mpi_id);
   int i_neurons[] = {2000, 8000, 9999}; // any set of neuron indexes
   // create multimeter record of V_m
   neural_gpu.CreateRecord(string(filename), "V_m", i_neurons, 3);
   
-  if (neural_gpu.ProcMaster()) {
-    //////////////////////////////////////////////////////////////////////
-    // WRITE HERE COMMANDS LAUNCHED BY THE MPI MASTER ON SPECIFIC HOSTS
-    //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  // WRITE HERE REMOTE CONNECTIONS
+  //////////////////////////////////////////////////////////////////////
 
-    for (int ith=0; ith<mpi_np; ith++) { // loop on target hosts
-      // Excitatory remote connections
-      // connect excitatory neurons to port 0 of all neurons
-      // weight Wex and fixed indegree CE-CE*3/4
-      int ish1 = (ith > 0) ? ith-1 : mpi_np - 1; // previous host on a ring
-      int ish2 = (ith < mpi_np -1) ? ith+1 : 0; // next host on a ring
-      // previous host to target host
-      neural_gpu.RemoteConnectFixedIndegree(ish1, exc_neuron+NE-NEext/2,
-					    NEext/2, ith, neuron, n_neurons,
-					    0, Wex, delay, CE/4);
-      // next host to target host
-      neural_gpu.RemoteConnectFixedIndegree(ish2, exc_neuron+NE-NEext/2,
-					    NEext/2, ith, neuron, n_neurons,
-					    0, Wex, delay, CE/4);
-
-      
-      // Inhibitory remote connections
-      // connect inhibitory neurons to port 1 of all neurons
-      // weight Win and fixed indegree CI-CI*3/4
-      // previous host to target host
-      neural_gpu.RemoteConnectFixedIndegree(ish1, inh_neuron+NI-NIext/2,
-					    NIext/2, ith, neuron, n_neurons,
-					    1, Win, delay, CI/4);
-      // next host to target host
-      neural_gpu.RemoteConnectFixedIndegree(ish2, inh_neuron+NI-NIext/2,
-					    NIext/2, ith, neuron, n_neurons,
-					    1, Win, delay, CI/4);
-      
-    }
+  for (int ith=0; ith<mpi_np; ith++) { // loop on target hosts
+    // Excitatory remote connections
+    // connect excitatory neurons to port 0 of all neurons
+    // weight Wex and fixed indegree CE-CE*3/4
+    int ish1 = (ith > 0) ? ith-1 : mpi_np - 1; // previous host on a ring
+    int ish2 = (ith < mpi_np -1) ? ith+1 : 0; // next host on a ring
+    // previous host to target host
+    neural_gpu.RemoteConnectFixedIndegree(ish1, exc_neuron+NE-NEext/2,
+					  NEext/2, ith, neuron, n_neurons,
+					  0, Wex, delay, CE/4);
+    // next host to target host
+    neural_gpu.RemoteConnectFixedIndegree(ish2, exc_neuron+NE-NEext/2,
+					  NEext/2, ith, neuron, n_neurons,
+					  0, Wex, delay, CE/4);
     
-    neural_gpu.ConnectMpiQuit();
+    
+    // Inhibitory remote connections
+    // connect inhibitory neurons to port 1 of all neurons
+    // weight Win and fixed indegree CI-CI*3/4
+    // previous host to target host
+    neural_gpu.RemoteConnectFixedIndegree(ish1, inh_neuron+NI-NIext/2,
+					  NIext/2, ith, neuron, n_neurons,
+					  1, Win, delay, CI/4);
+    // next host to target host
+    neural_gpu.RemoteConnectFixedIndegree(ish2, inh_neuron+NI-NIext/2,
+					  NIext/2, ith, neuron, n_neurons,
+					  1, Win, delay, CI/4);
+    
   }
-  else {
-    neural_gpu.ConnectMpiReceiveCommands();
-  }
-  //////////////////////////////////////////////////////////////////////
-  // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
-  //////////////////////////////////////////////////////////////////////
-
+    
   neural_gpu.SetRandomSeed(1234ULL); // just to have same results in different simulations
   neural_gpu.Simulate();
 

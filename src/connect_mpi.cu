@@ -25,7 +25,7 @@ int ConnectMpi::MPI_Recv_int(int *int_val, int n, int sender_id)
   MPI_Status Stat;
   int tag = 1;
 
-  MPI_Recv(int_val, 1, MPI_INT, sender_id, tag, MPI_COMM_WORLD, &Stat);
+  MPI_Recv(int_val, n, MPI_INT, sender_id, tag, MPI_COMM_WORLD, &Stat);
 
   return 0;
 }
@@ -35,7 +35,7 @@ int ConnectMpi::MPI_Recv_float(float *float_val, int n, int sender_id)
   MPI_Status Stat;
   int tag = 1;
 
-  MPI_Recv(float_val, 1, MPI_FLOAT, sender_id, tag, MPI_COMM_WORLD, &Stat);
+  MPI_Recv(float_val, n, MPI_FLOAT, sender_id, tag, MPI_COMM_WORLD, &Stat);
 
   return 0;
 }
@@ -45,7 +45,7 @@ int ConnectMpi::MPI_Recv_uchar(unsigned char *uchar_val, int n, int sender_id)
   MPI_Status Stat;
   int tag = 1;
 
-  MPI_Recv(uchar_val, 1, MPI_UNSIGNED_CHAR, sender_id, tag, MPI_COMM_WORLD,
+  MPI_Recv(uchar_val, n, MPI_UNSIGNED_CHAR, sender_id, tag, MPI_COMM_WORLD,
 	   &Stat);
 
   return 0;
@@ -55,7 +55,7 @@ int ConnectMpi::MPI_Send_int(int *int_val, int n, int target_id)
 {
   int tag = 1;
 
-  MPI_Send(int_val, 1, MPI_INT, target_id, tag, MPI_COMM_WORLD);
+  MPI_Send(int_val, n, MPI_INT, target_id, tag, MPI_COMM_WORLD);
 
   return 0;
 }
@@ -64,7 +64,7 @@ int ConnectMpi::MPI_Send_float(float *float_val, int n, int target_id)
 {
   int tag = 1;
 
-  MPI_Send(float_val, 1, MPI_FLOAT, target_id, tag, MPI_COMM_WORLD);
+  MPI_Send(float_val, n, MPI_FLOAT, target_id, tag, MPI_COMM_WORLD);
 
   return 0;
 }
@@ -73,7 +73,7 @@ int ConnectMpi::MPI_Send_uchar(unsigned char *uchar_val, int n, int target_id)
 {
   int tag = 1;
 
-  MPI_Send(uchar_val, 1, MPI_UNSIGNED_CHAR, target_id, tag, MPI_COMM_WORLD);
+  MPI_Send(uchar_val, n, MPI_UNSIGNED_CHAR, target_id, tag, MPI_COMM_WORLD);
 
   return 0;
 }
@@ -90,176 +90,48 @@ int ConnectMpi::MpiInit(int argc, char *argv[])
 
 bool ConnectMpi::ProcMaster()
 {
-  if (mpi_id_==0) return true;
+  if (mpi_id_==mpi_master_) return true;
   else return false;
 }
 
-int ConnectMpi::ReceiveCommands()
+int ConnectMpi::RemoteConnect(int i_source_host, int i_source_neuron,
+			      int i_target_host, int i_target_neuron,
+			      unsigned char i_port, float weight, float delay)
 {
-  int source_host_id;
-  int source_neuron_id;
-  int target_host_id;
-  int target_neuron_id;
-  unsigned char port_id;
-  float weight;
-  float delay;
-
-  for(;;) {
-    int command;
-    MPI_Recv_int(&command, 1, mpi_master_);
-
-    if (command == LOCAL_CONNECT) {
-      MPI_Recv_int(&source_neuron_id, 1, mpi_master_);
-      MPI_Recv_int(&target_neuron_id, 1, mpi_master_);
-      MPI_Recv_uchar(&port_id, 1, mpi_master_);
-      MPI_Recv_float(&weight, 1, mpi_master_);
-      MPI_Recv_float(&delay, 1, mpi_master_);
-      net_connection_->Connect(source_neuron_id, target_neuron_id, port_id,
-			       weight, delay);
-
-    }
-    else if (command == SOURCE_CONNECT) {
-      MPI_Recv_int(&source_neuron_id, 1, mpi_master_);
-      MPI_Recv_int(&target_host_id, 1, mpi_master_);
-      MPI_Recv_int(&target_neuron_id, 1, mpi_master_);
-      MPI_Recv_uchar(&port_id, 1, mpi_master_);
-      MPI_Recv_float(&weight, 1, mpi_master_);
-      MPI_Recv_float(&delay, 1, mpi_master_);
-      SourceConnect(source_neuron_id, target_host_id, target_neuron_id,
-                    port_id, weight, delay);
-    }
-    else if (command == TARGET_CONNECT) {
-      MPI_Recv_int(&source_host_id, 1, mpi_master_);
-      MPI_Recv_int(&source_neuron_id, 1, mpi_master_);
-      MPI_Recv_int(&target_neuron_id, 1, mpi_master_);
-      MPI_Recv_uchar(&port_id, 1, mpi_master_);
-      MPI_Recv_float(&weight, 1, mpi_master_);
-      MPI_Recv_float(&delay, 1, mpi_master_);
-      TargetConnect(source_host_id, source_neuron_id, target_neuron_id,
-                    port_id, weight, delay);
-    }
-    else if (command == PRINT) {
-      net_connection_->Print();
-    }
-    else if (command == QUIT) {
-      break;
-    }
-  }
-
-  return 0;
-}
-
-int ConnectMpi::SourceConnect(int source_neuron_id, int target_host_id,
-                  int target_neuron_id, unsigned char port_id, float weight,
-                  float delay)
-{
-
-  int remote_neuron_id = -1;
-  for (vector<ExternalConnectionNode >::iterator it =
-         extern_connection_[source_neuron_id].begin();
-       it <  extern_connection_[source_neuron_id].end(); it++) {
-    if ((*it).target_host_id == target_host_id) {
-      remote_neuron_id = (*it).remote_neuron_id;
-      break;
-    }
-  }
-  MPI_Send_int(&remote_neuron_id, 1, target_host_id);
-  if (remote_neuron_id == -1) {
-    MPI_Recv_int(&remote_neuron_id, 1, target_host_id);
-    ExternalConnectionNode conn_node = {target_host_id, remote_neuron_id};
-    extern_connection_[source_neuron_id].push_back(conn_node);
-  }
-
-  return 0;
-}
-
-int ConnectMpi::TargetConnect(int source_host_id, int source_neuron_id,
-                  int target_neuron_id, unsigned char port_id, float weight,
-                  float delay)
-{
-  int remote_neuron_id;
-
-  MPI_Recv_int(&remote_neuron_id, 1, source_host_id);
-  if (remote_neuron_id == -1) {
-    // Create remote connection node....
-    remote_neuron_id = net_connection_->connection_.size();
-    vector<ConnGroup> conn;
-    net_connection_->connection_.push_back(conn);
-    MPI_Send_int(&remote_neuron_id, 1, source_host_id);
-  }
-  net_connection_->Connect(remote_neuron_id, target_neuron_id,
-			   port_id, weight, delay);
-
-  return 0;
-}
-
-int ConnectMpi::RemoteConnect(int source_host_id, int source_neuron_id,
-		  int target_host_id, int target_neuron_id,
-		  unsigned char port_id, float weight, float delay)
-{
-  int command;
+  int i_remote_neuron;
   
-  if (source_host_id==mpi_master_ && target_host_id==mpi_master_) {
-    net_connection_->Connect(source_neuron_id, target_neuron_id,
-			     port_id, weight, delay);
-    return 0;
+  if (mpi_id_==i_source_host && i_source_host==i_target_host) {
+    return net_connection_->Connect(i_source_neuron, i_target_neuron, i_port, weight, delay);
   }
-  else if (source_host_id == target_host_id) {
-    command = LOCAL_CONNECT;
-    MPI_Send_int(&command, 1, source_host_id);
-    MPI_Send_int(&source_neuron_id, 1, source_host_id);
-    MPI_Send_int(&target_neuron_id, 1, source_host_id);
-    MPI_Send_uchar(&port_id, 1, source_host_id);
-    MPI_Send_float(&weight, 1, source_host_id);
-    MPI_Send_float(&delay, 1, source_host_id);
-    return 0;
+  else if (mpi_id_ == i_target_host) {
+    MPI_Recv_int(&i_remote_neuron, 1, i_source_host);
+    if (i_remote_neuron == -1) {
+      // Create remote connection node....
+      i_remote_neuron = net_connection_->connection_.size();
+      vector<ConnGroup> conn;
+      net_connection_->connection_.push_back(conn);
+      MPI_Send_int(&i_remote_neuron, 1, i_source_host);
+    }
+    net_connection_->Connect(i_remote_neuron, i_target_neuron, i_port, weight, delay);
   }
-  if (source_host_id!=mpi_master_) {
-    command = SOURCE_CONNECT;
-    MPI_Send_int(&command, 1, source_host_id);
-    MPI_Send_int(&source_neuron_id, 1, source_host_id);
-    MPI_Send_int(&target_host_id, 1, source_host_id);
-    MPI_Send_int(&target_neuron_id, 1, source_host_id);
-    MPI_Send_uchar(&port_id, 1, source_host_id);
-    MPI_Send_float(&weight, 1, source_host_id);
-    MPI_Send_float(&delay, 1, source_host_id);
+  else if (mpi_id_ == i_source_host) {
+    i_remote_neuron = -1;
+    for (vector<ExternalConnectionNode >::iterator it =
+	   extern_connection_[i_source_neuron].begin();
+	 it <  extern_connection_[i_source_neuron].end(); it++) {
+      if ((*it).target_host_id == i_target_host) {
+	i_remote_neuron = (*it).remote_neuron_id;
+	break;
+      }
+    }
+    MPI_Send_int(&i_remote_neuron, 1, i_target_host);
+    if (i_remote_neuron == -1) {
+      MPI_Recv_int(&i_remote_neuron, 1, i_target_host);
+      ExternalConnectionNode conn_node = {i_target_host, i_remote_neuron};
+      extern_connection_[i_source_neuron].push_back(conn_node);
+    }
   }
-  if (target_host_id!=mpi_master_) {
-    command = TARGET_CONNECT;
-    MPI_Send_int(&command, 1, target_host_id);
-    MPI_Send_int(&source_host_id, 1, target_host_id);
-    MPI_Send_int(&source_neuron_id, 1, target_host_id);
-    MPI_Send_int(&target_neuron_id, 1, target_host_id);
-    MPI_Send_uchar(&port_id, 1, target_host_id);
-    MPI_Send_float(&weight, 1, target_host_id);
-    MPI_Send_float(&delay, 1, target_host_id);
-  }
-  if (source_host_id==mpi_master_) {
-    SourceConnect(source_neuron_id, target_host_id, target_neuron_id, port_id,
-		  weight, delay);
-  }
-  if (target_host_id==mpi_master_) {
-    TargetConnect(source_host_id, source_neuron_id, target_neuron_id, port_id,
-		  weight, delay);
-  }
-
-  return 0;
-}
-
-int ConnectMpi::RemoteConnectionPrint(int target_host_id)
-{
-  int command = PRINT;
-  MPI_Send_int(&command, 1, target_host_id);
-
-  return 0;
-}
-
-int ConnectMpi::Quit()
-{
-  int command = QUIT;
-  for (int ith=0; ith<mpi_np_; ith++) {
-    MPI_Send_int(&command, 1, ith);
-  }
+  MPI_Barrier( MPI_COMM_WORLD );
 
   return 0;
 }

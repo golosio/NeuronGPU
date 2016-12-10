@@ -92,48 +92,39 @@ int main(int argc, char *argv[])
 			     poiss_delay);
   
   char filename[100];
-  sprintf(filename, "test_brunel_%d.dat", mpi_id);
+  sprintf(filename, "test_brunel_mpi_%d.dat", mpi_id);
   int i_neurons[] = {2000, 8000, 9999}; // any set of neuron indexes
   // create multimeter record of V_m
   neural_gpu.CreateRecord(string(filename), "V_m", i_neurons, 3);
   
-  if (neural_gpu.ProcMaster()) {
-    //////////////////////////////////////////////////////////////////////
-    // WRITE HERE COMMANDS LAUNCHED BY THE MPI MASTER ON SPECIFIC HOSTS
-    //////////////////////////////////////////////////////////////////////
-
-    // Excitatory remote connections
-    // connect excitatory neurons to port 0 of all neurons
-    // weight Wex and fixed indegree CE-CE*3/4
-    // host 0 to host 1
-    neural_gpu.RemoteConnectFixedIndegree(0, exc_neuron, NE,
-					  1, neuron, n_neurons,
-					  0, Wex, delay, CE-CE*3/4);
-    // host 1 to host 0
-    neural_gpu.RemoteConnectFixedIndegree(1, exc_neuron, NE,
-					  0, neuron, n_neurons,
-					  0, Wex, delay, CE-CE*3/4);
-
-    // Inhibitory remote connections
-    // connect inhibitory neurons to port 1 of all neurons
-    // weight Win and fixed indegree CI-CI*3/4
-    // host 0 to host 1
-    neural_gpu.RemoteConnectFixedIndegree(0, inh_neuron, NI,
-					  1, neuron, n_neurons,
-					  1, Win, delay, CI-CI*3/4);
-    // host 1 to host 0
-    neural_gpu.RemoteConnectFixedIndegree(1, inh_neuron, NI,
-					  0, neuron, n_neurons,
-					  1, Win, delay, CI-CI*3/4);
-
-    neural_gpu.ConnectMpiQuit();
-  }
-  else {
-    neural_gpu.ConnectMpiReceiveCommands();
-  }
   //////////////////////////////////////////////////////////////////////
-  // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
+  // WRITE HERE REMOTE CONNECTIONS
   //////////////////////////////////////////////////////////////////////
+
+  // Excitatory remote connections
+  // connect excitatory neurons to port 0 of all neurons
+  // weight Wex and fixed indegree CE-CE*3/4
+  // host 0 to host 1
+  neural_gpu.RemoteConnectFixedIndegree(0, exc_neuron, NE,
+					1, neuron, n_neurons,
+					0, Wex, delay, CE-CE*3/4);
+
+  // host 1 to host 0
+  neural_gpu.RemoteConnectFixedIndegree(1, exc_neuron, NE,
+					0, neuron, n_neurons,
+					0, Wex, delay, CE-CE*3/4);
+
+  // Inhibitory remote connections
+  // connect inhibitory neurons to port 1 of all neurons
+  // weight Win and fixed indegree CI-CI*3/4
+  // host 0 to host 1
+  neural_gpu.RemoteConnectFixedIndegree(0, inh_neuron, NI,
+					1, neuron, n_neurons,
+					1, Win, delay, CI-CI*3/4);
+  // host 1 to host 0
+  neural_gpu.RemoteConnectFixedIndegree(1, inh_neuron, NI,
+					0, neuron, n_neurons,
+					1, Win, delay, CI-CI*3/4);
 
   neural_gpu.SetRandomSeed(1234ULL); // just to have same results in different simulations
   neural_gpu.Simulate();

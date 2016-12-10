@@ -18,14 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <mpi.h>
 #include "connect.h"
 
-enum MPI_Commands {
-  LOCAL_CONNECT,
-  SOURCE_CONNECT,
-  TARGET_CONNECT,
-  PRINT,
-  QUIT
-};
-
 struct ExternalConnectionNode
 {
   int target_host_id;
@@ -54,28 +46,14 @@ class ConnectMpi
 
   int MPI_Send_uchar(unsigned char *uchar_val, int n, int target_id);
 
-  int SourceConnect(int source_neuron_id, int target_host_id,
-		    int target_neuron_id, unsigned char port_id, float weight,
-		    float delay);
-  
-  int TargetConnect(int source_host_id, int source_neuron_id,
-		    int target_neuron_id, unsigned char port_id, float weight,
-		    float delay);
-  
-  int RemoteConnect(int source_host_id, int source_neuron_id,
-		    int target_host_id, int target_neuron_id,
-		    unsigned char port_id, float weight, float delay);
-  
-  int RemoteConnectionPrint(int target_host_id);
-  
+  int RemoteConnect(int i_source_host, int i_source_neuron,
+		    int i_target_host, int i_target_neuron,
+		    unsigned char i_port, float weight, float delay);
+    
   int MpiInit(int argc, char *argv[]);
   
   bool ProcMaster();
   
-  int Quit();
-  
-  int ReceiveCommands();
-
   int ExternalSpikeInit(int n_neurons, int max_spike_num, int n_hosts,
 			int max_spike_per_host);
 

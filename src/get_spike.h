@@ -15,8 +15,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef GETSPIKEH
 #define GETSPIKEH
 
-__global__ void CollectSpikes(uint n_get_spikes, int nvar, int nparams);
-
 __global__ void GetSpikes(int n_ports);
 
 __global__ void DeviceInitGetSpikeArray(double *get_spike_array);

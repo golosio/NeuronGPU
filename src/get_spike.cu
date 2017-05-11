@@ -38,54 +38,34 @@ __device__ double atomicAddDouble(double* address, double val)
     return __longlong_as_double(old);
 }
 
-__device__ int locate(uint val, uint *data, int n)
+//////////////////////////////////////////////////////////////////////
+// This is the function called by the nested loop
+// that collects the spikes
+__device__ void NestedLoopFunction(int i_spike, int i_syn) //, int nvar,
+                                                           // int nparams)
 {
-// remember to add a check that data[0]<=val<=data[n-1]
-// what to do if not?
-   int i_left = 0;
-   int i_right = n-1;
-   int i = (i_left+i_right)/2;
-   while(i_right-i_left>1) {
-      if (data[i] > val) i_right = i;
-      else if (data[i]<val) i_left = i;
-      else break;
-      i=(i_left+i_right)/2;
-   }
-
-   return i;
-}
-
-__global__ void CollectSpikes(uint n_get_spikes, int nvar, int nparams)
-{
-  uint blockId   = blockIdx.y * gridDim.x + blockIdx.x;				
-  uint array_idx = blockId * blockDim.x + threadIdx.x; 
-  if (array_idx<n_get_spikes) {
-
-    int i_spike = locate(array_idx, SpikeTargetNumSum, (*SpikeNum) + 1);
-    int i_syn = array_idx - SpikeTargetNumSum[i_spike];
-    int i_source = SpikeSourceIdx[i_spike];
-    int i_conn = SpikeConnIdx[i_spike];
-    float height = SpikeHeight[i_spike];
-    int i_target = ConnectionGroupTargetNeuron[i_conn*NSpikeBuffer+i_source]
-      [i_syn] - Aeif_i_node_0;
-    unsigned char i_port = ConnectionGroupTargetPort[i_conn*NSpikeBuffer
-						     +i_source][i_syn];
-    float weight = ConnectionGroupTargetWeight[i_conn*NSpikeBuffer+i_source]
-      [i_syn];
+  int i_source = SpikeSourceIdx[i_spike];
+  int i_conn = SpikeConnIdx[i_spike];
+  float height = SpikeHeight[i_spike];
+  int i_target = ConnectionGroupTargetNeuron[i_conn*NSpikeBuffer+i_source]
+    [i_syn] - Aeif_i_node_0;
+  unsigned char i_port = ConnectionGroupTargetPort[i_conn*NSpikeBuffer
+						   +i_source][i_syn];
+  float weight = ConnectionGroupTargetWeight[i_conn*NSpikeBuffer+i_source]
+    [i_syn];
     
-    // printf("handles spike %d src %d conn %d syn %d target %d"
-    // " port %d weight %f\n",
-    // i_spike, i_source, i_conn, i_syn, i_target,
-    // i_port, weight);
+  // printf("handles spike %d src %d conn %d syn %d target %d"
+  // " port %d weight %f\n",
+  // i_spike, i_source, i_conn, i_syn, i_target,
+  // i_port, weight);
 
-    // IMPROVE THIS PART
-    /////////////////////////////////////////////////////////////////
-    int i = i_port*ARRAY_SIZE + i_target;
-    int j = (N0_PARAMS + 3 + 4*i_port)*ARRAY_SIZE + i_target; // g0(i)
-    double d_val = (double)(height*weight*ParamsArr[j]);
-    atomicAddDouble(&GetSpikeArray[i], d_val); 
-    ////////////////////////////////////////////////////////////////
-  }
+  // IMPROVE THIS PART
+  /////////////////////////////////////////////////////////////////
+  int i = i_port*ARRAY_SIZE + i_target;
+  int j = (N0_PARAMS + 3 + 4*i_port)*ARRAY_SIZE + i_target; // g0(i)
+  double d_val = (double)(height*weight*ParamsArr[j]);
+  atomicAddDouble(&GetSpikeArray[i], d_val); 
+  ////////////////////////////////////////////////////////////////
 }
 
 // improve using a grid

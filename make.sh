@@ -21,9 +21,9 @@ fi
 
 cd src
 
-nvcc -ccbin=mpicc --compiler-options -Wall --compiler-options '-fPIC' --compiler-options '-fopenmp' -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true -I $CUDA_SAMPLES//6_Advanced/scan/ -I $CUDA_SAMPLES/common/inc/ --shared -o ../lib/libneuralgpu.so neural_gpu.cu aeif.cu connect.cu connect_mpi.cu poisson.cu rk5.cu spike_buffer.cu send_spike.cu get_spike.cu spike_mpi.cu getRealTime.cu prefix_scan.cu scan_tmp.cu spike_generator.cu multimeter.cu random.cu -lm -lstdc++ -lcurand
+nvcc -ccbin=mpicc --compiler-options -Wall --compiler-options '-fPIC' --compiler-options '-fopenmp' -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true -I $CUDA_SAMPLES//6_Advanced/scan/ -I $CUDA_SAMPLES/common/inc/ -I $CUB -I $CUB/test --shared -o ../lib/libneuralgpu.so neural_gpu.cu aeif.cu connect.cu connect_mpi.cu poisson.cu rk5.cu spike_buffer.cu send_spike.cu get_spike.cu spike_mpi.cu getRealTime.cu spike_generator.cu multimeter.cu random.cu nested_loop.cu prefix_scan.cu scan_tmp.cu -lm -lstdc++ -lcurand
 
-rm scan_tmp.cu
+#rm scan_tmp.cu
 
 cd ..
 

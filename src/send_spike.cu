@@ -15,28 +15,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include "send_spike.h"
 #include "cuda_error.h"
-#include "prefix_scan.h"
 
 int *d_SpikeNum;
 int *d_SpikeSourceIdx;
 int *d_SpikeConnIdx;
 float *d_SpikeHeight;
-uint *d_SpikeTargetNum;
-uint *d_SpikeTargetNumSum;
+int *d_SpikeTargetNum;
 
 //int *h_SpikeSourceIdx;
 //int *h_SpikeConnIdx;
 //float *h_SpikeHeight;
 //int *h_SpikeTargetNum;
-//int *h_SpikeTargetNumSum;
 
 __device__ int MaxSpikeNum;
 __device__ int *SpikeNum;
 __device__ int *SpikeSourceIdx;
 __device__ int *SpikeConnIdx;
 __device__ float *SpikeHeight;
-__device__ uint *SpikeTargetNum;
-__device__ uint *SpikeTargetNumSum;
+__device__ int *SpikeTargetNum;
 
 __device__ void SendSpike(int i_source, int i_conn, float height,
 			  int target_num)
@@ -54,8 +50,7 @@ __device__ void SendSpike(int i_source, int i_conn, float height,
 
 __global__ void DeviceSpikeInit(int *spike_num, int *spike_source_idx,
 				int *spike_conn_idx, float *spike_height,
-				uint *spike_target_num,
-				uint *spike_target_num_sum,
+				int *spike_target_num,
 				int max_spike_num)
 {
   SpikeNum = spike_num;
@@ -63,7 +58,6 @@ __global__ void DeviceSpikeInit(int *spike_num, int *spike_source_idx,
   SpikeConnIdx = spike_conn_idx;
   SpikeHeight = spike_height;
   SpikeTargetNum = spike_target_num;
-  SpikeTargetNumSum = spike_target_num_sum;
   MaxSpikeNum = max_spike_num;
   *SpikeNum = 0;
 }
@@ -75,18 +69,15 @@ void SpikeInit(int max_spike_num)
   //h_SpikeConnIdx = new int[max_spike_num];
   //h_SpikeHeight = new float[max_spike_num];
   //h_SpikeTargetNum = new int[PrefixScan::AllocSize];
-  //h_SpikeTargetNumSum = new int[PrefixScan::AllocSize];
 
   gpuErrchk(cudaMalloc(&d_SpikeNum, sizeof(int)));
   gpuErrchk(cudaMalloc(&d_SpikeSourceIdx, max_spike_num*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_SpikeConnIdx, max_spike_num*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_SpikeHeight, max_spike_num*sizeof(float)));
-  gpuErrchk(cudaMalloc(&d_SpikeTargetNum, PrefixScan::AllocSize*sizeof(uint)));
-  gpuErrchk(cudaMalloc(&d_SpikeTargetNumSum,
-		       PrefixScan::AllocSize*sizeof(uint)));
+  gpuErrchk(cudaMalloc(&d_SpikeTargetNum, max_spike_num*sizeof(int)));
+
   DeviceSpikeInit<<<1,1>>>(d_SpikeNum, d_SpikeSourceIdx, d_SpikeConnIdx,
-			   d_SpikeHeight, d_SpikeTargetNum,
-			   d_SpikeTargetNumSum, max_spike_num);
+			   d_SpikeHeight, d_SpikeTargetNum, max_spike_num);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 }

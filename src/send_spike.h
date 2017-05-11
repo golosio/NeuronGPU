@@ -19,28 +19,23 @@ extern int *d_SpikeNum;
 extern int *d_SpikeSourceIdx;
 extern int *d_SpikeConnIdx;
 extern float *d_SpikeHeight;
-extern uint *d_SpikeTargetNum;
-extern uint *d_SpikeTargetNumSum;
+extern int *d_SpikeTargetNum;
 
 //extern int *h_SpikeSourceIdx;
 //extern int *h_SpikeConnIdx;
 //extern float *h_SpikeHeight;
 //extern int *h_SpikeTargetNum;
-//extern int *h_SpikeTargetNumSum;
 
 extern __device__ int MaxSpikeNum;
 extern __device__ int *SpikeNum;
 extern __device__ int *SpikeSourceIdx;
 extern __device__ int *SpikeConnIdx;
 extern __device__ float *SpikeHeight;
-extern __device__ uint *SpikeTargetNum;
-extern __device__ uint *SpikeTargetNumSum;
+extern __device__ int *SpikeTargetNum;
 
 __global__ void DeviceSpikeInit(int *spike_num, int *spike_source_idx,
 				int *spike_conn_idx, float *spike_height,
-				uint *spike_target_num,
-				uint *spike_target_num_sum,
-				int max_spike_num);
+				int *spike_target_num, int max_spike_num);
 
 __device__ void SendSpike(int i_source, int i_conn, float height,
 			  int target_num);

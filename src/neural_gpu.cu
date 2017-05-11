@@ -28,10 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "spike_mpi.h"
 #include "spike_generator.h"
 #include "multimeter.h"
-#include "prefix_scan.h"
 #include "getRealTime.h"
 #include "random.h"
 #include "neural_gpu.h"
+#include "nested_loop.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -57,7 +57,6 @@ NeuralGPU::NeuralGPU()
   aeif_ = new AEIF;
   net_connection_ = new NetConnection;
   connect_mpi_ = new ConnectMpi;
-  prefix_scan_ = new PrefixScan;
 
   SetRandomSeed(54321ULL);
   
@@ -71,7 +70,7 @@ NeuralGPU::NeuralGPU()
   SetTimeResolution(0.1);  // time resolution in ms
   /////ConnectMpiInit(&argc, &argv, time_resolution_);
   connect_mpi_->net_connection_ = net_connection_;
-  prefix_scan_->Init();
+  NestedLoop::Init();
 }
 
 NeuralGPU::~NeuralGPU()
@@ -83,7 +82,6 @@ NeuralGPU::~NeuralGPU()
   delete aeif_;
   delete net_connection_;
   delete connect_mpi_;
-  delete prefix_scan_;
 }
 
 int NeuralGPU::SetRandomSeed(unsigned long long seed)
@@ -221,7 +219,7 @@ int NeuralGPU::Simulate()
   double SendExternalSpike_time = 0;
   double SendSpikeToRemote_time = 0;
   double RecvSpikeFromRemote_time = 0;
-  double PrefixScan_time = 0;
+  double NestedLoop_time = 0;
   double GetSpike_time = 0;
   double SpikeReset_time = 0;
   double ExternalSpikeReset_time = 0;
@@ -331,43 +329,19 @@ int NeuralGPU::Simulate()
 			 cudaMemcpyDeviceToHost));
     //cout << "n_spikes: " << n_spikes << endl;
     if (n_spikes > 0) {
-      prefix_scan_->Scan(d_SpikeTargetNumSum, d_SpikeTargetNum, n_spikes);
-      uint n_get_spikes;
-      gpuErrchk(cudaMemcpy(&n_get_spikes, &d_SpikeTargetNumSum[n_spikes],
-			   sizeof(uint), cudaMemcpyDeviceToHost));
-      PrefixScan_time += (getRealTime() - time_mark);
-      if(n_get_spikes>0) {
-        ClearGetSpikeArray(n_neurons_, aeif_->n_receptors_);
+      ClearGetSpikeArray(n_neurons_, aeif_->n_receptors_);      
+      time_mark = getRealTime();
+      NestedLoop::Run(n_spikes, d_SpikeTargetNum); //, aeif_->n_var_,
+                                                   // aeif_->n_params_);
+      NestedLoop_time += (getRealTime() - time_mark);
+      time_mark = getRealTime();
+      // improve using a grid
+      GetSpikes<<<(n_neurons_*aeif_->n_receptors_+1023)/1024, 1024>>>
+	(aeif_->n_receptors_);
+      gpuErrchk( cudaPeekAtLastError() );
+      gpuErrchk( cudaDeviceSynchronize() );
 
-	time_mark = getRealTime();
-	uint grid_dim_x, grid_dim_y;
-	if (n_get_spikes<65536*1024) { // max grid dim * max block dim
-	  grid_dim_x = (n_get_spikes+1023)/1024;
-	  grid_dim_y = 1;
-	}
-	else {
-	  grid_dim_x = 64; // I think it's not necessary to increase it
-	  if (n_get_spikes>grid_dim_x*1024*65535) {
-	    cerr << "n_get_spikes " << n_get_spikes << " larger than threshold "
-		 << grid_dim_x*1024*65535 << " .\n";
-	    exit(-1);
-	  }
-	  grid_dim_y = (n_get_spikes + grid_dim_x*1024 -1) / (grid_dim_x*1024);
-	}
-	dim3 numBlocks(grid_dim_x, grid_dim_y);
-	CollectSpikes<<<numBlocks, 1024>>>(n_get_spikes, aeif_->n_var_,
-				      aeif_->n_params_);
-	gpuErrchk( cudaPeekAtLastError() );
-	gpuErrchk( cudaDeviceSynchronize() );
-
-        // improve using a grid
-        GetSpikes<<<(n_neurons_*aeif_->n_receptors_+1023)/1024, 1024>>>
-                    (aeif_->n_receptors_);
-	gpuErrchk( cudaPeekAtLastError() );
-	gpuErrchk( cudaDeviceSynchronize() );
-
-	GetSpike_time += (getRealTime() - time_mark);
-      }
+      GetSpike_time += (getRealTime() - time_mark);
     }
     time_mark = getRealTime();
     SpikeReset<<<1, 1>>>();
@@ -396,7 +370,7 @@ int NeuralGPU::Simulate()
   cout << "  SendExternalSpike_time: " << SendExternalSpike_time << endl;
   cout << "  SendSpikeToRemote_time: " << SendSpikeToRemote_time << endl;
   cout << "  RecvSpikeFromRemote_time: " << RecvSpikeFromRemote_time << endl;
-  cout << "  PrefixScan_time: " << PrefixScan_time << endl;
+  cout << "  NestedLoop_time: " << NestedLoop_time << endl;
   cout << "  GetSpike_time: " << GetSpike_time << endl;
   cout << "  SpikeReset_time: " << SpikeReset_time << endl;
   cout << "  ExternalSpikeReset_time: " << ExternalSpikeReset_time << endl;

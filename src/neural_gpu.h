@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#include "connect_mpi.h"
 //#include "poisson.h"
 //#include "aeif.h"
-//#include "prefix_scan.h"
 //#include "spike_generator.h"
 //#include "multimeter.h"
 
@@ -32,7 +31,6 @@ class Multimeter;
 class AEIF;
 class NetConnection;
 class ConnectMpi;
-class PrefixScan;
 
 
 class NeuralGPU
@@ -48,8 +46,6 @@ class NeuralGPU
   NetConnection *net_connection_;
   ConnectMpi *connect_mpi_;
 
-  PrefixScan *prefix_scan_;
-  
   int max_spike_buffer_num_;
   int max_spike_num_;
   int max_spike_per_host_;

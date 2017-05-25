@@ -228,8 +228,14 @@ int NestedLoop::Init(int Nx_max)
 //////////////////////////////////////////////////////////////////////
 int NestedLoop::Run(int Nx, int *d_Ny)
 {
-  //return Smart2DNestedLoop(Nx, d_Ny);
+  //return SimpleNestedLoop(Nx, d_Ny);
+  //return ParallelInnerNestedLoop(Nx, d_Ny);
+  //return ParallelOuterNestedLoop(Nx, d_Ny);
+  //return Frame1DNestedLoop(Nx, d_Ny);
+  //return Frame2DNestedLoop(Nx, d_Ny);
   return CumulSumNestedLoop(Nx, d_Ny);
+  //return Smart1DNestedLoop(Nx, d_Ny);
+  //return Smart2DNestedLoop(Nx, d_Ny);
 
 }
 
@@ -516,6 +522,18 @@ int NestedLoop::CumulSumNestedLoop(int Nx, int *d_Ny)
   CudaSafeCall(cudaMemcpy(&Ny_sum, &d_Ny_cumul_sum_[Nx],
 			  sizeof(uint), cudaMemcpyDeviceToHost));
   //printf("Ny_sum %u\n", Ny_sum);
+  //temporary - remove
+  //if (Ny_sum==0) {
+  //  printf("Nx %d\n", Nx);
+  //  for (int i=0; i<Nx+1; i++) {
+  //    uint psum;
+  //    CudaSafeCall(cudaMemcpy(&psum, &d_Ny_cumul_sum_[i],
+  //			      sizeof(uint), cudaMemcpyDeviceToHost));
+  //    printf("%d %u\n", i, psum);
+  //  }
+  //}
+      
+  ////
   if(Ny_sum>0) {
     uint grid_dim_x, grid_dim_y;
     if (Ny_sum<65536*1024) { // max grid dim * max block dim

@@ -42,7 +42,7 @@ int PrefixScan::Init()
 int PrefixScan::Scan(uint *d_Output, uint *d_Input, uint n)
 {
    uint array_length = 1;
-   while (array_length < n || array_length < MIN_SHORT_ARRAY_SIZE) {
+   while (array_length <= n || array_length < MIN_SHORT_ARRAY_SIZE) {
       array_length <<= 1;
    }
    if (array_length > MAX_LARGE_ARRAY_SIZE) {

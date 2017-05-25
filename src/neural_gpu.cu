@@ -537,12 +537,6 @@ int NeuralGPU::SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
   return spike_generator_->Set(i_node, n_spikes, spike_time, spike_height);
 }
 
-unsigned int *NeuralGPU::RandomInt(size_t n)
-{
-  return curand_int(*random_generator_, n);
-}
-
-
 int NeuralGPU::RemoteConnectFixedIndegree
 (
  int i_source_host, int i_source_neuron_0, int n_source_neurons,
@@ -758,6 +752,58 @@ int NeuralGPU::RemoteConnect(int i_source_host, int i_source_neuron,
 				     i_port, weight, delay);
 }
 
+int NeuralGPU::ConnectFixedIndegreeArray
+(
+ int i_source_neuron_0, int n_source_neurons,
+ int i_target_neuron_0, int n_target_neurons,
+ unsigned char i_port, float *weight_arr, float *delay_arr, int indegree
+ )
+{
+  unsigned int *rnd = RandomInt(n_target_neurons*indegree);
+  vector<int> input_array;
+  for (int i=0; i<n_source_neurons; i++) {
+    input_array.push_back(i_source_neuron_0 + i);
+  }
+#ifdef _OPENMP
+  omp_lock_t *lock = new omp_lock_t[n_source_neurons];
+  for (int i=0; i<n_source_neurons; i++) {
+    omp_init_lock(&(lock[i]));
+  }
+#pragma omp parallel for default(shared) collapse(2)
+#endif
+  for (int k=0; k<n_target_neurons; k++) {
+    for (int i=0; i<indegree; i++) {
+      int j = i + rnd[k*indegree+i] % (n_source_neurons - i);
+#ifdef _OPENMP
+      omp_set_lock(&(lock[i]));
+#endif
+      if (j!=i) {
+#ifdef _OPENMP
+	omp_set_lock(&(lock[j]));
+#endif
+	swap(input_array[i], input_array[j]);
+#ifdef _OPENMP
+	omp_unset_lock(&(lock[j]));
+#endif
+      }
+      int itn = k + i_target_neuron_0;
+      int isn = input_array[i];
+      size_t i_arr = (size_t)k*indegree + i;
+      net_connection_->Connect(isn, itn, i_port, weight_arr[i_arr],
+			       delay_arr[i_arr]);
+#ifdef _OPENMP
+      omp_unset_lock(&(lock[i]));
+#endif
+    }
+  }
+  delete[] rnd;
+#ifdef _OPENMP
+  delete[] lock;
+#endif
+  
+  return 0;
+}
+
 int NeuralGPU::ConnectFixedTotalNumberArray
 (
  int i_source_neuron_0, int n_source_neurons,
@@ -794,3 +840,50 @@ int NeuralGPU::ConnectFixedTotalNumberArray
   
   return 0;
 }
+
+
+unsigned int *NeuralGPU::RandomInt(size_t n)
+{
+  return curand_int(*random_generator_, n);
+}
+
+float *NeuralGPU::RandomUniform(size_t n)
+{
+  return curand_uniform(*random_generator_, n);
+}
+
+float *NeuralGPU::RandomNormal(size_t n, float mean, float stddev)
+{
+  return curand_normal(*random_generator_, n, mean, stddev);
+}
+
+float *NeuralGPU::RandomNormalClipped(size_t n, float mean, float stddev,
+				      float vmin, float vmax)
+{
+  int n_extra = n/10;
+  if (n_extra<1024) {
+    n_extra=1024;
+  }
+  int i_extra = 0;
+  float *arr = curand_normal(*random_generator_, n, mean, stddev);
+  float *arr_extra;
+  for (size_t i=0; i<n; i++) {
+    while (arr[i]<vmin || arr[i]>vmax) {
+      if (i_extra==0) {
+	arr_extra = curand_normal(*random_generator_, n_extra, mean, stddev);
+      }
+      arr[i] = arr_extra[i_extra];
+      i_extra++;
+      if (i_extra==n_extra) {
+	i_extra = 0;
+	delete[](arr_extra);
+      }
+    }
+  }
+  if (i_extra != 0) {
+    delete[](arr_extra);
+  }
+  
+  return arr; 
+}
+

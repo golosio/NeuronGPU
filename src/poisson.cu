@@ -67,7 +67,8 @@ int PoissonGenerator::Generate(int max_n_steps)
   // Generate N floats on device
   CURAND_CALL(curandGeneratePoisson(*random_generator_, dev_poisson_data_,
 				    n_nodes_*more_steps_, lambda_));
-
+  cudaDeviceSynchronize();
+  
   return 0;
 }
 

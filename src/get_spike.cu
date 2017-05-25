@@ -54,10 +54,10 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn) //, int nvar,
   float weight = ConnectionGroupTargetWeight[i_conn*NSpikeBuffer+i_source]
     [i_syn];
     
-  // printf("handles spike %d src %d conn %d syn %d target %d"
-  // " port %d weight %f\n",
-  // i_spike, i_source, i_conn, i_syn, i_target,
-  // i_port, weight);
+  //printf("handles spike %d src %d conn %d syn %d target %d"
+  //" port %d weight %f\n",
+  //i_spike, i_source, i_conn, i_syn, i_target,
+  //i_port, weight);
 
   // IMPROVE THIS PART
   /////////////////////////////////////////////////////////////////

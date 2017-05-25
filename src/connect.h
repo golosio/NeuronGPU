@@ -48,6 +48,8 @@ class NetConnection
   int ConnGroupPrint(int i_source);
 
   int MaxDelayNum();
+  
+  int NConnections();
 
 };
 

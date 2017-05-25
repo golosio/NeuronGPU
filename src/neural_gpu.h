@@ -125,6 +125,18 @@ class NeuralGPU
 		    int i_target_host, int i_target_neuron,
 		    unsigned char i_port, float weight, float delay);
     
+  int ConnectFixedIndegreeArray
+    (
+     int i_source_neuron_0, int n_source_neurons,
+     int i_target_neuron_0, int n_target_neurons,
+     unsigned char i_port, float *weight_arr, float *delay_arr, int indegree
+     );
+  
+  int ConnectFixedTotalNumberArray(int i_source_neuron_0, int n_source_neurons,
+				   int i_target_neuron_0, int n_target_neurons,
+				   unsigned char i_port, float *weight_arr,
+				   float *delay_arr, int n_conn);
+
   int SetNeuronParams(std::string param_name, int i_node, int n_neurons,
 		      float val);
 
@@ -145,6 +157,13 @@ class NeuralGPU
 			float *spike_height);
   
   unsigned int *RandomInt(size_t n);
+  
+  float *RandomUniform(size_t n);
+
+  float *RandomNormal(size_t n, float mean, float stddev);
+
+  float *RandomNormalClipped(size_t n, float mean, float stddev, float vmin,
+			     float vmax);  
 
 };
 

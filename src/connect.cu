@@ -98,3 +98,17 @@ int NetConnection::MaxDelayNum()
 
   return max_delay_num;
 }
+
+int NetConnection::NConnections()
+{
+  int n_conn = 0;
+  for (unsigned int i_node=0; i_node<connection_.size(); i_node++) {
+    vector<ConnGroup> &conn = connection_[i_node];
+    for (unsigned int id=0; id<conn.size(); id++) {
+      int n_target = conn.at(id).target_vect.size();
+      n_conn += n_target;
+    }
+  }
+  
+  return n_conn;
+}

@@ -227,8 +227,11 @@ int NeuralGPU::Simulate()
   
   float t_min = 0.0;
 
-  max_spike_num_ = net_connection_->connection_.size();
-  max_spike_per_host_ = net_connection_->connection_.size();
+  max_spike_num_ = net_connection_->connection_.size()
+    * net_connection_->MaxDelayNum();
+  
+  max_spike_per_host_ = net_connection_->connection_.size()
+    * net_connection_->MaxDelayNum();
 
   SpikeInit(max_spike_num_);
   SpikeBufferInit(net_connection_, max_spike_buffer_num_);
@@ -274,7 +277,6 @@ int NeuralGPU::Simulate()
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
     SpikeBufferUpdate_time += (getRealTime() - time_mark);
-
     time_mark = getRealTime();
     if (n_poiss_nodes_>0) {
       poiss_generator_->Update(Nt-it);
@@ -290,15 +292,13 @@ int NeuralGPU::Simulate()
     time_mark = getRealTime();
     aeif_->Update(it, t1);
     aeif_Update_time += (getRealTime() - time_mark);
-    
     multimeter_->WriteRecords();
-    
     int n_ext_spike;
     time_mark = getRealTime();
     gpuErrchk(cudaMemcpy(&n_ext_spike, d_ExternalSpikeNum, sizeof(int),
 			 cudaMemcpyDeviceToHost));
     copy_ext_spike_time += (getRealTime() - time_mark);
-    
+
     if (n_ext_spike != 0) {
       //cout << "n_ext_spike " << n_ext_spike << endl;
       time_mark = getRealTime();
@@ -331,13 +331,15 @@ int NeuralGPU::Simulate()
     if (n_spikes > 0) {
       ClearGetSpikeArray(n_neurons_, aeif_->n_receptors_);      
       time_mark = getRealTime();
-      NestedLoop::Run(n_spikes, d_SpikeTargetNum); //, aeif_->n_var_,
-                                                   // aeif_->n_params_);
+      NestedLoop::Run(n_spikes, d_SpikeTargetNum);
+
+      //, aeif_->n_var_,
+      // aeif_->n_params_);
       NestedLoop_time += (getRealTime() - time_mark);
       time_mark = getRealTime();
       // improve using a grid
       GetSpikes<<<(n_neurons_*aeif_->n_receptors_+1023)/1024, 1024>>>
-	(aeif_->n_receptors_);
+	(aeif_->n_receptors_, aeif_->n_var_);
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
 

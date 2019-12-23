@@ -84,21 +84,10 @@ void ArrayInit(int n_var, int n_params, float x_min, float h)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (array_idx<ARRAY_SIZE) {
-    float *y = new float[n_var];
-    float *params = new float[n_params];
-    VarInit(n_var, n_params, x_min, y, params);
+    VarInit(n_var, n_params, x_min, &YArr[array_idx*n_var],
+	    &ParamsArr[array_idx*n_params]);
     XArr[array_idx] = x_min;
     HArr[array_idx] = h;
-
-    for(int i=0; i<n_var; i++) {
-      YArr[i*ARRAY_SIZE + array_idx] = y[i];
-    }
-    for(int j=0; j<n_params; j++) {
-      ParamsArr[j*ARRAY_SIZE + array_idx] = params[j];
-    }
-   
-    delete[] y;
-    delete[] params;
   }
 }
 
@@ -107,29 +96,10 @@ void ArrayCalibrate(int n_var, int n_params, float x_min, float h)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (array_idx<ARRAY_SIZE) {
-    float *y = new float[n_var];
-    float *params = new float[n_params];
-    for(int i=0; i<n_var; i++) {
-      y[i] = YArr[i*ARRAY_SIZE + array_idx];
-    }
-    for(int j=0; j<n_params; j++) {
-      params[j] = ParamsArr[j*ARRAY_SIZE + array_idx];
-    }
-    
-    VarCalibrate(n_var, n_params, x_min, y, params);
-    
+    VarCalibrate(n_var, n_params, x_min, &YArr[array_idx*n_var],
+		 &ParamsArr[array_idx*n_params]);
     XArr[array_idx] = x_min;
     HArr[array_idx] = h;
-
-    for(int i=0; i<n_var; i++) {
-      YArr[i*ARRAY_SIZE + array_idx] = y[i];
-    }
-    for(int j=0; j<n_params; j++) {
-      ParamsArr[j*ARRAY_SIZE + array_idx] = params[j];
-    }
-
-    delete[] y;
-    delete[] params;
   }
 }
 
@@ -194,41 +164,56 @@ int RungeKutta5::GetX(int i_array, int n_elems, float *x)
 
 int RungeKutta5::GetY(int i_var, int i_array, int n_elems, float *y)
 {
-  cudaMemcpy(y, &d_YArr[i_var*array_size_ + i_array], n_elems*sizeof(float),
+  cudaMemcpy(y, &d_YArr[i_array*n_var_ + i_var], n_elems*sizeof(float),
 	     cudaMemcpyDeviceToHost);
 
   return 0;
 }
 
 
-__global__ void SetFloatArray(float *arr, int n_elems, float val)
+__global__ void SetFloatArray(float *arr, int n_elems, int step, float val)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (array_idx<n_elems) {
-    arr[array_idx] = val;
+    arr[array_idx*step] = val;
   }
 }
 
-int RungeKutta5::SetParams(int i_param, int i_array, int n_elems, float val)
+int RungeKutta5::SetParams(int i_param, int i_array, int n_params,
+			   int n_elems, float val)
 {
+  // TMP
+  //printf("rk5::SetParams %d %d %d %d %f\n",
+  //	 i_param, i_array, n_params_, n_elems, val);
+  //
+
   SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
-    (&d_ParamsArr[i_param*array_size_ + i_array], n_elems, val);
+    (&d_ParamsArr[i_array*n_params_ + i_param], n_elems, n_params, val);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
   
   return 0;
 }
 
-int RungeKutta5::SetVectParams(int i_param, int i_array, int n_elems,
-			       float *params, int vect_size)
+int RungeKutta5::SetVectParams(int i_param, int i_array, int n_params,
+			       int n_elems, float *params, int vect_size)
 {
+  // TMP
+  //printf("rk5::SetVectParams %d %d %d %d\n",
+  //	 i_param, i_array, n_params_, n_elems);
+  //for (int i=0; i<vect_size; i++) {
+  //  printf("rk5::SetVectParams vect %d %d %f\n",
+  //	   i_param, i, params[i]);
+  //}
+  //
+
   for (int i=0; i<vect_size; i++) {
     SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
-      (&d_ParamsArr[(N0_PARAMS + i_param + 4*i)*array_size_ + i_array], n_elems,
-       params[i]);
+      (&d_ParamsArr[i_array*n_params_ + N0_PARAMS + i_param + 4*i], n_elems,
+       n_params, params[i]);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   }
-    
+
   return 0;
 }

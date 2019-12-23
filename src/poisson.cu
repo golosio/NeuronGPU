@@ -40,12 +40,23 @@ void PoissonSendSpikes(int i_node_0, int n_nodes)
   }
 }
 
+__global__
+void FixPoissonGenerator(unsigned int *poisson_data, int n, float mean)
+{
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  if (i < n) {
+    unsigned int val = poisson_data[i];
+    if (val>mean*5) {
+      poisson_data[i] =0;
+    }
+  }
+}
+
 int PoissonGenerator::Init(curandGenerator_t *random_generator, unsigned int n)
 {
   poisson_data_size_ = n;
   // Allocate n integers on device
   CUDA_CALL(cudaMalloc((void **)&dev_poisson_data_, n * sizeof(unsigned int)));
-
   random_generator_ = random_generator;
 
   return 0;
@@ -68,7 +79,10 @@ int PoissonGenerator::Generate(int max_n_steps)
   CURAND_CALL(curandGeneratePoisson(*random_generator_, dev_poisson_data_,
 				    n_nodes_*more_steps_, lambda_));
   cudaDeviceSynchronize();
-  
+  FixPoissonGenerator<<<(n_nodes_+1023)/1024, 1024>>>
+    (dev_poisson_data_,n_nodes_*more_steps_, lambda_);
+  cudaDeviceSynchronize();
+
   return 0;
 }
 

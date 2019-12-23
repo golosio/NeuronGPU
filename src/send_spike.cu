@@ -42,10 +42,6 @@ __device__ void SendSpike(int i_source, int i_conn, float height,
   SpikeConnIdx[pos] = i_conn;
   SpikeHeight[pos] = height;
   SpikeTargetNum[pos] = target_num;
-  //printf("ss: %d\t%d\t%d\n", i_source, i_conn, target_num);
-  //printf("sn: %d\n", *SpikeNum);
-  //printf("Pos: %d\t ssi: %d\n", pos, SpikeSourceIdx[pos]);
-    
 }
 
 __global__ void DeviceSpikeInit(int *spike_num, int *spike_source_idx,
@@ -65,9 +61,6 @@ __global__ void DeviceSpikeInit(int *spike_num, int *spike_source_idx,
 
 void SpikeInit(int max_spike_num)
 {
-  //h_SpikeSourceIdx = new int[max_spike_num];
-  //h_SpikeConnIdx = new int[max_spike_num];
-  //h_SpikeHeight = new float[max_spike_num];
   //h_SpikeTargetNum = new int[PrefixScan::AllocSize];
 
   gpuErrchk(cudaMalloc(&d_SpikeNum, sizeof(int)));
@@ -75,7 +68,7 @@ void SpikeInit(int max_spike_num)
   gpuErrchk(cudaMalloc(&d_SpikeConnIdx, max_spike_num*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_SpikeHeight, max_spike_num*sizeof(float)));
   gpuErrchk(cudaMalloc(&d_SpikeTargetNum, max_spike_num*sizeof(int)));
-
+  //printf("here: SpikeTargetNum size: %d", max_spike_num);
   DeviceSpikeInit<<<1,1>>>(d_SpikeNum, d_SpikeSourceIdx, d_SpikeConnIdx,
 			   d_SpikeHeight, d_SpikeTargetNum, max_spike_num);
   gpuErrchk( cudaPeekAtLastError() );

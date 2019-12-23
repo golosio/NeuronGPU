@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "rk5.h"
 
 extern __device__ int Aeif_i_node_0; 
+extern __device__ float *G0;
 
 __device__ double *GetSpikeArray;
 
@@ -41,8 +42,7 @@ __device__ double atomicAddDouble(double* address, double val)
 //////////////////////////////////////////////////////////////////////
 // This is the function called by the nested loop
 // that collects the spikes
-__device__ void NestedLoopFunction(int i_spike, int i_syn) //, int nvar,
-                                                           // int nparams)
+__device__ void NestedLoopFunction(int i_spike, int i_syn)
 {
   int i_source = SpikeSourceIdx[i_spike];
   int i_conn = SpikeConnIdx[i_spike];
@@ -53,39 +53,32 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn) //, int nvar,
 						   +i_source][i_syn];
   float weight = ConnectionGroupTargetWeight[i_conn*NSpikeBuffer+i_source]
     [i_syn];
-    
+  
   //printf("handles spike %d src %d conn %d syn %d target %d"
   //" port %d weight %f\n",
   //i_spike, i_source, i_conn, i_syn, i_target,
   //i_port, weight);
-
-  // IMPROVE THIS PART
+  
   /////////////////////////////////////////////////////////////////
   int i = i_port*ARRAY_SIZE + i_target;
-  int j = (N0_PARAMS + 3 + 4*i_port)*ARRAY_SIZE + i_target; // g0(i)
-  double d_val = (double)(height*weight*ParamsArr[j]);
+  double d_val = (double)(height*weight*G0[i]);
   atomicAddDouble(&GetSpikeArray[i], d_val); 
   ////////////////////////////////////////////////////////////////
 }
+///////////////
 
 // improve using a grid
-__global__ void GetSpikes(int n_ports)
+__global__ void GetSpikes(int n_ports, int n_var)
 {
   int i_array = threadIdx.x + blockIdx.x * blockDim.x;
   if (i_array < ARRAY_SIZE*n_ports) {
      int i_target = i_array % ARRAY_SIZE;
      int i_port = i_array / ARRAY_SIZE;
-     int i = (N0_VAR + 1 + 2*i_port)*ARRAY_SIZE + i_target; // g1(i)
-     double d_val = GetSpikeArray[i_array] + (double)YArr[i];  
+     int i = i_target*n_var + N0_VAR + 1 + 2*i_port; // g1(i)
+     double d_val = GetSpikeArray[i_array] + (double)YArr[i];
      YArr[i] = (float)d_val;
   }
 }
-    // REMOVE THIS PART
-    /////////////////////////////////////////////////////////////////
- //   int i = (N0_VAR + 1 + 2*i_port)*ARRAY_SIZE + i_target; // g1(i)
- //   int j = (N0_PARAMS + 3 + 4*i_port)*ARRAY_SIZE + i_target; // g0(i)
- //   atomicAdd(&YArr[i], height*weight*ParamsArr[j]); 
-    ////////////////////////////////////////////////////////////////
 
 __global__
 void DeviceInitGetSpikeArray(double *get_spike_array)

@@ -22,6 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cuda_error_nl.h"
 #include "nested_loop.h"
 
+//TMP
+#include "getRealTime.h"
+//
+
 //////////////////////////////////////////////////////////////////////
 // declare here the function called by the nested loop 
 __device__ void NestedLoopFunction(int ix, int iy);
@@ -517,10 +521,19 @@ int NestedLoop::Smart2DNestedLoop(int Nx, int *d_Ny)
 #ifdef WITH_CUMUL_SUM
 int NestedLoop::CumulSumNestedLoop(int Nx, int *d_Ny)
 {
+  //TMP
+  //double time_mark=getRealTime();
+  //
   prefix_scan_.Scan(d_Ny_cumul_sum_, (uint*)d_Ny, Nx);
+  //TMP
+  //printf("pst: %lf\n", getRealTime()-time_mark);
+  //	 
   uint Ny_sum;
   CudaSafeCall(cudaMemcpy(&Ny_sum, &d_Ny_cumul_sum_[Nx],
 			  sizeof(uint), cudaMemcpyDeviceToHost));
+
+  //printf("CSNL: %d %d\n", Nx, Ny_sum);
+  
   //printf("Ny_sum %u\n", Ny_sum);
   //temporary - remove
   //if (Ny_sum==0) {
@@ -550,10 +563,16 @@ int NestedLoop::CumulSumNestedLoop(int Nx, int *d_Ny)
       grid_dim_y = (Ny_sum + grid_dim_x*1024 -1) / (grid_dim_x*1024);
     }
     dim3 numBlocks(grid_dim_x, grid_dim_y);
+    //TMP
+    //double time_mark=getRealTime();
+    //
     CumulSumNestedLoopKernel<<<numBlocks, 1024>>>(Nx, d_Ny_cumul_sum_, Ny_sum);
 
     cudaDeviceSynchronize();
     CudaCheckError();
+    //TMP
+    //printf("cst: %lf\n", getRealTime()-time_mark);
+    //
   }
     
   return 0;

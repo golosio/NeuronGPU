@@ -30,23 +30,6 @@ __device__ int **SpikeGeneratorTimeIdx;
 
 __device__ float **SpikeGeneratorHeight;
 
-////// temp ////////
-/*
-__global__
-void mytest()
-{
-  printf("myt : %d\n",  SpikeGeneratorSpikeNum[0]);
-  printf("myt : %d\n",  SpikeGeneratorTimeIdx[0][0]);
-  printf("myt : %f\n",  SpikeGeneratorHeight[0][0]);
-  printf("myt : %d\n",  SpikeGeneratorTimeIdx[0][1]);
-  printf("myt : %f\n",  SpikeGeneratorHeight[0][1]);
-  printf("myt : %d\n",  SpikeGeneratorTimeIdx[0][2]);
-  printf("myt : %f\n",  SpikeGeneratorHeight[0][2]);
-}
-*/
-////////////////////
-
-
 __global__
 void SpikeGeneratorUpdate(int i_node_0, int n_nodes, int i_time)
 {
@@ -197,10 +180,6 @@ int SpikeGenerator::Set(int i_node, int n_spikes, float *spike_time,
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(h_spike_height_[i_node], spike_height, n_spikes*sizeof(float),
 	     cudaMemcpyHostToDevice);
-
-  //mytest<<<1,1>>>();
-  //gpuErrchk( cudaPeekAtLastError() );
-  //gpuErrchk( cudaDeviceSynchronize() );
 
   return 0;
 }

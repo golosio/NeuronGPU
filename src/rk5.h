@@ -41,7 +41,7 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
 
 template<int NVAR, int NPARAMS>
 __device__
-void ExternalUpdate(float x, float *y, float *params);
+void ExternalUpdate(float x, float *y, float *params, bool end_time_step);
 
 __global__
 void ArrayDef(int array_size, float *x_arr, float *h_arr, float *y_arr,
@@ -74,7 +74,14 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
 {
   float err;
   float y_new[NVAR];
-  
+
+  //TMP
+  //int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
+  //if(ArrayIdx==11429) {
+  //  printf("rk5sb: %d %f %f\n", ArrayIdx, x, h);
+  //}
+  //
+ 
   for(;;) {
     if (h > h_max) h = h_max;
 
@@ -121,10 +128,22 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
     Derivatives<NVAR, NPARAMS>(x1, y_new, k2, params); // k2 replaces k7
   
     err = 0.0;
+    //if (ArrayIdx==11429) {
+    //  printf("rk5sfact: %d %f %f %f %f %f %f %f\n", ArrayIdx,
+    //     h, k1[0], k3[0], k4[0], k5[0], k6[0], k2[0]);    
+    //  printf("rk5snum: %d %f\n", ArrayIdx,
+    //   h*(e1*k1[0] + e3*k3[0] + e4*k4[0] + e5*k5[0] + e6*k6[0] + e7*k2[0]));
+    //  printf("rk5sdenom: %d %f\n", ArrayIdx,
+    //     abs_tol + rel_tol*MAX(fabs(y[0]), fabs(y_new[0])));	     
+    //}
     for (int i=0; i<NVAR; i++) {
       float val = h*(e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i] + e6*k6[i]
 		     + e7*k2[i])
 	/ (abs_tol + rel_tol*MAX(fabs(y[i]), fabs(y_new[i])));
+      //if (ArrayIdx==11429) {
+      //	printf("rk5sval: %d %d %f\n", ArrayIdx, i, val);
+      //}
+
       err += val*val;
     }
     err = sqrt(err/NVAR);
@@ -144,7 +163,12 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
     }
     else if (err <= 1.0) rejected = false; 
     else rejected = true;
-    
+    //TMP
+    //int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
+    //if (ArrayIdx==11429) {
+    //  printf("rk5se: %d %f %f %f %f %f\n", ArrayIdx, x, x_new, h, fact, err);
+    //}
+      //
     if (!rejected) {
       x = x_new;
       break;
@@ -161,12 +185,38 @@ __device__
 void RK5Update(float &x, float *y, float x1, float &h, float h_min,
 	       float *params)
 {
-  while(x<x1-h_min) {
+  bool end_time_step=false;
+  while(!end_time_step) {
     float hmax=x1-x;
     RK5Step<NVAR, NPARAMS>(x, y, h, h_min, hmax, params);
-    ExternalUpdate<NVAR, NPARAMS>(x, y, params);
+    //x=x1; // temp
+    end_time_step = (x >= x1-h_min);
+    ExternalUpdate<NVAR, NPARAMS>(x, y, params, end_time_step);
   }
 }
+
+/*
+template<int NVAR, int NPARAMS>
+__global__
+void ArrayUpdate(float x1, float h_min)
+{
+  int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (ArrayIdx<ARRAY_SIZE) {
+    //float x = XArr[ArrayIdx];
+    //float h = HArr[ArrayIdx];
+
+    RK5Update<NVAR, NPARAMS>(XArr[ArrayIdx], &YArr[ArrayIdx*NVAR], x1,
+			     HArr[ArrayIdx], h_min,
+			     &ParamsArr[ArrayIdx*NPARAMS]);
+
+    //float poisson_weight = 1.187*PoissonData[0];
+    //if (poisson_weight>0) HandleSpike(poisson_weight, 0, y, params);
+
+    //XArr[ArrayIdx] = x;
+    //HArr[ArrayIdx] = h;
+  }
+}
+*/
 
 template<int NVAR, int NPARAMS>
 __global__
@@ -180,10 +230,10 @@ void ArrayUpdate(float x1, float h_min)
     float params[NPARAMS];
 
     for(int i=0; i<NVAR; i++) {
-      y[i] = YArr[i*ARRAY_SIZE + ArrayIdx];
+      y[i] = YArr[ArrayIdx*NVAR + i];
     }
     for(int j=0; j<NPARAMS; j++) {
-      params[j] = ParamsArr[j*ARRAY_SIZE + ArrayIdx];
+      params[j] = ParamsArr[ArrayIdx*NPARAMS + j];
     }
 
     RK5Update<NVAR, NPARAMS>(x, y, x1, h, h_min, params);
@@ -194,7 +244,7 @@ void ArrayUpdate(float x1, float h_min)
     XArr[ArrayIdx] = x;
     HArr[ArrayIdx] = h;
     for(int i=0; i<NVAR; i++) {
-      YArr[i*ARRAY_SIZE + ArrayIdx] = y[i];
+      YArr[ArrayIdx*NVAR + i] = y[i];
     }
        
   }
@@ -222,9 +272,9 @@ class RungeKutta5
 
   int GetX(int i_array, int n_elems, float *x);
   int GetY(int i_var, int i_array, int n_elems, float *y);
-  int SetParams(int i_param, int i_array, int n_elems, float val);
-  int SetVectParams(int i_param, int i_array, int n_elems, float *params,
-		    int vect_size);
+  int SetParams(int i_param, int i_array, int n_params, int n_elems, float val);
+  int SetVectParams(int i_param, int i_array, int n_params, int n_elems,
+		    float *params, int vect_size);
 };
 
 #endif

@@ -81,7 +81,7 @@ const std::string aeif_vect_param_names[] = {
 };
 
 //
-// I know that defines ar "bad", but the defines below make the
+// I know that defines are "bad", but the defines below make the
 // following equations much more readable.
 // For every rule there is some exceptions!
 //
@@ -118,21 +118,27 @@ template<int NVAR, int NPARAMS>
 __device__
 void Derivatives(float x, float *y, float *dydx, float *params)
 {
+  // TMP
+  //int ArrayIdx =  threadIdx.x + blockIdx.x * blockDim.x;
   enum { n_receptors = (NVAR-N0_VAR)/2 };
   float I_syn = 0.0;
 
-  float V = MIN(V_m, V_peak);
+  float V = ( refractory_step > 0 ) ? V_reset :  MIN(V_m, V_peak);
   for (int i = 0; i<n_receptors; i++) {
     I_syn += g(i)*(E_rev(i) - V);
   }
-  
   float V_spike = Delta_T*exp((V - V_th)/Delta_T);
-  
-  dVdt = ( -g_L*(V - E_L - V_spike) + I_syn - w + I_e) / C_m;
-  
+
+  dVdt = ( refractory_step > 0 ) ? 0 :
+    ( -g_L*(V - E_L - V_spike) + I_syn - w + I_e) / C_m;
+  //if(ArrayIdx==11429) {
+  //  printf("deriv dVdt: %d %f\n", ArrayIdx, dVdt);
+  //  printf("deriv var: %d %f %f %f %f %f %f %f %f\n", ArrayIdx, g_L, V, E_L,
+  //	   V_spike, I_syn, w, I_e, C_m);
+  //}
+
   // Adaptation current w.
   dwdt = (a*(V - E_L) - w) / tau_w;
-  
   for (int i=0; i<n_receptors; i++) {
     // Synaptic conductance derivative
     dg1dt(i) = -g1(i) / taus_rise(i);
@@ -142,19 +148,34 @@ void Derivatives(float x, float *y, float *dydx, float *params)
 
 template<int NVAR, int NPARAMS>
 __device__
-void ExternalUpdate(float x, float *y, float *params)
+void ExternalUpdate(float x, float *y, float *params, bool end_time_step)
 {
-  //if ( V < -1e3 || w < -1e6 || w > 1e6 Error!
-  // spike-driven adaptation
-  //if ( refractory_step > 0 ) V = V_reset;
-  //else
-  if ( V_m >= V_peak ) {
-    int neuron_idx = threadIdx.x + blockIdx.x * blockDim.x;
-    PushSpike(Aeif_i_node_0 + neuron_idx, 1.0);
+  if ( V_m < -1.0e3) { // numerical instability
+    printf("V_m out of lower bound\n");
     V_m = V_reset;
-    w += b; // spike-driven adaptation
-    //refractory_step = n_refractory_steps;
-    // send spike ////////////////////////////////////////////
+    w=0;
+    return;
+  }
+  if ( w < -1.0e6 || w > 1.0e6) { // numerical instability
+    printf("w out of bound\n");
+    V_m = V_reset;
+    w=0;
+    return;
+  }
+  if (refractory_step > 0) {
+    V_m = V_reset;
+    if (end_time_step) {
+      refractory_step--;
+    }
+  }
+  else {
+    if ( V_m >= V_peak ) { // send spike
+      int neuron_idx = threadIdx.x + blockIdx.x * blockDim.x;
+      PushSpike(Aeif_i_node_0 + neuron_idx, 1.0);
+      V_m = V_reset;
+      w += b; // spike-driven adaptation
+      refractory_step = n_refractory_steps;
+    }
   }
 }
 

@@ -31,21 +31,8 @@ void InputSpike(float weight, int i_receptor, int n, int n_par)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (array_idx<ARRAY_SIZE) {
-    float y[NVAR];
-    float params[NPARAMS];
-  
-    for(int i=0; i<NVAR; i++) {
-      y[i] = YArr[i*ARRAY_SIZE + array_idx];
-    }
-    for(int j=0; j<NPARAMS; j++) {
-      params[j] = ParamsArr[j*ARRAY_SIZE + array_idx];
-    }
-
-    HandleSpike(weight, i_receptor, y, params);
-
-    for(int i=0; i<NVAR; i++) {
-      YArr[i*ARRAY_SIZE + array_idx] = y[i];
-    }
+    HandleSpike(weight, i_receptor, &YArr[array_idx*NVAR],
+		&ParamsArr[array_idx*NPARAMS]);
   }
 }
 
@@ -63,10 +50,13 @@ int AeifUpdate(int n_receptors,
   if (N_RECEPTORS == n_receptors) {
     const int NVAR = N0_VAR + 2*N_RECEPTORS;
     const int NPARAMS = N0_PARAMS + 4*N_RECEPTORS;
-      
+    //printf("AeifUpdate nvar %d nparams %d n_neurons %d\n", NVAR, NPARAMS,
+    //   n_neurons);  
     ArrayUpdate<NVAR, NPARAMS><<<(n_neurons+1023)/1024, 1024>>>(t1, h_min);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
+    //std::cout << "AeifUpdate end\n";
+    //exit(0);
   }
   else {
     AeifUpdate<N_RECEPTORS - 1>(n_receptors, n_neurons, it, t1, h_min);

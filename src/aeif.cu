@@ -22,6 +22,15 @@ __device__ float poisson_weight;
 
 __device__ int Aeif_i_node_0;
 
+// NEW
+__device__ float *G0;
+__global__
+void G0Def(float *d_G0)
+{
+  G0 = d_G0;
+}
+//////
+
 __device__
 void VarInit(int n_var, int n_params, float x, float *y, float *params)
 {
@@ -40,7 +49,7 @@ void VarInit(int n_var, int n_params, float x, float *y, float *params)
     I_e = 0.0;
     V_peak = 0.0;
     V_reset = -60.0;
-    n_refractory_steps = 0;
+    n_refractory_steps = 1;
 
     V_m = E_L;
     w = 0;
@@ -87,6 +96,9 @@ void VarCalibrate(int n_var, int n_params, float x, float *y, float *params)
 	g0(i) // normalization factor for conductance
 	  = ( 1. / taus_rise(i) - 1. / taus_decay(i) ) / denom2;
       }
+      // NEW
+      G0[i*ARRAY_SIZE + array_idx] = g0(i);
+      //
     }
   }
 }
@@ -123,6 +135,14 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors) {
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 
+  // NEW
+  float *d_G0;
+  gpuErrchk(cudaMalloc(&d_G0, n_neurons*n_receptors*sizeof(float)));
+  G0Def<<<1, 1>>>(d_G0);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  //
+
   rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_);
   
   return 0;
@@ -151,8 +171,15 @@ int AEIF::SetParams(std::string param_name, int i_neuron,
   if (i_param == N0_PARAMS) {
     std::cerr << "Unrecognized parameter " << param_name << " .\n";
     exit(-1);
-  }  
-  return rk5_.SetParams(i_param, i_neuron, n_neurons, val);
+  }
+  
+  // TMP
+  //printf("AEIF::SetParams %s %d %d %d %d %f\n",
+  //	 aeif_param_names[i_param].c_str(),
+  //	 i_param, i_neuron, n_params_, n_neurons, val);
+  //
+	 
+  return rk5_.SetParams(i_param, i_neuron, n_params_, n_neurons, val);
 }
 
 int AEIF::SetVectParams(std::string param_name, int i_neuron, int n_neurons,
@@ -171,7 +198,19 @@ int AEIF::SetVectParams(std::string param_name, int i_neuron, int n_neurons,
       "of receptor ports.\n";
     exit(-1);
   }  
-  return rk5_.SetVectParams(i_param, i_neuron, n_neurons, params, vect_size);
+
+  // TMP
+  //printf("AEIF::SetVectParams %s %d %d %d %d\n",
+  //	 aeif_vect_param_names[i_param].c_str(),
+  //	 i_param, i_neuron, n_params_, n_neurons);
+  //for (int i=0; i<vect_size; i++) {
+  //  printf("AEIF::SetVectParams vect %s %d %f\n",
+  //	   aeif_vect_param_names[i_param].c_str(), i, params[i]);
+  //}
+  //
+
+  return rk5_.SetVectParams(i_param, i_neuron, n_params_, n_neurons, params,
+			    vect_size);
 }
 
 int AEIF::GetVarIdx(std::string var_name)

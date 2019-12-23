@@ -86,7 +86,7 @@ __device__ float *SpikeBufferHeight; // [NSpikeBuffer*MaxSpikeBufferNum];
 
 
 __device__ void PushSpike(int i_spike_buffer, float height)
-{
+{    
   PushExternalSpike(i_spike_buffer, height);
   if (ConnectionGroupSize[i_spike_buffer]>0) {
     int Ns = SpikeBufferSize[i_spike_buffer]; 
@@ -94,6 +94,7 @@ __device__ void PushSpike(int i_spike_buffer, float height)
       printf("Maximum number of spikes in spike buffer exceeded"
 	     " for spike buffer %d\n", i_spike_buffer);
       //exit(0);
+      return;
     }
     SpikeBufferSize[i_spike_buffer]++;
     for (int is=Ns; is>0; is--) {
@@ -113,10 +114,9 @@ __device__ void PushSpike(int i_spike_buffer, float height)
 __global__ void SpikeBufferUpdate()
 {
   int i_spike_buffer = threadIdx.x + blockIdx.x * blockDim.x;
-  //printf("NS %d\n", NSpikeBuffer);
+
   if (i_spike_buffer<NSpikeBuffer) {
     int Ns = SpikeBufferSize[i_spike_buffer];
-    //printf("is %d  Ns %d\n", i_spike_buffer, Ns);
     for (int is=0; is<Ns; is++) {
       int i_conn = SpikeBufferConnIdx[is*NSpikeBuffer+i_spike_buffer];
       if (SpikeBufferTimeIdx[is*NSpikeBuffer+i_spike_buffer] == 
@@ -146,7 +146,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
 {
   int n_spike_buffers = net_connection->connection_.size();
   int max_delay_num = net_connection->MaxDelayNum();
-  printf("mdn: %d\n", max_delay_num);
+  //printf("mdn: %d\n", max_delay_num);
   int n_conn = net_connection->NConnections();
   int *h_conn_target = new int[n_conn];
   unsigned char *h_conn_port = new unsigned char[n_conn];
@@ -197,8 +197,6 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
      int n_target = conn->at(id).target_vect.size();
      h_ConnectionGroupTargetSize[id*n_spike_buffers+i_source] = n_target;
 
-     printf("%d\t%d\t%d\n", i_source, id, n_target);
-     
      h_ConnectionGroupTargetNeuron[id*n_spike_buffers+i_source]
        = &d_conn_target[i_conn];
      h_ConnectionGroupTargetPort[id*n_spike_buffers+i_source]

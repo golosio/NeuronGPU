@@ -13,5 +13,4 @@ IMPORTANT NOTES: This is just a preliminary version of the library. You can try 
 * GPU Cluster: efficient implementation of GPU-MPI.
 * Numeric precision: 32 bit float.
 * Simulated devices: Poisson signal generator, spike generator, multimeter.
-* Simulation real time: on a machine with a single GPU, NeuralGPU is about 20 times faster than CPU code running on an 8 core processor.
-
+* Simulation real time: on a machine with a single Nvidia GeForce RTX 2080 Ti GPU board, NeuralGPU is about 20 times faster than CPU code running on a PC with a CPU Intel CORE I9-9900K with with a frequency of 3.6GHz and 16 hardware threads.

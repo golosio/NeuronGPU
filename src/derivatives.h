@@ -118,8 +118,6 @@ template<int NVAR, int NPARAMS>
 __device__
 void Derivatives(float x, float *y, float *dydx, float *params)
 {
-  // TMP
-  //int ArrayIdx =  threadIdx.x + blockIdx.x * blockDim.x;
   enum { n_receptors = (NVAR-N0_VAR)/2 };
   float I_syn = 0.0;
 
@@ -131,12 +129,6 @@ void Derivatives(float x, float *y, float *dydx, float *params)
 
   dVdt = ( refractory_step > 0 ) ? 0 :
     ( -g_L*(V - E_L - V_spike) + I_syn - w + I_e) / C_m;
-  //if(ArrayIdx==11429) {
-  //  printf("deriv dVdt: %d %f\n", ArrayIdx, dVdt);
-  //  printf("deriv var: %d %f %f %f %f %f %f %f %f\n", ArrayIdx, g_L, V, E_L,
-  //	   V_spike, I_syn, w, I_e, C_m);
-  //}
-
   // Adaptation current w.
   dwdt = (a*(V - E_L) - w) / tau_w;
   for (int i=0; i<n_receptors; i++) {

@@ -75,13 +75,6 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
   float err;
   float y_new[NVAR];
 
-  //TMP
-  //int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
-  //if(ArrayIdx==11429) {
-  //  printf("rk5sb: %d %f %f\n", ArrayIdx, x, h);
-  //}
-  //
- 
   for(;;) {
     if (h > h_max) h = h_max;
 
@@ -189,7 +182,6 @@ void RK5Update(float &x, float *y, float x1, float &h, float h_min,
   while(!end_time_step) {
     float hmax=x1-x;
     RK5Step<NVAR, NPARAMS>(x, y, h, h_min, hmax, params);
-    //x=x1; // temp
     end_time_step = (x >= x1-h_min);
     ExternalUpdate<NVAR, NPARAMS>(x, y, params, end_time_step);
   }

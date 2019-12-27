@@ -23,6 +23,8 @@ extern __device__ float *G0;
 
 __device__ double *GetSpikeArray;
 
+__device__ int N_NEURONS;
+
 double *d_GetSpikeArray;
 
 __device__ double atomicAddDouble(double* address, double val)
@@ -60,7 +62,7 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
   //i_port, weight);
   
   /////////////////////////////////////////////////////////////////
-  int i = i_port*ARRAY_SIZE + i_target;
+  int i = i_port*N_NEURONS + i_target;
   double d_val = (double)(height*weight*G0[i]);
   atomicAddDouble(&GetSpikeArray[i], d_val); 
   ////////////////////////////////////////////////////////////////
@@ -68,28 +70,30 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
 ///////////////
 
 // improve using a grid
-__global__ void GetSpikes(int n_ports, int n_var)
+__global__ void GetSpikes(int array_size, int n_ports, int n_var,
+			  float *y_arr)
 {
   int i_array = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i_array < ARRAY_SIZE*n_ports) {
-     int i_target = i_array % ARRAY_SIZE;
-     int i_port = i_array / ARRAY_SIZE;
+  if (i_array < array_size*n_ports) {
+     int i_target = i_array % array_size;
+     int i_port = i_array / array_size;
      int i = i_target*n_var + N0_VAR + 1 + 2*i_port; // g1(i)
-     double d_val = GetSpikeArray[i_array] + (double)YArr[i];
-     YArr[i] = (float)d_val;
+     double d_val = GetSpikeArray[i_array] + (double)y_arr[i];
+     y_arr[i] = (float)d_val;
   }
 }
 
 __global__
-void DeviceInitGetSpikeArray(double *get_spike_array)
+void DeviceInitGetSpikeArray(double *get_spike_array, int n_neurons)
 {
   GetSpikeArray = get_spike_array;
+  N_NEURONS = n_neurons;
 }
 
 int InitGetSpikeArray(int n_neurons, int n_ports)
 {
   gpuErrchk(cudaMalloc(&d_GetSpikeArray, n_neurons*n_ports*sizeof(double)));
-  DeviceInitGetSpikeArray<<<1, 1>>>(d_GetSpikeArray);
+  DeviceInitGetSpikeArray<<<1, 1>>>(d_GetSpikeArray, n_neurons);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 

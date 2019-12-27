@@ -32,12 +32,13 @@ void G0Def(float *d_G0)
 //////
 
 __device__
-void VarInit(int n_var, int n_params, float x, float *y, float *params)
+void VarInit(int array_size, int n_var, int n_params, float x, float *y,
+	     float *params)
 {
   int n_receptors = (n_var-N0_VAR)/2;
 
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (array_idx<ARRAY_SIZE) {
+  if (array_idx<array_size) {
     V_th = -50.4;
     Delta_T = 2.0;
     g_L = 30.0;
@@ -65,12 +66,13 @@ void VarInit(int n_var, int n_params, float x, float *y, float *params)
 }
 
 __device__
-void VarCalibrate(int n_var, int n_params, float x, float *y, float *params)
+void VarCalibrate(int array_size, int n_var, int n_params, float x, float *y,
+		  float *params)
 {
   int n_receptors = (n_var-N0_VAR)/2;
 
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (array_idx<ARRAY_SIZE) {
+  if (array_idx<array_size) {
     V_m = E_L;
     w = 0;
     refractory_step = 0;
@@ -97,7 +99,7 @@ void VarCalibrate(int n_var, int n_params, float x, float *y, float *params)
 	  = ( 1. / taus_rise(i) - 1. / taus_decay(i) ) / denom2;
       }
       // NEW
-      G0[i*ARRAY_SIZE + array_idx] = g0(i);
+      G0[i*array_size + array_idx] = g0(i);
       //
     }
   }
@@ -117,8 +119,16 @@ void SetAeif_i_node_0(int i_node_0)
 }
 
 
+/*
 template <>
 int AeifUpdate<0>(int n_receptors, int n_neurons, int it, float t1, float h_min)
+{
+  return 0;
+}
+*/
+
+template <>
+int AEIF::UpdateNR<0>(int it, float t1)
 {
   return 0;
 }
@@ -155,8 +165,7 @@ int AEIF::Calibrate(float t_min) {
 }
 
 int AEIF::Update(int it, float t1) {
-  AeifUpdate<MAX_RECEPTOR_NUM>(n_receptors_, n_neurons_, it, t1,
-  			       h_min_);
+  UpdateNR<MAX_RECEPTOR_NUM>(it, t1);
   
   return 0;
 }

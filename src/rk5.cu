@@ -21,12 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-__device__ int ARRAY_SIZE;
+//__device__ int ARRAY_SIZE;
 
-__device__ float *XArr;
-__device__ float *HArr;
-__device__ float *YArr;
-__device__ float *ParamsArr;
+//__device__ float *XArr;
+//__device__ float *HArr;
+//__device__ float *YArr;
+//__device__ float *ParamsArr;
 
 __constant__ float c2 = 0.2;
 __constant__ float c3 = 0.3;
@@ -68,38 +68,40 @@ __constant__ float coeff = 0.9;
 __constant__ float alpha = 0.2;
 
 
-__global__
-void ArrayDef(int array_size, float *x_arr, float *h_arr, float *y_arr,
-	      float *par_arr)
-{
-  ARRAY_SIZE = array_size;
-  XArr = x_arr;
-  HArr = h_arr;
-  YArr = y_arr;
-  ParamsArr = par_arr;
-}
+//__global__
+//void ArrayDef(int array_size, float *x_arr, float *h_arr, float *y_arr,
+//	      float *par_arr)
+//{
+//  ARRAY_SIZE = array_size;
+//  XArr = x_arr;
+//  HArr = h_arr;
+//  YArr = y_arr;
+//  ParamsArr = par_arr;
+//}
   
 __global__
-void ArrayInit(int n_var, int n_params, float x_min, float h)
+void ArrayInit(int array_size, int n_var, int n_params, float *x_arr,
+        float *h_arr, float *y_arr, float *par_arr, float x_min, float h)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (array_idx<ARRAY_SIZE) {
-    VarInit(n_var, n_params, x_min, &YArr[array_idx*n_var],
-	    &ParamsArr[array_idx*n_params]);
-    XArr[array_idx] = x_min;
-    HArr[array_idx] = h;
+  if (array_idx<array_size) {
+    VarInit(array_size, n_var, n_params, x_min, &y_arr[array_idx*n_var],
+	    &par_arr[array_idx*n_params]);
+    x_arr[array_idx] = x_min;
+    h_arr[array_idx] = h;
   }
 }
 
 __global__
-void ArrayCalibrate(int n_var, int n_params, float x_min, float h)
+void ArrayCalibrate(int array_size, int n_var, int n_params, float *x_arr,
+        float *h_arr, float *y_arr, float *par_arr, float x_min, float h)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (array_idx<ARRAY_SIZE) {
-    VarCalibrate(n_var, n_params, x_min, &YArr[array_idx*n_var],
-		 &ParamsArr[array_idx*n_params]);
-    XArr[array_idx] = x_min;
-    HArr[array_idx] = h;
+  if (array_idx<array_size) {
+    VarCalibrate(array_size, n_var, n_params, x_min, &y_arr[array_idx*n_var],
+		 &par_arr[array_idx*n_params]);
+    x_arr[array_idx] = x_min;
+    h_arr[array_idx] = h;
   }
 }
 
@@ -130,14 +132,14 @@ int RungeKutta5::Init(int array_size, int n_var, int n_params, float x_min,
   gpuErrchk(cudaMalloc(&d_YArr, array_size_*n_var_*sizeof(float)));
   gpuErrchk(cudaMalloc(&d_ParamsArr, array_size_*n_params_*sizeof(float)));
 
-  ArrayDef<<<1, 1>>>(array_size_, d_XArr, d_HArr, d_YArr, d_ParamsArr);
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
+  //ArrayDef<<<1, 1>>>(array_size_, d_XArr, d_HArr, d_YArr, d_ParamsArr);
+  //gpuErrchk( cudaPeekAtLastError() );
+  //gpuErrchk( cudaDeviceSynchronize() );
 
   //ArrayAlloc();
 
-  ArrayInit<<<(array_size+1023)/1024, 1024>>>(n_var, n_params,
-	     x_min, h);
+  ArrayInit<<<(array_size+1023)/1024, 1024>>>(array_size_, n_var, n_params,
+    d_XArr, d_HArr, d_YArr, d_ParamsArr, x_min, h);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
   
@@ -146,8 +148,8 @@ int RungeKutta5::Init(int array_size, int n_var, int n_params, float x_min,
 
 int RungeKutta5::Calibrate(float x_min, float h)
 {
-  ArrayCalibrate<<<(array_size_+1023)/1024, 1024>>>(n_var_, n_params_,
-	     x_min, h);
+  ArrayCalibrate<<<(array_size_+1023)/1024, 1024>>>(array_size_, n_var_,
+     n_params_, d_XArr, d_HArr, d_YArr, d_ParamsArr, x_min, h);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 
@@ -198,15 +200,6 @@ int RungeKutta5::SetParams(int i_param, int i_array, int n_params,
 int RungeKutta5::SetVectParams(int i_param, int i_array, int n_params,
 			       int n_elems, float *params, int vect_size)
 {
-  // TMP
-  //printf("rk5::SetVectParams %d %d %d %d\n",
-  //	 i_param, i_array, n_params_, n_elems);
-  //for (int i=0; i<vect_size; i++) {
-  //  printf("rk5::SetVectParams vect %d %d %f\n",
-  //	   i_param, i, params[i]);
-  //}
-  //
-
   for (int i=0; i<vect_size; i++) {
     SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
       (&d_ParamsArr[i_array*n_params_ + N0_PARAMS + i_param + 4*i], n_elems,
@@ -217,3 +210,4 @@ int RungeKutta5::SetVectParams(int i_param, int i_array, int n_params,
 
   return 0;
 }
+

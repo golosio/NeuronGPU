@@ -232,12 +232,12 @@ int NestedLoop::Init(int Nx_max)
 //////////////////////////////////////////////////////////////////////
 int NestedLoop::Run(int Nx, int *d_Ny)
 {
-  //return SimpleNestedLoop(Nx, d_Ny);
+  return SimpleNestedLoop(Nx, d_Ny);
   //return ParallelInnerNestedLoop(Nx, d_Ny);
   //return ParallelOuterNestedLoop(Nx, d_Ny);
   //return Frame1DNestedLoop(Nx, d_Ny);
   //return Frame2DNestedLoop(Nx, d_Ny);
-  return CumulSumNestedLoop(Nx, d_Ny);
+  //return CumulSumNestedLoop(Nx, d_Ny);
   //return Smart1DNestedLoop(Nx, d_Ny);
   //return Smart2DNestedLoop(Nx, d_Ny);
 

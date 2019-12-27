@@ -338,8 +338,9 @@ int NeuralGPU::Simulate()
       NestedLoop_time += (getRealTime() - time_mark);
       time_mark = getRealTime();
       // improve using a grid
-      GetSpikes<<<(n_neurons_*aeif_->n_receptors_+1023)/1024, 1024>>>
-	(aeif_->n_receptors_, aeif_->n_var_);
+      GetSpikes<<<(aeif_->n_neurons_*aeif_->n_receptors_+1023)/1024, 1024>>>
+	(aeif_->n_neurons_, aeif_->n_receptors_, aeif_->n_var_,
+	 aeif_->rk5_.GetYArr());
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
 

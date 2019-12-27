@@ -46,6 +46,15 @@ using namespace std;
 
 #define VERBOSE_TIME
 
+__constant__ NeuronGroup NeuronGroupArray[MAX_N_NEURON_GROUPS];
+__device__ signed char *NeuronGroupMap;
+
+__global__
+void DeviceInitNeuronGroupMap(signed char *neuron_group_map)
+{
+  NeuronGroupMap = neuron_group_map;
+}
+
 NeuralGPU::NeuralGPU()
 {
   random_generator_ = new curandGenerator_t;
@@ -126,15 +135,16 @@ int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
   vector<ConnGroup> conn;
   vector<vector<ConnGroup> >:: iterator it
     = net_connection_->connection_.end();
-  net_connection_->connection_.insert(it, n_neurons_, conn);
+  net_connection_->connection_.insert(it, n_neurons, conn);
 
   vector<ExternalConnectionNode > conn_node;
   vector<vector< ExternalConnectionNode> >::iterator it1
     = connect_mpi_->extern_connection_.end();
-  connect_mpi_->extern_connection_.insert(it1, n_neurons_, conn_node);
+  connect_mpi_->extern_connection_.insert(it1, n_neurons, conn_node);
 
   //SpikeInit(max_spike_num_);
-  aeif_->Init(i_node_0, n_neurons_, n_receptors);
+  aeif_->Init(i_node_0, n_neurons, n_receptors);
+  aeif_->i_neuron_group_ = InsertNeuronGroup(n_neurons, n_receptors);
   
   return i_node_0;
 }
@@ -170,7 +180,8 @@ int NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
 
   float lambda = rate*time_resolution_ / 1000.0; // rate is in Hz, time in ms
   poiss_generator_->Create(random_generator_, i_node_0, n_poiss_nodes_, lambda);
-  
+  InsertNeuronGroup(n_nodes, 0);
+    
   return i_node_0;
 }
 
@@ -205,6 +216,7 @@ int NeuralGPU::CreateSpikeGenerator(int n_nodes)
 
   spike_generator_->Create(i_node_0, n_spike_gen_nodes_,
 			  t_min_, time_resolution_);
+  InsertNeuronGroup(n_nodes, 0);
   
   return i_node_0;
 }
@@ -227,6 +239,8 @@ int NeuralGPU::Simulate()
   
   float t_min = 0.0;
 
+  NeuronGroupArrayInit();
+  
   max_spike_num_ = net_connection_->connection_.size()
     * net_connection_->MaxDelayNum();
   
@@ -329,7 +343,7 @@ int NeuralGPU::Simulate()
 			 cudaMemcpyDeviceToHost));
     //cout << "n_spikes: " << n_spikes << endl;
     if (n_spikes > 0) {
-      ClearGetSpikeArray(n_neurons_, aeif_->n_receptors_);      
+      ClearGetSpikeArrays();      
       time_mark = getRealTime();
       NestedLoop::Run(n_spikes, d_SpikeTargetNum);
 
@@ -339,7 +353,8 @@ int NeuralGPU::Simulate()
       time_mark = getRealTime();
       // improve using a grid
       GetSpikes<<<(aeif_->n_neurons_*aeif_->n_receptors_+1023)/1024, 1024>>>
-	(aeif_->n_neurons_, aeif_->n_receptors_, aeif_->n_var_,
+	(aeif_->i_neuron_group_, aeif_->n_neurons_, aeif_->n_receptors_,
+	 aeif_->n_var_,
 	 aeif_->rk5_.GetYArr());
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
@@ -562,6 +577,12 @@ int NeuralGPU::RemoteConnectFixedIndegree
       net_connection_->connection_.insert(net_connection_->connection_.end(),
 					  i_new_remote_neuron
 					  - net_connection_->connection_.size(), conn);
+      
+      //NEW, CHECK ///////////
+      InsertNeuronGroup(i_new_remote_neuron
+			- net_connection_->connection_.size(), 0);
+      ///////////////////////
+      
       connect_mpi_->MPI_Recv_int(i_remote_neuron_arr, n_target_neurons*indegree, i_source_host);
 
       for (int k=0; k<n_target_neurons; k++) {
@@ -638,6 +659,12 @@ int NeuralGPU::RemoteConnectAllToAll
       net_connection_->connection_.insert(net_connection_->connection_.end(),
 					  i_new_remote_neuron
 					  - net_connection_->connection_.size(), conn);
+            
+      //NEW, CHECK ///////////
+      InsertNeuronGroup(i_new_remote_neuron
+			- net_connection_->connection_.size(), 0);
+      ///////////////////////
+      
       connect_mpi_->MPI_Recv_int(i_remote_neuron_arr, n_target_neurons*n_source_neurons,
 				 i_source_host);
 
@@ -706,6 +733,12 @@ int NeuralGPU::RemoteConnectOneToOne
       net_connection_->connection_.insert(net_connection_->connection_.end(),
 					  i_new_remote_neuron
 					  - net_connection_->connection_.size(), conn);
+            
+      //NEW, CHECK ///////////
+      InsertNeuronGroup(i_new_remote_neuron
+			- net_connection_->connection_.size(), 0);
+      ///////////////////////
+      
       connect_mpi_->MPI_Recv_int(i_remote_neuron_arr, n_neurons, i_source_host);
 
       for (int i=0; i<n_neurons; i++) {
@@ -890,3 +923,50 @@ float *NeuralGPU::RandomNormalClipped(size_t n, float mean, float stddev,
   return arr; 
 }
 
+int NeuralGPU::NeuronGroupArrayInit()
+{
+  gpuErrchk(cudaMalloc(&d_neuron_group_map_,
+		       neuron_group_map_.size()*sizeof(signed char)));
+  
+  //gpuErrchk(cudaMemcpyToSymbol("NeuronGroupArray", neuron_group_vect_.data(),
+  //			       neuron_group_vect_.size()*sizeof(NeuronGroup),
+  //			       0, cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpyToSymbol(NeuronGroupArray, neuron_group_vect_.data(),
+			       neuron_group_vect_.size()*sizeof(NeuronGroup)));
+
+  gpuErrchk(cudaMemcpy(d_neuron_group_map_, neuron_group_map_.data(),
+		       neuron_group_map_.size()*sizeof(signed char),
+		       cudaMemcpyHostToDevice));
+  DeviceInitNeuronGroupMap<<<1, 1>>>(d_neuron_group_map_);
+
+  return 0;
+}
+
+int NeuralGPU::InsertNeuronGroup(int n_neurons, int n_receptors)
+{
+  double *d_get_spike_array;
+  gpuErrchk(cudaMalloc(&d_get_spike_array, n_neurons*n_receptors
+		       *sizeof(double)));
+  NeuronGroup ng;
+  ng.i_neuron_0_ = neuron_group_map_.size();
+  ng.n_neurons_ = n_neurons;
+  ng.n_receptors_ = n_receptors;
+  ng.get_spike_array_ = d_get_spike_array;
+  
+  int i_group = neuron_group_vect_.size();
+  neuron_group_vect_.push_back(ng);
+  neuron_group_map_.insert(neuron_group_map_.end(), n_neurons, i_group);
+  
+  return i_group;
+}
+
+int NeuralGPU::ClearGetSpikeArrays()
+{
+  for (unsigned int i=0; i<neuron_group_vect_.size(); i++) {
+    NeuronGroup ng = neuron_group_vect_[i];
+    gpuErrchk(cudaMemset(ng.get_spike_array_, 0, ng.n_neurons_*ng.n_receptors_
+			 *sizeof(double)));
+  }
+  
+  return 0;
+}

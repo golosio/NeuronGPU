@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RK5H
 
 #include "cuda_error.h"
-extern __device__ int ARRAY_SIZE;
+//extern __device__ int ARRAY_SIZE;
 #include "rk5_const.h"
 #include "derivatives.h"
 #include "poisson.h"
@@ -24,10 +24,10 @@ extern __device__ int ARRAY_SIZE;
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-extern __device__ float *XArr;
-extern __device__ float *HArr;
-extern __device__ float *YArr;
-extern __device__ float *ParamsArr;
+//extern __device__ float *XArr;
+//extern __device__ float *HArr;
+//extern __device__ float *YArr;
+//extern __device__ float *ParamsArr;
 
 template<int NVAR, int NPARAMS>
 __device__
@@ -43,26 +43,32 @@ template<int NVAR, int NPARAMS>
 __device__
 void ExternalUpdate(float x, float *y, float *params, bool end_time_step);
 
-__global__
-void ArrayDef(int array_size, float *x_arr, float *h_arr, float *y_arr,
-	      float *par_arr);
+//__global__
+//void ArrayDef(int array_size, float *x_arr, float *h_arr, float *y_arr,
+//	      float *par_arr);
 
 __global__
-void ArrayInit(int n_var, int n_params, float x_min, float h);
+void ArrayInit(int array_size, int n_var, int n_params, float *x_arr,
+	       float *h_arr, float *y_arr, float *par_arr, float x_min,
+	       float h);
 
 __global__
-void ArrayCalibrate(int n_var, int n_params, float x_min, float h);
+void ArrayCalibrate(int array_size, int n_var, int n_params, float *x_arr,
+		    float *h_arr, float *y_arr, float *par_arr, float x_min,
+		    float h);
 
 __device__
-void VarInit(int n_var, int n_params, float x, float *y, float *params);
+void VarInit(int array_size, int n_var, int n_params, float x, float *y,
+	     float *params);
 
 __device__
-void VarCalibrate(int n_var, int n_params, float x, float *y, float *params);
+void VarCalibrate(int array_size, int n_var, int n_params, float x, float *y,
+		  float *params);
 
 template<int NVAR, int NPARAMS>
 __global__
-void ArrayUpdate(float x1, float h_min);
-
+void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
+		 float *par_arr, float x1, float h_min);
 template<int NVAR, int NPARAMS>
 __device__
 void Derivatives(float x, float *y, float *dydx, float *params);
@@ -187,45 +193,23 @@ void RK5Update(float &x, float *y, float x1, float &h, float h_min,
   }
 }
 
-/*
 template<int NVAR, int NPARAMS>
 __global__
-void ArrayUpdate(float x1, float h_min)
+void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
+		 float *par_arr, float x1, float h_min)
 {
   int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (ArrayIdx<ARRAY_SIZE) {
-    //float x = XArr[ArrayIdx];
-    //float h = HArr[ArrayIdx];
-
-    RK5Update<NVAR, NPARAMS>(XArr[ArrayIdx], &YArr[ArrayIdx*NVAR], x1,
-			     HArr[ArrayIdx], h_min,
-			     &ParamsArr[ArrayIdx*NPARAMS]);
-
-    //float poisson_weight = 1.187*PoissonData[0];
-    //if (poisson_weight>0) HandleSpike(poisson_weight, 0, y, params);
-
-    //XArr[ArrayIdx] = x;
-    //HArr[ArrayIdx] = h;
-  }
-}
-*/
-
-template<int NVAR, int NPARAMS>
-__global__
-void ArrayUpdate(float x1, float h_min)
-{
-  int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (ArrayIdx<ARRAY_SIZE) {
-    float x = XArr[ArrayIdx];
-    float h = HArr[ArrayIdx];
+  if (ArrayIdx<array_size) {
+    float x = x_arr[ArrayIdx];
+    float h = h_arr[ArrayIdx];
     float y[NVAR];
     float params[NPARAMS];
 
     for(int i=0; i<NVAR; i++) {
-      y[i] = YArr[ArrayIdx*NVAR + i];
+      y[i] = y_arr[ArrayIdx*NVAR + i];
     }
     for(int j=0; j<NPARAMS; j++) {
-      params[j] = ParamsArr[ArrayIdx*NPARAMS + j];
+      params[j] = par_arr[ArrayIdx*NPARAMS + j];
     }
 
     RK5Update<NVAR, NPARAMS>(x, y, x1, h, h_min, params);
@@ -233,10 +217,10 @@ void ArrayUpdate(float x1, float h_min)
     //float poisson_weight = 1.187*PoissonData[0];
     //if (poisson_weight>0) HandleSpike(poisson_weight, 0, y, params);
 
-    XArr[ArrayIdx] = x;
-    HArr[ArrayIdx] = h;
+    x_arr[ArrayIdx] = x;
+    h_arr[ArrayIdx] = h;
     for(int i=0; i<NVAR; i++) {
-      YArr[ArrayIdx*NVAR + i] = y[i];
+      y_arr[ArrayIdx*NVAR + i] = y[i];
     }
        
   }
@@ -257,6 +241,10 @@ class RungeKutta5
 
   ~RungeKutta5();
  
+  float *GetXArr() {return d_XArr;}
+  float *GetHArr() {return d_HArr;}
+  float *GetYArr() {return d_YArr;}
+  float *GetParamsArr() {return d_ParamsArr;}
   int Init(int array_size, int n_var, int n_params, float x_min, float h);
   int Calibrate(float x_min, float h);
 
@@ -267,6 +255,20 @@ class RungeKutta5
   int SetParams(int i_param, int i_array, int n_params, int n_elems, float val);
   int SetVectParams(int i_param, int i_array, int n_params, int n_elems,
 		    float *params, int vect_size);
+  template<int NVAR, int NPARAMS> int Update(float x1, float h_min);
+
 };
+
+
+template<int NVAR, int NPARAMS>
+int RungeKutta5::Update(float x1, float h_min)
+{
+  ArrayUpdate<NVAR, NPARAMS><<<(array_size_+1023)/1024, 1024>>>
+    (array_size_, d_XArr, d_HArr, d_YArr, d_ParamsArr, x1, h_min);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+
+  return 0;
+}
 
 #endif

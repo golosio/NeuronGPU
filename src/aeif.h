@@ -25,6 +25,7 @@ __device__
 void HandleSpike(float weight, int i_receptor, float *y,
 		 float *params);
 
+/*
 template<int NVAR, int NPARAMS>
 __global__
 void InputSpike(float weight, int i_receptor, int n, int n_par)
@@ -35,7 +36,8 @@ void InputSpike(float weight, int i_receptor, int n, int n_par)
 		&ParamsArr[array_idx*NPARAMS]);
   }
 }
-
+*/
+/*
 template<int N_RECEPTORS>
 int AeifUpdate(int n_receptors, int n_neurons, int it, float t1, float h_min);
 
@@ -52,9 +54,7 @@ int AeifUpdate(int n_receptors,
     const int NPARAMS = N0_PARAMS + 4*N_RECEPTORS;
     //printf("AeifUpdate nvar %d nparams %d n_neurons %d\n", NVAR, NPARAMS,
     //   n_neurons);  
-    ArrayUpdate<NVAR, NPARAMS><<<(n_neurons+1023)/1024, 1024>>>(t1, h_min);
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
+    rk5_.Update<NVAR, NPARAMS>(t1, h_min);
     //std::cout << "AeifUpdate end\n";
     //exit(0);
   }
@@ -64,6 +64,7 @@ int AeifUpdate(int n_receptors,
 
   return 0;
 }
+*/
 
 class AEIF
 {
@@ -100,7 +101,33 @@ class AEIF
 
   int GetVarIdx(std::string var_name);
 
+  template<int N_RECEPTORS>
+    int UpdateNR(int it, float t1);
+
 };
+
+template <>
+int AEIF::UpdateNR<0>(int it, float t1);
+
+template<int N_RECEPTORS>
+int AEIF::UpdateNR(int it, float t1)
+{
+  if (N_RECEPTORS == n_receptors_) {
+    const int NVAR = N0_VAR + 2*N_RECEPTORS;
+    const int NPARAMS = N0_PARAMS + 4*N_RECEPTORS;
+    //printf("AeifUpdate nvar %d nparams %d n_neurons %d\n", NVAR, NPARAMS,
+    //   n_neurons);  
+    rk5_.Update<NVAR, NPARAMS>(t1, h_min_);
+    //std::cout << "AeifUpdate end\n";
+    //exit(0);
+  }
+  else {
+    UpdateNR<N_RECEPTORS - 1>(it, t1);
+  }
+
+  return 0;
+}
+
 
 
 #endif

@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -175,6 +175,8 @@ class NeuralGPU
   int InsertNeuronGroup(int n_neurons, int n_receptors);
   int NeuronGroupArrayInit();
   int ClearGetSpikeArrays();
+  int FreeGetSpikeArrays();
+  int FreeNeuronGroupMap();
 };
 
 #endif

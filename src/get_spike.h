@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -18,14 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
 			  float *y_arr);
 
-__global__ void DeviceInitGetSpikeArray(double *get_spike_array,
-					int n_neurons);
+//__global__ void DeviceInitGetSpikeArray(double *get_spike_array,
+//					int n_neurons);
 
-int InitGetSpikeArray(int n_neurons, int n_ports);
+//int InitGetSpikeArray(int n_neurons, int n_ports);
 
-int ClearGetSpikeArray(int n_neurons, int n_ports);
+//int ClearGetSpikeArray(int n_neurons, int n_ports);
 
-int FreeGetSpikeArray();
+//int FreeGetSpikeArray();
 
 
 #endif

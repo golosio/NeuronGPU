@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -46,15 +46,6 @@ using namespace std;
 
 #define VERBOSE_TIME
 
-__constant__ NeuronGroup NeuronGroupArray[MAX_N_NEURON_GROUPS];
-__device__ signed char *NeuronGroupMap;
-
-__global__
-void DeviceInitNeuronGroupMap(signed char *neuron_group_map)
-{
-  NeuronGroupMap = neuron_group_map;
-}
-
 NeuralGPU::NeuralGPU()
 {
   random_generator_ = new curandGenerator_t;
@@ -91,6 +82,8 @@ NeuralGPU::~NeuralGPU()
   delete aeif_;
   delete net_connection_;
   delete connect_mpi_;
+  FreeNeuronGroupMap();
+  FreeGetSpikeArrays();
 }
 
 int NeuralGPU::SetRandomSeed(unsigned long long seed)
@@ -254,7 +247,7 @@ int NeuralGPU::Simulate()
   connect_mpi_->ExternalSpikeInit(connect_mpi_->extern_connection_.size(),
 				 max_spike_num_, connect_mpi_->mpi_np_,
 				 max_spike_per_host_);
-  InitGetSpikeArray(n_neurons_, aeif_->n_receptors_);
+  //InitGetSpikeArray(n_neurons_, aeif_->n_receptors_);
 
   //////////////////////////////////////////////////
   //char filename[100];
@@ -877,7 +870,6 @@ int NeuralGPU::ConnectFixedTotalNumberArray
   return 0;
 }
 
-
 unsigned int *NeuralGPU::RandomInt(size_t n)
 {
   return curand_int(*random_generator_, n);
@@ -923,50 +915,3 @@ float *NeuralGPU::RandomNormalClipped(size_t n, float mean, float stddev,
   return arr; 
 }
 
-int NeuralGPU::NeuronGroupArrayInit()
-{
-  gpuErrchk(cudaMalloc(&d_neuron_group_map_,
-		       neuron_group_map_.size()*sizeof(signed char)));
-  
-  //gpuErrchk(cudaMemcpyToSymbol("NeuronGroupArray", neuron_group_vect_.data(),
-  //			       neuron_group_vect_.size()*sizeof(NeuronGroup),
-  //			       0, cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpyToSymbol(NeuronGroupArray, neuron_group_vect_.data(),
-			       neuron_group_vect_.size()*sizeof(NeuronGroup)));
-
-  gpuErrchk(cudaMemcpy(d_neuron_group_map_, neuron_group_map_.data(),
-		       neuron_group_map_.size()*sizeof(signed char),
-		       cudaMemcpyHostToDevice));
-  DeviceInitNeuronGroupMap<<<1, 1>>>(d_neuron_group_map_);
-
-  return 0;
-}
-
-int NeuralGPU::InsertNeuronGroup(int n_neurons, int n_receptors)
-{
-  double *d_get_spike_array;
-  gpuErrchk(cudaMalloc(&d_get_spike_array, n_neurons*n_receptors
-		       *sizeof(double)));
-  NeuronGroup ng;
-  ng.i_neuron_0_ = neuron_group_map_.size();
-  ng.n_neurons_ = n_neurons;
-  ng.n_receptors_ = n_receptors;
-  ng.get_spike_array_ = d_get_spike_array;
-  
-  int i_group = neuron_group_vect_.size();
-  neuron_group_vect_.push_back(ng);
-  neuron_group_map_.insert(neuron_group_map_.end(), n_neurons, i_group);
-  
-  return i_group;
-}
-
-int NeuralGPU::ClearGetSpikeArrays()
-{
-  for (unsigned int i=0; i<neuron_group_vect_.size(); i++) {
-    NeuronGroup ng = neuron_group_vect_[i];
-    gpuErrchk(cudaMemset(ng.get_spike_array_, 0, ng.n_neurons_*ng.n_receptors_
-			 *sizeof(double)));
-  }
-  
-  return 0;
-}

@@ -144,7 +144,9 @@ int NeuralGPU::FreeGetSpikeArrays()
 {
   for (unsigned int i=0; i<neuron_group_vect_.size(); i++) {
     NeuronGroup ng = neuron_group_vect_[i];
-    gpuErrchk(cudaFree(ng.get_spike_array_));
+    if (ng.n_neurons_*ng.n_receptors_ > 0) {
+      gpuErrchk(cudaFree(ng.get_spike_array_));
+    }
   }
   
   return 0;

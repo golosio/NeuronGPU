@@ -78,6 +78,7 @@ class AEIF
   int n_var_;
   int n_params_;
   int i_node_0_;
+  int i_neuron_group_;
 
   int Init(int i_node_0, int n_neurons, int n_receptors);
 

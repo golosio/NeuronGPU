@@ -12,20 +12,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GETSPIKEH
-#define GETSPIKEH
+#ifndef NEURONGROUPH
+#define NEURONGROUPH
 
-__global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
-			  float *y_arr);
+#define MAX_N_NEURON_GROUPS 128
 
-//__global__ void DeviceInitGetSpikeArray(double *get_spike_array,
-//					int n_neurons);
-
-//int InitGetSpikeArray(int n_neurons, int n_ports);
-
-//int ClearGetSpikeArray(int n_neurons, int n_ports);
-
-//int FreeGetSpikeArray();
-
+struct NeuronGroup
+{
+  int i_neuron_0_;
+  int n_neurons_;
+  int n_receptors_;
+  double *get_spike_array_;
+};
 
 #endif
+

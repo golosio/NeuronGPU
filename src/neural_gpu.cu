@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -82,6 +82,8 @@ NeuralGPU::~NeuralGPU()
   delete aeif_;
   delete net_connection_;
   delete connect_mpi_;
+  FreeNeuronGroupMap();
+  FreeGetSpikeArrays();
 }
 
 int NeuralGPU::SetRandomSeed(unsigned long long seed)
@@ -126,15 +128,16 @@ int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
   vector<ConnGroup> conn;
   vector<vector<ConnGroup> >:: iterator it
     = net_connection_->connection_.end();
-  net_connection_->connection_.insert(it, n_neurons_, conn);
+  net_connection_->connection_.insert(it, n_neurons, conn);
 
   vector<ExternalConnectionNode > conn_node;
   vector<vector< ExternalConnectionNode> >::iterator it1
     = connect_mpi_->extern_connection_.end();
-  connect_mpi_->extern_connection_.insert(it1, n_neurons_, conn_node);
+  connect_mpi_->extern_connection_.insert(it1, n_neurons, conn_node);
 
   //SpikeInit(max_spike_num_);
-  aeif_->Init(i_node_0, n_neurons_, n_receptors);
+  aeif_->Init(i_node_0, n_neurons, n_receptors);
+  aeif_->i_neuron_group_ = InsertNeuronGroup(n_neurons, n_receptors);
   
   return i_node_0;
 }
@@ -170,7 +173,8 @@ int NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
 
   float lambda = rate*time_resolution_ / 1000.0; // rate is in Hz, time in ms
   poiss_generator_->Create(random_generator_, i_node_0, n_poiss_nodes_, lambda);
-  
+  InsertNeuronGroup(n_nodes, 0);
+    
   return i_node_0;
 }
 
@@ -205,6 +209,7 @@ int NeuralGPU::CreateSpikeGenerator(int n_nodes)
 
   spike_generator_->Create(i_node_0, n_spike_gen_nodes_,
 			  t_min_, time_resolution_);
+  InsertNeuronGroup(n_nodes, 0);
   
   return i_node_0;
 }
@@ -227,6 +232,8 @@ int NeuralGPU::Simulate()
   
   float t_min = 0.0;
 
+  NeuronGroupArrayInit();
+  
   max_spike_num_ = net_connection_->connection_.size()
     * net_connection_->MaxDelayNum();
   
@@ -240,7 +247,7 @@ int NeuralGPU::Simulate()
   connect_mpi_->ExternalSpikeInit(connect_mpi_->extern_connection_.size(),
 				 max_spike_num_, connect_mpi_->mpi_np_,
 				 max_spike_per_host_);
-  InitGetSpikeArray(n_neurons_, aeif_->n_receptors_);
+  //InitGetSpikeArray(n_neurons_, aeif_->n_receptors_);
 
   //////////////////////////////////////////////////
   //char filename[100];
@@ -329,7 +336,7 @@ int NeuralGPU::Simulate()
 			 cudaMemcpyDeviceToHost));
     //cout << "n_spikes: " << n_spikes << endl;
     if (n_spikes > 0) {
-      ClearGetSpikeArray(n_neurons_, aeif_->n_receptors_);      
+      ClearGetSpikeArrays();      
       time_mark = getRealTime();
       NestedLoop::Run(n_spikes, d_SpikeTargetNum);
 
@@ -339,7 +346,8 @@ int NeuralGPU::Simulate()
       time_mark = getRealTime();
       // improve using a grid
       GetSpikes<<<(aeif_->n_neurons_*aeif_->n_receptors_+1023)/1024, 1024>>>
-	(aeif_->n_neurons_, aeif_->n_receptors_, aeif_->n_var_,
+	(aeif_->i_neuron_group_, aeif_->n_neurons_, aeif_->n_receptors_,
+	 aeif_->n_var_,
 	 aeif_->rk5_.GetYArr());
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
@@ -562,6 +570,12 @@ int NeuralGPU::RemoteConnectFixedIndegree
       net_connection_->connection_.insert(net_connection_->connection_.end(),
 					  i_new_remote_neuron
 					  - net_connection_->connection_.size(), conn);
+      
+      //NEW, CHECK ///////////
+      InsertNeuronGroup(i_new_remote_neuron
+			- net_connection_->connection_.size(), 0);
+      ///////////////////////
+      
       connect_mpi_->MPI_Recv_int(i_remote_neuron_arr, n_target_neurons*indegree, i_source_host);
 
       for (int k=0; k<n_target_neurons; k++) {
@@ -638,6 +652,12 @@ int NeuralGPU::RemoteConnectAllToAll
       net_connection_->connection_.insert(net_connection_->connection_.end(),
 					  i_new_remote_neuron
 					  - net_connection_->connection_.size(), conn);
+            
+      //NEW, CHECK ///////////
+      InsertNeuronGroup(i_new_remote_neuron
+			- net_connection_->connection_.size(), 0);
+      ///////////////////////
+      
       connect_mpi_->MPI_Recv_int(i_remote_neuron_arr, n_target_neurons*n_source_neurons,
 				 i_source_host);
 
@@ -706,6 +726,12 @@ int NeuralGPU::RemoteConnectOneToOne
       net_connection_->connection_.insert(net_connection_->connection_.end(),
 					  i_new_remote_neuron
 					  - net_connection_->connection_.size(), conn);
+            
+      //NEW, CHECK ///////////
+      InsertNeuronGroup(i_new_remote_neuron
+			- net_connection_->connection_.size(), 0);
+      ///////////////////////
+      
       connect_mpi_->MPI_Recv_int(i_remote_neuron_arr, n_neurons, i_source_host);
 
       for (int i=0; i<n_neurons; i++) {
@@ -843,7 +869,6 @@ int NeuralGPU::ConnectFixedTotalNumberArray
   
   return 0;
 }
-
 
 unsigned int *NeuralGPU::RandomInt(size_t n)
 {

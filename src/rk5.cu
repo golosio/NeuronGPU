@@ -105,109 +105,11 @@ void ArrayCalibrate(int array_size, int n_var, int n_params, float *x_arr,
   }
 }
 
-RungeKutta5::~RungeKutta5()
-{
-  Free();
-}
-
-int RungeKutta5::Free()
-{
-  cudaFree(d_XArr);
-  cudaFree(d_HArr);
-  cudaFree(d_YArr);
-  cudaFree(d_ParamsArr);
-
-  return 0;
-}
-
-int RungeKutta5::Init(int array_size, int n_var, int n_params, float x_min,
-				     float h)
-{
-  array_size_ = array_size;
-  n_var_ = n_var;
-  n_params_ = n_params; 
-
-  gpuErrchk(cudaMalloc(&d_XArr, array_size_*sizeof(float)));
-  gpuErrchk(cudaMalloc(&d_HArr, array_size_*sizeof(float)));
-  gpuErrchk(cudaMalloc(&d_YArr, array_size_*n_var_*sizeof(float)));
-  gpuErrchk(cudaMalloc(&d_ParamsArr, array_size_*n_params_*sizeof(float)));
-
-  //ArrayDef<<<1, 1>>>(array_size_, d_XArr, d_HArr, d_YArr, d_ParamsArr);
-  //gpuErrchk( cudaPeekAtLastError() );
-  //gpuErrchk( cudaDeviceSynchronize() );
-
-  //ArrayAlloc();
-
-  ArrayInit<<<(array_size+1023)/1024, 1024>>>(array_size_, n_var, n_params,
-    d_XArr, d_HArr, d_YArr, d_ParamsArr, x_min, h);
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
-  
-  return 0;
-}
-
-int RungeKutta5::Calibrate(float x_min, float h)
-{
-  ArrayCalibrate<<<(array_size_+1023)/1024, 1024>>>(array_size_, n_var_,
-     n_params_, d_XArr, d_HArr, d_YArr, d_ParamsArr, x_min, h);
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
-
-  return 0;
-}
-
-int RungeKutta5::GetX(int i_array, int n_elems, float *x)
-{
-  cudaMemcpy(x, &d_XArr[i_array], n_elems*sizeof(float),
-	     cudaMemcpyDeviceToHost);
-
-  return 0;
-}
-
-int RungeKutta5::GetY(int i_var, int i_array, int n_elems, float *y)
-{
-  cudaMemcpy(y, &d_YArr[i_array*n_var_ + i_var], n_elems*sizeof(float),
-	     cudaMemcpyDeviceToHost);
-
-  return 0;
-}
-
-
 __global__ void SetFloatArray(float *arr, int n_elems, int step, float val)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (array_idx<n_elems) {
     arr[array_idx*step] = val;
   }
-}
-
-int RungeKutta5::SetParams(int i_param, int i_array, int n_params,
-			   int n_elems, float val)
-{
-  // TMP
-  //printf("rk5::SetParams %d %d %d %d %f\n",
-  //	 i_param, i_array, n_params_, n_elems, val);
-  //
-
-  SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
-    (&d_ParamsArr[i_array*n_params_ + i_param], n_elems, n_params, val);
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
-  
-  return 0;
-}
-
-int RungeKutta5::SetVectParams(int i_param, int i_array, int n_params,
-			       int n_elems, float *params, int vect_size)
-{
-  for (int i=0; i<vect_size; i++) {
-    SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
-      (&d_ParamsArr[i_array*n_params_ + N0_PARAMS + i_param + 4*i], n_elems,
-       n_params, params[i]);
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-  }
-
-  return 0;
 }
 

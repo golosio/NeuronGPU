@@ -114,9 +114,10 @@ const std::string aeif_vect_param_names[] = {
 #define n_refractory_steps params[i_n_refractory_steps]
 #define refractory_step params[i_refractory_step]
 
-template<int NVAR, int NPARAMS>
+  template<int NVAR, int NPARAMS, class DataStruct>
 __device__
-void Derivatives(float x, float *y, float *dydx, float *params)
+    void Derivatives(float x, float *y, float *dydx, float *params,
+		     DataStruct data_struct)
 {
   enum { n_receptors = (NVAR-N0_VAR)/2 };
   float I_syn = 0.0;
@@ -138,9 +139,10 @@ void Derivatives(float x, float *y, float *dydx, float *params)
   }
 }
 
-template<int NVAR, int NPARAMS>
+template<int NVAR, int NPARAMS, class DataStruct>
 __device__
-void ExternalUpdate(float x, float *y, float *params, bool end_time_step)
+    void ExternalUpdate(float x, float *y, float *params, bool end_time_step,
+			DataStruct data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
     printf("V_m out of lower bound\n");

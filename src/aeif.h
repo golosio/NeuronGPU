@@ -69,7 +69,7 @@ int AeifUpdate(int n_receptors,
 class AEIF
 {
  public:
-  RungeKutta5 rk5_;
+  RungeKutta5<int> rk5_;
   int n_receptors_;
   int n_neurons_;
   float h_min_;
@@ -118,7 +118,7 @@ int AEIF::UpdateNR(int it, float t1)
     const int NPARAMS = N0_PARAMS + 4*N_RECEPTORS;
     //printf("AeifUpdate nvar %d nparams %d n_neurons %d\n", NVAR, NPARAMS,
     //   n_neurons);  
-    rk5_.Update<NVAR, NPARAMS>(t1, h_min_);
+    rk5_.Update<NVAR, NPARAMS>(t1, h_min_,0);
     //std::cout << "AeifUpdate end\n";
     //exit(0);
   }

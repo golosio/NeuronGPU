@@ -29,19 +29,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //extern __device__ float *YArr;
 //extern __device__ float *ParamsArr;
 
-template<int NVAR, int NPARAMS>
+__global__ void SetFloatArray(float *arr, int n_elems, int step, float val);
+
+template<int NVAR, int NPARAMS, class DataStruct>
 __device__
 void RK5Update(float &x, float *y, float x1, float &h, float h_min,
-	       float *params);
+	       float *params, DataStruct data_struct);
 
-template<int NVAR, int NPARAMS>
+template<int NVAR, int NPARAMS, class DataStruct>
 __device__
 void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
-	     float *params);
+	     float *params, DataStruct data_struct);
 
-template<int NVAR, int NPARAMS>
+template<int NVAR, int NPARAMS, class DataStruct>
 __device__
-void ExternalUpdate(float x, float *y, float *params, bool end_time_step);
+  void ExternalUpdate(float x, float *y, float *params, bool end_time_step,
+		      DataStruct data_struct);
 
 //__global__
 //void ArrayDef(int array_size, float *x_arr, float *h_arr, float *y_arr,
@@ -65,18 +68,19 @@ __device__
 void VarCalibrate(int array_size, int n_var, int n_params, float x, float *y,
 		  float *params);
 
-template<int NVAR, int NPARAMS>
+template<int NVAR, int NPARAMS, class DataStruct>
 __global__
 void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
-		 float *par_arr, float x1, float h_min);
-template<int NVAR, int NPARAMS>
+		 float *par_arr, float x1, float h_min, DataStruct data_struct);
+template<int NVAR, int NPARAMS, class DataStruct>
 __device__
-void Derivatives(float x, float *y, float *dydx, float *params);
+  void Derivatives(float x, float *y, float *dydx, float *params,
+		   DataStruct data_struct);
 
-template<int NVAR, int NPARAMS>
+template<int NVAR, int NPARAMS, class DataStruct>
 __device__
 void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
-	     float *params)
+	     float *params, DataStruct data_struct)
 {
   float err;
   float y_new[NVAR];
@@ -91,40 +95,45 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
     float k5[NVAR];
     float k6[NVAR];
 
-    Derivatives<NVAR, NPARAMS>(x, y, k1, params);
+    Derivatives<NVAR, NPARAMS, DataStruct>(x, y, k1, params, data_struct);
 
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*a21*k1[i];
     }
-    Derivatives<NVAR, NPARAMS>(x+c2*h, y_new, k2, params);
+    Derivatives<NVAR, NPARAMS, DataStruct>(x+c2*h, y_new, k2, params,
+					   data_struct);
   
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a31*k1[i] + a32*k2[i]);
     }
-    Derivatives<NVAR, NPARAMS>(x+c3*h, y_new, k3, params);
+    Derivatives<NVAR, NPARAMS, DataStruct>(x+c3*h, y_new, k3, params,
+					   data_struct);
 
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a41*k1[i] + a42*k2[i] + a43*k3[i]);
     }
-    Derivatives<NVAR, NPARAMS>(x+c4*h, y_new, k4, params);
+    Derivatives<NVAR, NPARAMS, DataStruct>(x+c4*h, y_new, k4, params,
+					   data_struct);
   
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a51*k1[i] + a52*k2[i] + a53*k3[i] + a54*k4[i]);
     }
-    Derivatives<NVAR, NPARAMS>(x+c5*h, y_new, k5, params);
+    Derivatives<NVAR, NPARAMS, DataStruct>(x+c5*h, y_new, k5, params,
+					   data_struct);
   
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a61*k1[i] + a62*k2[i] + a63*k3[i] + a64*k4[i]
 			  + a65*k5[i]);
     }
     float x1 = x + h;
-    Derivatives<NVAR, NPARAMS>(x1, y_new, k6, params);
+    Derivatives<NVAR, NPARAMS, DataStruct>(x1, y_new, k6, params, data_struct);
 
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a71*k1[i] + a73*k3[i] + a74*k4[i] + a75*k5[i]
 			  + a76*k6[i]);
     }
-    Derivatives<NVAR, NPARAMS>(x1, y_new, k2, params); // k2 replaces k7
+    Derivatives<NVAR, NPARAMS, DataStruct>(x1, y_new, k2, params,
+					   data_struct); // k2 replaces k7
   
     err = 0.0;
     //if (ArrayIdx==11429) {
@@ -179,24 +188,26 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
   }
 }
 
-template<int NVAR, int NPARAMS>
+template<int NVAR, int NPARAMS, class DataStruct>
 __device__
 void RK5Update(float &x, float *y, float x1, float &h, float h_min,
-	       float *params)
+	       float *params, DataStruct data_struct)
 {
   bool end_time_step=false;
   while(!end_time_step) {
     float hmax=x1-x;
-    RK5Step<NVAR, NPARAMS>(x, y, h, h_min, hmax, params);
+    RK5Step<NVAR, NPARAMS, DataStruct>(x, y, h, h_min, hmax, params,
+				       data_struct);
     end_time_step = (x >= x1-h_min);
-    ExternalUpdate<NVAR, NPARAMS>(x, y, params, end_time_step);
+    ExternalUpdate<NVAR, NPARAMS, DataStruct>(x, y, params, end_time_step,
+					      data_struct);
   }
 }
 
-template<int NVAR, int NPARAMS>
+template<int NVAR, int NPARAMS, class DataStruct>
 __global__
 void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
-		 float *par_arr, float x1, float h_min)
+		 float *par_arr, float x1, float h_min, DataStruct data_struct)
 {
   int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
   if (ArrayIdx<array_size) {
@@ -212,7 +223,8 @@ void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
       params[j] = par_arr[ArrayIdx*NPARAMS + j];
     }
 
-    RK5Update<NVAR, NPARAMS>(x, y, x1, h, h_min, params);
+    RK5Update<NVAR, NPARAMS, DataStruct>(x, y, x1, h, h_min, params,
+					 data_struct);
 
     //float poisson_weight = 1.187*PoissonData[0];
     //if (poisson_weight>0) HandleSpike(poisson_weight, 0, y, params);
@@ -226,6 +238,7 @@ void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
   }
 }
 
+template<class DataStruct>
 class RungeKutta5
 {
   int array_size_;
@@ -255,18 +268,127 @@ class RungeKutta5
   int SetParams(int i_param, int i_array, int n_params, int n_elems, float val);
   int SetVectParams(int i_param, int i_array, int n_params, int n_elems,
 		    float *params, int vect_size);
-  template<int NVAR, int NPARAMS> int Update(float x1, float h_min);
+  template<int NVAR, int NPARAMS> int Update(float x1, float h_min,
+					     DataStruct data_struct);
 
 };
 
 
+template<class DataStruct>
 template<int NVAR, int NPARAMS>
-int RungeKutta5::Update(float x1, float h_min)
+  int RungeKutta5<DataStruct>::Update(float x1, float h_min,
+				      DataStruct data_struct)
 {
-  ArrayUpdate<NVAR, NPARAMS><<<(array_size_+1023)/1024, 1024>>>
-    (array_size_, d_XArr, d_HArr, d_YArr, d_ParamsArr, x1, h_min);
+  ArrayUpdate<NVAR, NPARAMS, DataStruct><<<(array_size_+1023)/1024, 1024>>>
+    (array_size_, d_XArr, d_HArr, d_YArr, d_ParamsArr, x1, h_min, data_struct);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
+
+  return 0;
+}
+
+template<class DataStruct>
+RungeKutta5<DataStruct>::~RungeKutta5()
+{
+  Free();
+}
+
+template<class DataStruct>
+int RungeKutta5<DataStruct>::Free()
+{
+  cudaFree(d_XArr);
+  cudaFree(d_HArr);
+  cudaFree(d_YArr);
+  cudaFree(d_ParamsArr);
+
+  return 0;
+}
+
+template<class DataStruct>
+int RungeKutta5<DataStruct>::Init(int array_size, int n_var, int n_params,
+				  float x_min, float h)
+{
+  array_size_ = array_size;
+  n_var_ = n_var;
+  n_params_ = n_params; 
+
+  gpuErrchk(cudaMalloc(&d_XArr, array_size_*sizeof(float)));
+  gpuErrchk(cudaMalloc(&d_HArr, array_size_*sizeof(float)));
+  gpuErrchk(cudaMalloc(&d_YArr, array_size_*n_var_*sizeof(float)));
+  gpuErrchk(cudaMalloc(&d_ParamsArr, array_size_*n_params_*sizeof(float)));
+
+  //ArrayDef<<<1, 1>>>(array_size_, d_XArr, d_HArr, d_YArr, d_ParamsArr);
+  //gpuErrchk( cudaPeekAtLastError() );
+  //gpuErrchk( cudaDeviceSynchronize() );
+
+  //ArrayAlloc();
+
+  ArrayInit<<<(array_size+1023)/1024, 1024>>>(array_size_, n_var, n_params,
+    d_XArr, d_HArr, d_YArr, d_ParamsArr, x_min, h);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  
+  return 0;
+}
+
+template<class DataStruct>
+int RungeKutta5<DataStruct>::Calibrate(float x_min, float h)
+{
+  ArrayCalibrate<<<(array_size_+1023)/1024, 1024>>>(array_size_, n_var_,
+     n_params_, d_XArr, d_HArr, d_YArr, d_ParamsArr, x_min, h);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+
+  return 0;
+}
+
+template<class DataStruct>
+int RungeKutta5<DataStruct>::GetX(int i_array, int n_elems, float *x)
+{
+  cudaMemcpy(x, &d_XArr[i_array], n_elems*sizeof(float),
+	     cudaMemcpyDeviceToHost);
+
+  return 0;
+}
+
+template<class DataStruct>
+int RungeKutta5<DataStruct>::GetY(int i_var, int i_array, int n_elems, float *y)
+{
+  cudaMemcpy(y, &d_YArr[i_array*n_var_ + i_var], n_elems*sizeof(float),
+	     cudaMemcpyDeviceToHost);
+
+  return 0;
+}
+
+template<class DataStruct>
+int RungeKutta5<DataStruct>::SetParams(int i_param, int i_array, int n_params,
+			   int n_elems, float val)
+{
+  // TMP
+  //printf("rk5::SetParams %d %d %d %d %f\n",
+  //	 i_param, i_array, n_params_, n_elems, val);
+  //
+
+  SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
+    (&d_ParamsArr[i_array*n_params_ + i_param], n_elems, n_params, val);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  
+  return 0;
+}
+
+template<class DataStruct>
+int RungeKutta5<DataStruct>::SetVectParams(int i_param, int i_array,
+					   int n_params, int n_elems,
+					   float *params, int vect_size)
+{
+  for (int i=0; i<vect_size; i++) {
+    SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
+      (&d_ParamsArr[i_array*n_params_ + N0_PARAMS + i_param + 4*i], n_elems,
+       n_params, params[i]);
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+  }
 
   return 0;
 }

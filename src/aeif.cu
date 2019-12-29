@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -18,18 +18,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "aeif.h"
 #include "derivatives.h"
 
-__device__ float poisson_weight;
-
-__device__ int Aeif_i_node_0;
-
-// NEW
-__device__ float *G0;
 __global__
-void G0Def(float *d_G0)
+void G0Update(int array_size, int n_params, int n_receptors, float *params_arr,
+	   float *G0)
 {
-  G0 = d_G0;
+  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (array_idx<array_size) {
+    float *params = &params_arr[array_idx*n_params];
+    for (int i_port = 0; i_port<n_receptors; i_port++) {
+      G0[i_port*array_size + array_idx] = g0(i_port);
+    }
+  }
 }
-//////
 
 __device__
 void VarInit(int array_size, int n_var, int n_params, float x, float *y,
@@ -98,34 +98,10 @@ void VarCalibrate(int array_size, int n_var, int n_params, float x, float *y,
 	g0(i) // normalization factor for conductance
 	  = ( 1. / taus_rise(i) - 1. / taus_decay(i) ) / denom2;
       }
-      // NEW
-      G0[i*array_size + array_idx] = g0(i);
-      //
     }
   }
 }
 
-
-__device__ ////// THIS MUST BE IMPROVED. CHECK INTERFERENCE see get_spike.cu
-void HandleSpike(float weight, int receptor_idx, float *y, float *params)
-{
-  g1(receptor_idx) += weight*g0(receptor_idx);
-}
-
-__global__
-void SetAeif_i_node_0(int i_node_0)
-{
-  Aeif_i_node_0 = i_node_0;
-}
-
-
-/*
-template <>
-int AeifUpdate<0>(int n_receptors, int n_neurons, int it, float t1, float h_min)
-{
-  return 0;
-}
-*/
 
 template <>
 int AEIF::UpdateNR<0>(int it, float t1)
@@ -133,7 +109,8 @@ int AEIF::UpdateNR<0>(int it, float t1)
   return 0;
 }
 
-int AEIF::Init(int i_node_0, int n_neurons, int n_receptors) {
+int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
+	       int i_neuron_group, float *G0) {
   h_min_=1.0e-4;
   h_ = 1.0e-2;
   i_node_0_ = i_node_0;
@@ -141,32 +118,27 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors) {
   n_receptors_ = n_receptors;
   n_var_ = N0_VAR + 2*n_receptors;
   n_params_ = N0_PARAMS + 4*n_receptors;
-  SetAeif_i_node_0<<<1, 1>>>(i_node_0);
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
-
-  // NEW
-  float *d_G0;
-  gpuErrchk(cudaMalloc(&d_G0, n_neurons*n_receptors*sizeof(float)));
-  G0Def<<<1, 1>>>(d_G0);
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
-  //
-
-  rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_);
+  i_neuron_group_ = i_neuron_group;
+  G0_ = G0;
   
+  rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_);
+
   return 0;
 }
 
 int AEIF::Calibrate(float t_min) {
   rk5_.Calibrate(t_min, h_);
+  G0Update<<<(n_neurons_+1023)/1024, 1024>>>
+    (n_neurons_, n_params_, n_receptors_, rk5_.GetParamsArr(), G0_);
   
   return 0;
 }
 
 int AEIF::Update(int it, float t1) {
   UpdateNR<MAX_RECEPTOR_NUM>(it, t1);
-  
+  // with other neuron models a G0Update as that in Calibrate
+  // may be necessary here
+
   return 0;
 }
 
@@ -181,13 +153,7 @@ int AEIF::SetParams(std::string param_name, int i_neuron,
     std::cerr << "Unrecognized parameter " << param_name << " .\n";
     exit(-1);
   }
-  
-  // TMP
-  //printf("AEIF::SetParams %s %d %d %d %d %f\n",
-  //	 aeif_param_names[i_param].c_str(),
-  //	 i_param, i_neuron, n_params_, n_neurons, val);
-  //
-	 
+  	 
   return rk5_.SetParams(i_param, i_neuron, n_params_, n_neurons, val);
 }
 
@@ -207,16 +173,6 @@ int AEIF::SetVectParams(std::string param_name, int i_neuron, int n_neurons,
       "of receptor ports.\n";
     exit(-1);
   }  
-
-  // TMP
-  //printf("AEIF::SetVectParams %s %d %d %d %d\n",
-  //	 aeif_vect_param_names[i_param].c_str(),
-  //	 i_param, i_neuron, n_params_, n_neurons);
-  //for (int i=0; i<vect_size; i++) {
-  //  printf("AEIF::SetVectParams vect %s %d %f\n",
-  //	   aeif_vect_param_names[i_param].c_str(), i, params[i]);
-  //}
-  //
 
   return rk5_.SetVectParams(i_param, i_neuron, n_params_, n_neurons, params,
 			    vect_size);

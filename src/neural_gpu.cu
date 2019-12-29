@@ -136,9 +136,10 @@ int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
   connect_mpi_->extern_connection_.insert(it1, n_neurons, conn_node);
 
   //SpikeInit(max_spike_num_);
-  aeif_->Init(i_node_0, n_neurons, n_receptors);
-  aeif_->i_neuron_group_ = InsertNeuronGroup(n_neurons, n_receptors);
-  
+  int i_neuron_group = InsertNeuronGroup(n_neurons, n_receptors);
+  float *G0 = neuron_group_vect_[i_neuron_group].G0_;
+  aeif_->Init(i_node_0, n_neurons, n_receptors, i_neuron_group, G0);
+    
   return i_node_0;
 }
 
@@ -247,12 +248,7 @@ int NeuralGPU::Simulate()
   connect_mpi_->ExternalSpikeInit(connect_mpi_->extern_connection_.size(),
 				 max_spike_num_, connect_mpi_->mpi_np_,
 				 max_spike_per_host_);
-  //InitGetSpikeArray(n_neurons_, aeif_->n_receptors_);
 
-  //////////////////////////////////////////////////
-  //char filename[100];
-  //sprintf(filename, "test_arr_%d.dat", connect_mpi_.mpi_id_);
-  //FILE *fp=fopen(filename, "wb");
   multimeter_->OpenFiles();
   
   int Nt=(int)round(sim_time_/time_resolution_);
@@ -367,7 +363,7 @@ int NeuralGPU::Simulate()
     ExternalSpikeReset_time += (getRealTime() - time_mark);
   }
   end_real_time_ = getRealTime();
-  //fclose(fp);
+
   multimeter_->CloseFiles();
   //aeif.rk5.Free();
 

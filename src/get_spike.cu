@@ -23,15 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 extern __constant__ NeuronGroup NeuronGroupArray[];
 extern __device__ signed char *NeuronGroupMap;
 
-extern __device__ int Aeif_i_node_0; 
-extern __device__ float *G0;
-
-//__device__ double *GetSpikeArray;
-
-//__device__ int N_NEURONS;
-
-//double *d_GetSpikeArray;
-
 __device__ double atomicAddDouble(double* address, double val)
 {
     unsigned long long int* address_as_ull =
@@ -55,8 +46,7 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
   int i_conn = SpikeConnIdx[i_spike];
   float height = SpikeHeight[i_spike];
   int i_target = ConnectionGroupTargetNeuron[i_conn*NSpikeBuffer+i_source]
-    [i_syn]; // - Aeif_i_node_0;
-  //printf("i_target: %d\n", i_target);
+    [i_syn];
   unsigned char i_port = ConnectionGroupTargetPort[i_conn*NSpikeBuffer
 						   +i_source][i_syn];
   float weight = ConnectionGroupTargetWeight[i_conn*NSpikeBuffer+i_source]
@@ -68,16 +58,10 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
   
   /////////////////////////////////////////////////////////////////
   int i_group=NeuronGroupMap[i_target];
-  //printf("i_group: %d\n", i_group);
   int i = i_port*NeuronGroupArray[i_group].n_neurons_ + i_target
     - NeuronGroupArray[i_group].i_neuron_0_;
-  double d_val = (double)(height*weight*G0[i]);
+  double d_val = (double)(height*weight);
 
-  //printf("in0: %d\n", Aeif_i_node_0);
-  //printf("i_target, i_port, i_group, i: %d %d %d %d\n",
-  //	 i_target, i_port, i_group, i);
-
-  
   atomicAddDouble(&NeuronGroupArray[i_group].get_spike_array_[i], d_val); 
   ////////////////////////////////////////////////////////////////
 }
@@ -92,42 +76,13 @@ __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
      int i_target = i_array % array_size;
      int i_port = i_array / array_size;
      int i = i_target*n_var + N0_VAR + 1 + 2*i_port; // g1(i)
-     double d_val =
-       NeuronGroupArray[i_group].get_spike_array_[i_array] + (double)y_arr[i];
+     double d_val = (double)y_arr[i]
+       + NeuronGroupArray[i_group].get_spike_array_[i_array]
+       * NeuronGroupArray[i_group].G0_[i_array];
+
      y_arr[i] = (float)d_val;
   }
 }
-
-//__global__
-//void DeviceInitGetSpikeArray(double *get_spike_array, int n_neurons)
-//{
-//  GetSpikeArray = get_spike_array;
-//  N_NEURONS = n_neurons;
-//}
-
-//int InitGetSpikeArray(int n_neurons, int n_ports)
-//{
-//  gpuErrchk(cudaMalloc(&d_GetSpikeArray, n_neurons*n_ports*sizeof(double)));
-//  DeviceInitGetSpikeArray<<<1, 1>>>(d_GetSpikeArray, n_neurons);
-//  gpuErrchk( cudaPeekAtLastError() );
-//  gpuErrchk( cudaDeviceSynchronize() );
-
-//  return 0;
-//}
-
-//int ClearGetSpikeArray(int n_neurons, int n_ports)
-//{ 
-//  gpuErrchk(cudaMemset(d_GetSpikeArray, 0, n_neurons*n_ports*sizeof(double)));
-//
-//  return 0;
-//}
-
-//int FreeGetSpikeArray()
-//{
-//  gpuErrchk(cudaFree(d_GetSpikeArray));
-
-//  return 0;
-//}
 
 int NeuralGPU::ClearGetSpikeArrays()
 {
@@ -146,10 +101,9 @@ int NeuralGPU::FreeGetSpikeArrays()
     NeuronGroup ng = neuron_group_vect_[i];
     if (ng.n_neurons_*ng.n_receptors_ > 0) {
       gpuErrchk(cudaFree(ng.get_spike_array_));
+      gpuErrchk(cudaFree(ng.G0_));
     }
   }
   
   return 0;
 }
-
-

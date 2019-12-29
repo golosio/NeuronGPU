@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -20,10 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include "rk5.h"
 #include "spike_buffer.h"
+#include "neuron_group.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
-
-extern __device__ int Aeif_i_node_0;
 
 enum VariableIndexes {
   i_V_m = 0,
@@ -141,8 +140,9 @@ __device__
 
 template<int NVAR, int NPARAMS, class DataStruct>
 __device__
-    void ExternalUpdate(float x, float *y, float *params, bool end_time_step,
-			DataStruct data_struct)
+    void ExternalUpdate
+    (float x, float *y, float *params, bool end_time_step,
+			RK5DataStruct data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
     printf("V_m out of lower bound\n");
@@ -165,7 +165,7 @@ __device__
   else {
     if ( V_m >= V_peak ) { // send spike
       int neuron_idx = threadIdx.x + blockIdx.x * blockDim.x;
-      PushSpike(Aeif_i_node_0 + neuron_idx, 1.0);
+      PushSpike(data_struct.i_neuron_0_ + neuron_idx, 1.0);
       V_m = V_reset;
       w += b; // spike-driven adaptation
       refractory_step = n_refractory_steps;

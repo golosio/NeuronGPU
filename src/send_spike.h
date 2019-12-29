@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -20,11 +20,6 @@ extern int *d_SpikeSourceIdx;
 extern int *d_SpikeConnIdx;
 extern float *d_SpikeHeight;
 extern int *d_SpikeTargetNum;
-
-//extern int *h_SpikeSourceIdx;
-//extern int *h_SpikeConnIdx;
-//extern float *h_SpikeHeight;
-//extern int *h_SpikeTargetNum;
 
 extern __device__ int MaxSpikeNum;
 extern __device__ int *SpikeNum;

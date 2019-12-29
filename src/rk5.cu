@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -20,13 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "rk5.h"
 
 using namespace std;
-
-//__device__ int ARRAY_SIZE;
-
-//__device__ float *XArr;
-//__device__ float *HArr;
-//__device__ float *YArr;
-//__device__ float *ParamsArr;
 
 __constant__ float c2 = 0.2;
 __constant__ float c3 = 0.3;
@@ -68,17 +61,6 @@ __constant__ float coeff = 0.9;
 __constant__ float alpha = 0.2;
 
 
-//__global__
-//void ArrayDef(int array_size, float *x_arr, float *h_arr, float *y_arr,
-//	      float *par_arr)
-//{
-//  ARRAY_SIZE = array_size;
-//  XArr = x_arr;
-//  HArr = h_arr;
-//  YArr = y_arr;
-//  ParamsArr = par_arr;
-//}
-  
 __global__
 void ArrayInit(int array_size, int n_var, int n_params, float *x_arr,
         float *h_arr, float *y_arr, float *par_arr, float x_min, float h)

@@ -19,10 +19,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 struct NeuronGroup
 {
+  int neuron_type_;
   int i_neuron_0_;
   int n_neurons_;
   int n_receptors_;
   double *get_spike_array_;
+  float *G0_;
+};
+
+struct RK5DataStruct
+{
+  int neuron_type_;
+  int i_neuron_0_;
 };
 
 #endif

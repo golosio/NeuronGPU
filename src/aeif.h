@@ -61,8 +61,6 @@ class AEIF : public BaseNeuron
 
   float *GetParamsArr();
 
-  float *GetReceptorWeightArr();
-
   template<int N_RECEPTORS>
     int UpdateNR(int it, float t1);
 

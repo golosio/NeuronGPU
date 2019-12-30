@@ -55,7 +55,6 @@ int NeuralGPU::InsertNeuronGroup(int n_neurons, int n_receptors)
   ng.n_neurons_ = n_neurons;
   ng.n_receptors_ = n_receptors;
   ng.get_spike_array_ = d_get_spike_array;
-  ng.receptor_weight_arr_ =  NULL;
   
   int i_group = neuron_group_vect_.size();
   neuron_group_vect_.push_back(ng);

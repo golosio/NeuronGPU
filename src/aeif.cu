@@ -109,6 +109,11 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
   
   rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_);
 
+  receptor_weight_arr_ = GetParamsArr() + N_SCAL_PARAMS
+    + GetVectParamIdx("g0");
+  receptor_weight_arr_step_ = n_params_;
+  receptor_weight_port_step_ = N_VECT_PARAMS;
+
   return 0;
 }
 
@@ -229,9 +234,4 @@ float *AEIF::GetVarArr()
 float *AEIF::GetParamsArr()
 {
   return rk5_.GetParamsArr();
-}
-
-float *AEIF::GetReceptorWeightArr()
-{
-  return GetParamsArr() + N_SCAL_PARAMS + GetVectParamIdx("receptor_weight");
 }

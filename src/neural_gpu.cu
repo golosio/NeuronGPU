@@ -138,8 +138,7 @@ int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
 
   int i_neuron_group = InsertNeuronGroup(n_neurons, n_receptors);
   neuron_vect_[0]->Init(i_node_0, n_neurons, n_receptors, i_neuron_group);
-  neuron_group_vect_[i_neuron_group].receptor_weight_arr_
-    = neuron_vect_[0]->GetReceptorWeightArr();
+  
   return i_node_0;
 }
 
@@ -341,9 +340,14 @@ int NeuralGPU::Simulate()
       NestedLoop_time += (getRealTime() - time_mark);
       time_mark = getRealTime();
       // improve using a grid
-      GetSpikes<<<(neuron_vect_[0]->n_neurons_*neuron_vect_[0]->n_receptors_+1023)/1024, 1024>>>
-	(neuron_vect_[0]->i_neuron_group_, neuron_vect_[0]->n_neurons_, neuron_vect_[0]->n_receptors_,
+      GetSpikes<<<(neuron_vect_[0]->n_neurons_
+		   *neuron_vect_[0]->n_receptors_+1023)/1024, 1024>>>
+	(neuron_vect_[0]->i_neuron_group_, neuron_vect_[0]->n_neurons_,
+	 neuron_vect_[0]->n_receptors_,
 	 neuron_vect_[0]->n_var_,
+	 neuron_vect_[0]->receptor_weight_arr_,
+	 neuron_vect_[0]->receptor_weight_arr_step_,
+	 neuron_vect_[0]->receptor_weight_port_step_,
 	 neuron_vect_[0]->GetVarArr());
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );

@@ -16,6 +16,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GETSPIKEH
 
 __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
-			  float *y_arr);
+			  float *receptor_weight_arr,
+			  int receptor_weight_arr_step,
+			  int receptor_weight_port_step, float *y_arr);
 
 #endif

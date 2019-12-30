@@ -69,15 +69,17 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
 
 // improve using a grid
 __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
-			  float *y_arr)
+			  float *receptor_weight_arr,
+			  int receptor_weight_arr_step,
+			  int receptor_weight_port_step, float *y_arr)
 {
   int i_array = threadIdx.x + blockIdx.x * blockDim.x;
   if (i_array < array_size*n_ports) {
      int i_target = i_array % array_size;
      int i_port = i_array / array_size;
      int i = i_target*n_var + N_SCAL_VAR + N_VECT_VAR*i_port + i_g1; // g1(i)
-     int i_receptor_weight = i_target*(N_SCAL_PARAMS + N_VECT_PARAMS*n_ports)
-       + N_VECT_PARAMS*i_port;
+     int i_receptor_weight = i_target*receptor_weight_arr_step
+       + receptor_weight_port_step*i_port;
      //if (i_array==0) {
      //  printf("npar, irw, rw %d %d %f\n",
      // N_SCAL_PARAMS + N_VECT_PARAMS*n_ports,
@@ -87,7 +89,7 @@ __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
      //     }
      double d_val = (double)y_arr[i]
        + NeuronGroupArray[i_group].get_spike_array_[i_array]
-       * NeuronGroupArray[i_group].receptor_weight_arr_[i_receptor_weight];
+       * receptor_weight_arr[i_receptor_weight];
 
      y_arr[i] = (float)d_val;
   }

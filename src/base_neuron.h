@@ -26,7 +26,10 @@ class BaseNeuron
   int n_var_;
   int n_params_;
   int i_neuron_group_;
-  
+  float *receptor_weight_arr_;
+  int receptor_weight_arr_step_;
+  int receptor_weight_port_step_;
+
   virtual ~BaseNeuron() {}
   
   virtual int Init(int i_node_0, int n_neurons, int n_receptors,
@@ -58,7 +61,6 @@ class BaseNeuron
 
   virtual float *GetParamsArr() {return NULL;}
   
-  virtual float *GetReceptorWeightArr() {return NULL;}
 };
 
 #endif

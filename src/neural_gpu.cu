@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <curand.h>
 //#include "connect.h"
 #include "spike_buffer.h"
-#include "rk5.h"
 #include "cuda_error.h"
 #include "aeif.h"
 #include "send_spike.h"

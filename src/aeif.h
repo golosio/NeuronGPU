@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "rk5.h"
 #include "neuron_group.h"
 #include "base_neuron.h"
+#include "neuron_models.h"
 #define MAX_RECEPTOR_NUM 20
 
 class AEIF : public BaseNeuron
@@ -76,7 +77,7 @@ int AEIF::UpdateNR(int it, float t1)
     const int NVAR = N_SCAL_VAR + N_VECT_VAR*N_RECEPTORS;
     const int NPARAMS = N_SCAL_PARAMS + N_VECT_PARAMS*N_RECEPTORS;
 
-    RK5DataStruct data_struct = {0, i_node_0_};
+    RK5DataStruct data_struct = {i_AEIF_model, i_node_0_};
     rk5_.Update<NVAR, NPARAMS>(t1, h_min_, data_struct);
   }
   else {

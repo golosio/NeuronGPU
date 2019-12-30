@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "rk5.h"
 #include "aeif.h"
-#include "derivatives.h"
+#include "aeif_variables.h"
 
 __device__
 void VarInit(int array_size, int n_var, int n_params, float x, float *y,

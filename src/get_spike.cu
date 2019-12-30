@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_group.h"
 #include "send_spike.h"
 #include "spike_buffer.h"
-#include "rk5.h"
+#include "cuda_error.h"
 
 extern __constant__ NeuronGroup NeuronGroupArray[];
 extern __device__ signed char *NeuronGroupMap;

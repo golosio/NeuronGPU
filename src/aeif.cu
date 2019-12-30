@@ -35,7 +35,7 @@ __device__
 void VarInit(int array_size, int n_var, int n_params, float x, float *y,
 	     float *params)
 {
-  int n_receptors = (n_var-N0_VAR)/2;
+  int n_receptors = (n_var-N_SCAL_VAR)/N_VECT_VAR;
 
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (array_idx<array_size) {
@@ -69,7 +69,7 @@ __device__
 void VarCalibrate(int array_size, int n_var, int n_params, float x, float *y,
 		  float *params)
 {
-  int n_receptors = (n_var-N0_VAR)/2;
+  int n_receptors = (n_var-N_SCAL_VAR)/N_VECT_VAR;
 
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (array_idx<array_size) {
@@ -116,8 +116,8 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
   i_node_0_ = i_node_0;
   n_neurons_ = n_neurons;
   n_receptors_ = n_receptors;
-  n_var_ = N0_VAR + 2*n_receptors;
-  n_params_ = N0_PARAMS + 4*n_receptors;
+  n_var_ = N_SCAL_VAR + N_VECT_VAR*n_receptors;
+  n_params_ = N_SCAL_PARAMS + N_VECT_PARAMS*n_receptors;
   i_neuron_group_ = i_neuron_group;
   G0_ = G0;
   
@@ -142,14 +142,14 @@ int AEIF::Update(int it, float t1) {
   return 0;
 }
 
-int AEIF::SetParams(std::string param_name, int i_neuron,
+int AEIF::SetScalParams(std::string param_name, int i_neuron,
 		    int n_neurons, float val) {
 
   int i_param;
-  for (i_param=0; i_param<N0_PARAMS; i_param++) {
-    if (param_name == aeif_param_names[i_param]) break;
+  for (i_param=0; i_param<N_SCAL_PARAMS; i_param++) {
+    if (param_name == aeif_scal_param_names[i_param]) break;
   }
-  if (i_param == N0_PARAMS) {
+  if (i_param == N_SCAL_PARAMS) {
     std::cerr << "Unrecognized parameter " << param_name << " .\n";
     exit(-1);
   }
@@ -160,11 +160,11 @@ int AEIF::SetParams(std::string param_name, int i_neuron,
 int AEIF::SetVectParams(std::string param_name, int i_neuron, int n_neurons,
 			float *params, int vect_size) {
 
-  int i_param;
-  for (i_param=0; i_param<3; i_param++) {
-    if (param_name == aeif_vect_param_names[i_param]) break;
+  int i_vect;
+  for (i_vect=0; i_vect<N_VECT_PARAMS; i_vect++) {
+    if (param_name == aeif_vect_param_names[i_vect]) break;
   }
-  if (i_param == 3) {
+  if (i_vect == N_VECT_PARAMS) {
     std::cerr << "Unrecognized vector parameter " << param_name << " \n";
     exit(-1);
   }  
@@ -174,20 +174,47 @@ int AEIF::SetVectParams(std::string param_name, int i_neuron, int n_neurons,
     exit(-1);
   }  
 
-  return rk5_.SetVectParams(i_param, i_neuron, n_params_, n_neurons, params,
-			    vect_size);
+  for (int i=0; i<vect_size; i++) {
+    int i_param = N_SCAL_PARAMS + N_VECT_PARAMS*i + i_vect;
+    rk5_.SetParams(i_param, i_neuron, n_params_, n_neurons, params[i]);
+  }
+  return 0;
 }
 
-int AEIF::GetVarIdx(std::string var_name)
+int AEIF::GetScalVarIdx(std::string var_name)
 {
   int i_var;
-  for (i_var=0; i_var<N0_VAR; i_var++) {
-    if (var_name == aeif_var_names[i_var]) break;
+  for (i_var=0; i_var<N_SCAL_VAR; i_var++) {
+    if (var_name == aeif_scal_var_names[i_var]) break;
   }
-  if (i_var == N0_VAR) {
+  if (i_var == N_SCAL_VAR) {
     std::cerr << "Unrecognized variable " << var_name << " .\n";
     exit(-1);
   }
   
   return i_var;
+}
+
+int AEIF::GetVectVarIdx(std::string var_name)
+{
+  int i_var;
+  for (i_var=0; i_var<N_VECT_VAR; i_var++) {
+    if (var_name == aeif_vect_var_names[i_var]) break;
+  }
+  if (i_var == N_VECT_VAR) {
+    std::cerr << "Unrecognized variable " << var_name << " .\n";
+    exit(-1);
+  }
+  
+  return i_var;
+}
+
+float *AEIF::GetVarArr()
+{
+  return rk5_.GetYArr();
+}
+
+float *AEIF::GetParamsArr()
+{
+  return rk5_.GetParamsArr();
 }

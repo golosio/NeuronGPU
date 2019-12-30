@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -17,14 +17,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-Record::Record(AEIF *aeif, std::string file_name, std::string var_name,
+Record::Record(BaseNeuron *neuron, std::string file_name, std::string var_name,
 	       int *i_neurons, int n_neurons):
-  aeif_(aeif), file_name_(file_name), var_name_(var_name)
+  neuron_(neuron), file_name_(file_name), var_name_(var_name)
 {
   for (int i=0; i<n_neurons; i++) {
     i_neurons_.push_back(i_neurons[i]);
   }
-  i_var_=aeif_->GetVarIdx(var_name_);
+  i_var_=neuron_->GetScalVarIdx(var_name_);
 }
 
 int Record::OpenFile()
@@ -44,10 +44,10 @@ int Record::CloseFile()
 int Record::WriteRecord()
 {
   float x, y;
-  aeif_->GetX(i_neurons_[0], 1, &x);
+  neuron_->GetX(i_neurons_[0], 1, &x);
   fprintf(fp_,"%f", x);
   for (unsigned int i=0; i<i_neurons_.size(); i++) {
-    aeif_->GetY(i_var_, i_neurons_[i], 1, &y);
+    neuron_->GetY(i_var_, i_neurons_[i], 1, &y);
     fprintf(fp_,"\t%f", y);
   }
   fprintf(fp_,"\n");
@@ -55,11 +55,11 @@ int Record::WriteRecord()
   return 0;
 }
 
-int Multimeter::CreateRecord(AEIF *aeif, std::string file_name,
+int Multimeter::CreateRecord(BaseNeuron *neuron, std::string file_name,
 			     std::string var_name, int *i_neurons,
 			     int n_neurons)
 {
-  Record record(aeif, file_name, var_name, i_neurons, n_neurons);
+  Record record(neuron, file_name, var_name, i_neurons, n_neurons);
   record_array_.push_back(record);
 
   return 0;

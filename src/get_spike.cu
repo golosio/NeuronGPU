@@ -75,7 +75,7 @@ __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
   if (i_array < array_size*n_ports) {
      int i_target = i_array % array_size;
      int i_port = i_array / array_size;
-     int i = i_target*n_var + N0_VAR + 1 + 2*i_port; // g1(i)
+     int i = i_target*n_var + N_SCAL_VAR + N_VECT_VAR*i_port + i_g1; // g1(i)
      double d_val = (double)y_arr[i]
        + NeuronGroupArray[i_group].get_spike_array_[i_array]
        * NeuronGroupArray[i_group].G0_[i_array];

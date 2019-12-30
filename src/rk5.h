@@ -336,20 +336,4 @@ int RungeKutta5<DataStruct>::SetParams(int i_param, int i_array, int n_params,
   return 0;
 }
 
-template<class DataStruct>
-int RungeKutta5<DataStruct>::SetVectParams(int i_param, int i_array,
-					   int n_params, int n_elems,
-					   float *params, int vect_size)
-{
-  for (int i=0; i<vect_size; i++) {
-    SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
-      (&d_ParamsArr[i_array*n_params_ + N0_PARAMS + i_param + 4*i], n_elems,
-       n_params, params[i]);
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-  }
-
-  return 0;
-}
-
 #endif

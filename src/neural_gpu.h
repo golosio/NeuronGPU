@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "neuron_group.h"
+#include "base_neuron.h"
 //#include "connect.h"
 //#include "connect_mpi.h"
 //#include "poisson.h"
@@ -44,7 +45,7 @@ class NeuralGPU
   PoissonGenerator *poiss_generator_;
   SpikeGenerator *spike_generator_;
   Multimeter *multimeter_;
-  AEIF *aeif_;
+  std::vector<BaseNeuron*> neuron_vect_;
   
   NetConnection *net_connection_;
   ConnectMpi *connect_mpi_;

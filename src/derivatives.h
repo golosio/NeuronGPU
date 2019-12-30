@@ -24,13 +24,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-enum VariableIndexes {
+enum ScalVarIndexes {
   i_V_m = 0,
   i_w,
-  N0_VAR
+  N_SCAL_VAR
 };
 
-enum ParamIndexes {
+enum VectVarIndexes {
+  i_g = 0,
+  i_g1,
+  N_VECT_VAR
+};
+
+enum ScalParamIndexes {
   i_V_th = 0,
   i_Delta_T,
   i_g_L,
@@ -44,20 +50,28 @@ enum ParamIndexes {
   i_V_reset,
   i_n_refractory_steps,
   i_refractory_step,
-  N0_PARAMS
+  N_SCAL_PARAMS
 };
 
-const std::string aeif_var_names[] = {
+enum VectParamIndexes {
+  i_E_rev = 0,
+  i_taus_rise,
+  i_taus_decay,
+  i_g0,
+  N_VECT_PARAMS
+};
+
+const std::string aeif_scal_var_names[N_SCAL_VAR] = {
   "V_m",
   "w"
 };
 
-const std::string aeif_vect_var_names[] = {
+const std::string aeif_vect_var_names[N_VECT_VAR] = {
   "g",
   "g1"
 };
 
-const std::string aeif_param_names[] = {
+const std::string aeif_scal_param_names[N_SCAL_PARAMS] = {
   "V_th",
   "Delta_T",
   "g_L",
@@ -73,10 +87,11 @@ const std::string aeif_param_names[] = {
   "refractory_step"
 };
 
-const std::string aeif_vect_param_names[] = {
+const std::string aeif_vect_param_names[N_VECT_PARAMS] = {
   "E_rev",
   "taus_rise",
-  "taus_decay"
+  "taus_decay",
+  "g0"  
 };
 
 //
@@ -86,18 +101,13 @@ const std::string aeif_vect_param_names[] = {
 //
 #define V_m y[i_V_m]
 #define w y[i_w]
-#define g(i) y[N0_VAR + 2*i]
-#define g1(i) y[N0_VAR + 1 + 2*i]
+#define g(i) y[N_SCAL_VAR + N_VECT_VAR*i + i_g]
+#define g1(i) y[N_SCAL_VAR + N_VECT_VAR*i + i_g1]
 
 #define dVdt dydx[i_V_m]
 #define dwdt dydx[i_w]
-#define dgdt(i) dydx[N0_VAR + 2*i]
-#define dg1dt(i) dydx[N0_VAR + 1 + 2*i]
-
-#define E_rev(i) params[N0_PARAMS + 4*i]
-#define taus_rise(i) params[N0_PARAMS + 1 + 4*i]
-#define taus_decay(i) params[N0_PARAMS + 2 + 4*i]
-#define g0(i) params[N0_PARAMS + 3 + 4*i]
+#define dgdt(i) dydx[N_SCAL_VAR + N_VECT_VAR*i + i_g]
+#define dg1dt(i) dydx[N_SCAL_VAR + N_VECT_VAR*i + i_g1]
 
 #define V_th params[i_V_th]
 #define Delta_T params[i_Delta_T]
@@ -113,12 +123,17 @@ const std::string aeif_vect_param_names[] = {
 #define n_refractory_steps params[i_n_refractory_steps]
 #define refractory_step params[i_refractory_step]
 
+#define E_rev(i) params[N_SCAL_PARAMS + N_VECT_PARAMS*i + i_E_rev]
+#define taus_rise(i) params[N_SCAL_PARAMS + N_VECT_PARAMS*i + i_taus_rise]
+#define taus_decay(i) params[N_SCAL_PARAMS + N_VECT_PARAMS*i + i_taus_decay]
+#define g0(i) params[N_SCAL_PARAMS + N_VECT_PARAMS*i + i_g0]
+
   template<int NVAR, int NPARAMS, class DataStruct>
 __device__
     void Derivatives(float x, float *y, float *dydx, float *params,
 		     DataStruct data_struct)
 {
-  enum { n_receptors = (NVAR-N0_VAR)/2 };
+  enum { n_receptors = (NVAR-N_SCAL_VAR)/N_VECT_VAR };
   float I_syn = 0.0;
 
   float V = ( refractory_step > 0 ) ? V_reset :  MIN(V_m, V_peak);

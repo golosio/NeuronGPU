@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2019 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -16,19 +16,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MULTIMETERH
 #include <stdio.h>
 #include <string>
-#include "aeif.h"
+#include <vector>
+#include "base_neuron.h"
 
 class Record
 {
  public:
-  AEIF *aeif_;
+  BaseNeuron *neuron_;
   std::string file_name_;
   std::string var_name_;
   std::vector<int> i_neurons_;
   int i_var_;
   FILE *fp_;
 
-  Record(AEIF *aeif, std::string file_name, std::string var_name,
+  Record(BaseNeuron *neuron, std::string file_name, std::string var_name,
 	 int *i_neurons, int n_neurons);
 
   int OpenFile();
@@ -44,8 +45,8 @@ class Multimeter
  public:
   std::vector<Record> record_array_;
 
-  int CreateRecord(AEIF *aeif, std::string file_name, std::string var_name,
-		   int *i_neurons, int n_neurons);
+  int CreateRecord(BaseNeuron *neuron, std::string file_name,
+		   std::string var_name, int *i_neurons, int n_neurons);
   int OpenFiles();
 
   int CloseFiles();

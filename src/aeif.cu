@@ -18,19 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "aeif.h"
 #include "derivatives.h"
 
-__global__
-void G0Update(int array_size, int n_params, int n_receptors, float *params_arr,
-	   float *G0)
-{
-  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (array_idx<array_size) {
-    float *params = &params_arr[array_idx*n_params];
-    for (int i_port = 0; i_port<n_receptors; i_port++) {
-      G0[i_port*array_size + array_idx] = g0(i_port);
-    }
-  }
-}
-
 __device__
 void VarInit(int array_size, int n_var, int n_params, float x, float *y,
 	     float *params)
@@ -110,7 +97,7 @@ int AEIF::UpdateNR<0>(int it, float t1)
 }
 
 int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
-	       int i_neuron_group, float *G0) {
+	       int i_neuron_group) {
   h_min_=1.0e-4;
   h_ = 1.0e-2;
   i_node_0_ = i_node_0;
@@ -119,7 +106,6 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
   n_var_ = N_SCAL_VAR + N_VECT_VAR*n_receptors;
   n_params_ = N_SCAL_PARAMS + N_VECT_PARAMS*n_receptors;
   i_neuron_group_ = i_neuron_group;
-  G0_ = G0;
   
   rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_);
 
@@ -128,16 +114,12 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
 
 int AEIF::Calibrate(float t_min) {
   rk5_.Calibrate(t_min, h_);
-  G0Update<<<(n_neurons_+1023)/1024, 1024>>>
-    (n_neurons_, n_params_, n_receptors_, rk5_.GetParamsArr(), G0_);
   
   return 0;
 }
 
 int AEIF::Update(int it, float t1) {
   UpdateNR<MAX_RECEPTOR_NUM>(it, t1);
-  // with other neuron models a G0Update as that in Calibrate
-  // may be necessary here
 
   return 0;
 }
@@ -209,6 +191,36 @@ int AEIF::GetVectVarIdx(std::string var_name)
   return i_var;
 }
 
+int AEIF::GetScalParamIdx(std::string param_name)
+{
+  int i_param;
+  for (i_param=0; i_param<N_SCAL_PARAMS; i_param++) {
+    if (param_name == aeif_scal_param_names[i_param]) break;
+  }
+  if (i_param == N_SCAL_PARAMS) {
+    std::cerr << "Unrecognized parameter " << param_name << " .\n";
+    exit(-1);
+  }
+  
+  return i_param;
+}
+
+int AEIF::GetVectParamIdx(std::string param_name)
+{
+  if (param_name=="receptor_weight") return GetVectParamIdx("g0");
+  
+  int i_param;
+  for (i_param=0; i_param<N_VECT_PARAMS; i_param++) {
+    if (param_name == aeif_vect_param_names[i_param]) break;
+  }
+  if (i_param == N_VECT_PARAMS) {
+    std::cerr << "Unrecognized vector parameter " << param_name << " .\n";
+    exit(-1);
+  }
+  
+  return i_param;
+}
+
 float *AEIF::GetVarArr()
 {
   return rk5_.GetYArr();
@@ -217,4 +229,9 @@ float *AEIF::GetVarArr()
 float *AEIF::GetParamsArr()
 {
   return rk5_.GetParamsArr();
+}
+
+float *AEIF::GetReceptorWeightArr()
+{
+  return GetParamsArr() + N_SCAL_PARAMS + GetVectParamIdx("receptor_weight");
 }

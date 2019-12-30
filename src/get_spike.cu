@@ -76,9 +76,18 @@ __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
      int i_target = i_array % array_size;
      int i_port = i_array / array_size;
      int i = i_target*n_var + N_SCAL_VAR + N_VECT_VAR*i_port + i_g1; // g1(i)
+     int i_receptor_weight = i_target*(N_SCAL_PARAMS + N_VECT_PARAMS*n_ports)
+       + N_VECT_PARAMS*i_port;
+     //if (i_array==0) {
+     //  printf("npar, irw, rw %d %d %f\n",
+     // N_SCAL_PARAMS + N_VECT_PARAMS*n_ports,
+     //	      i_receptor_weight,
+     //	      NeuronGroupArray[i_group].receptor_weight_arr_
+     //	      [i_receptor_weight]);
+     //     }
      double d_val = (double)y_arr[i]
        + NeuronGroupArray[i_group].get_spike_array_[i_array]
-       * NeuronGroupArray[i_group].G0_[i_array];
+       * NeuronGroupArray[i_group].receptor_weight_arr_[i_receptor_weight];
 
      y_arr[i] = (float)d_val;
   }
@@ -101,7 +110,6 @@ int NeuralGPU::FreeGetSpikeArrays()
     NeuronGroup ng = neuron_group_vect_[i];
     if (ng.n_neurons_*ng.n_receptors_ > 0) {
       gpuErrchk(cudaFree(ng.get_spike_array_));
-      gpuErrchk(cudaFree(ng.G0_));
     }
   }
   

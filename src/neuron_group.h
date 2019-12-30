@@ -24,7 +24,7 @@ struct NeuronGroup
   int n_neurons_;
   int n_receptors_;
   double *get_spike_array_;
-  float *G0_;
+  float *receptor_weight_arr_;
 };
 
 struct RK5DataStruct

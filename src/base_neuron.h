@@ -26,12 +26,11 @@ class BaseNeuron
   int n_var_;
   int n_params_;
   int i_neuron_group_;
-  float *G0_;
   
   virtual ~BaseNeuron() {}
   
   virtual int Init(int i_node_0, int n_neurons, int n_receptors,
-		   int i_neuron_group, float *G0) {return 0;}
+		   int i_neuron_group) {return 0;}
 
   virtual int Calibrate(float t_min) {return 0;}
 		
@@ -51,9 +50,15 @@ class BaseNeuron
 
   virtual int GetVectVarIdx(std::string var_name) {return 0;}
 
+  virtual int GetScalParamIdx(std::string param_name) {return 0;}
+
+  virtual int GetVectParamIdx(std::string param_name) {return 0;}
+
   virtual float *GetVarArr() {return NULL;}
 
   virtual float *GetParamsArr() {return NULL;}
+  
+  virtual float *GetReceptorWeightArr() {return NULL;}
 };
 
 #endif

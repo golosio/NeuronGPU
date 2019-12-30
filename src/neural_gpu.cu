@@ -136,11 +136,10 @@ int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
     = connect_mpi_->extern_connection_.end();
   connect_mpi_->extern_connection_.insert(it1, n_neurons, conn_node);
 
-  //SpikeInit(max_spike_num_);
   int i_neuron_group = InsertNeuronGroup(n_neurons, n_receptors);
-  float *G0 = neuron_group_vect_[i_neuron_group].G0_;
-  neuron_vect_[0]->Init(i_node_0, n_neurons, n_receptors, i_neuron_group, G0);
-    
+  neuron_vect_[0]->Init(i_node_0, n_neurons, n_receptors, i_neuron_group);
+  neuron_group_vect_[i_neuron_group].receptor_weight_arr_
+    = neuron_vect_[0]->GetReceptorWeightArr();
   return i_node_0;
 }
 

@@ -46,19 +46,16 @@ int NeuralGPU::NeuronGroupArrayInit()
 int NeuralGPU::InsertNeuronGroup(int n_neurons, int n_receptors)
 {
   double *d_get_spike_array = NULL;
-  float *d_G0 = NULL;
   if (n_neurons*n_receptors > 0) {
     gpuErrchk(cudaMalloc(&d_get_spike_array, n_neurons*n_receptors
 			 *sizeof(double)));
-    gpuErrchk(cudaMalloc(&d_G0, n_neurons*n_receptors
-			 *sizeof(float)));
   }
   NeuronGroup ng;
   ng.i_neuron_0_ = neuron_group_map_.size();
   ng.n_neurons_ = n_neurons;
   ng.n_receptors_ = n_receptors;
   ng.get_spike_array_ = d_get_spike_array;
-  ng.G0_ = d_G0;
+  ng.receptor_weight_arr_ =  NULL;
   
   int i_group = neuron_group_vect_.size();
   neuron_group_vect_.push_back(ng);

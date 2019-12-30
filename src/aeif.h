@@ -29,8 +29,7 @@ class AEIF : public BaseNeuron
   float h_min_;
   float h_;
     
-  int Init(int i_node_0, int n_neurons, int n_receptors, int i_neuron_group,
-	   float *G0);
+  int Init(int i_node_0, int n_neurons, int n_receptors, int i_neuron_group);
 
   int Calibrate(float t_min);
 		
@@ -54,10 +53,15 @@ class AEIF : public BaseNeuron
 
   int GetVectVarIdx(std::string var_name);
 
+  int GetScalParamIdx(std::string param_name);
+
+  int GetVectParamIdx(std::string param_name);
+
   float *GetVarArr();
 
   float *GetParamsArr();
 
+  float *GetReceptorWeightArr();
 
   template<int N_RECEPTORS>
     int UpdateNR(int it, float t1);

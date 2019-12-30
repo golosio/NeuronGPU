@@ -29,6 +29,9 @@ class BaseNeuron
   float *receptor_weight_arr_;
   int receptor_weight_arr_step_;
   int receptor_weight_port_step_;
+  float *receptor_input_arr_;
+  int receptor_input_arr_step_;
+  int receptor_input_port_step_;
 
   virtual ~BaseNeuron() {}
   

@@ -348,7 +348,11 @@ int NeuralGPU::Simulate()
 	 neuron_vect_[0]->receptor_weight_arr_,
 	 neuron_vect_[0]->receptor_weight_arr_step_,
 	 neuron_vect_[0]->receptor_weight_port_step_,
-	 neuron_vect_[0]->GetVarArr());
+	 //neuron_vect_[0]->GetVarArr());
+	 neuron_vect_[0]->receptor_input_arr_,
+	 neuron_vect_[0]->receptor_input_arr_step_,
+	 neuron_vect_[0]->receptor_input_port_step_);
+
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
 

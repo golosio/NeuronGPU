@@ -114,6 +114,11 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
   receptor_weight_arr_step_ = n_params_;
   receptor_weight_port_step_ = N_VECT_PARAMS;
 
+  receptor_input_arr_ = GetVarArr() + N_SCAL_VAR
+    + GetVectVarIdx("g1");
+  receptor_input_arr_step_ = n_var_;
+  receptor_input_port_step_ = N_VECT_VAR;
+
   return 0;
 }
 

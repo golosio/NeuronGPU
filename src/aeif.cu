@@ -103,21 +103,33 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
   i_node_0_ = i_node_0;
   n_neurons_ = n_neurons;
   n_receptors_ = n_receptors;
-  n_var_ = N_SCAL_VAR + N_VECT_VAR*n_receptors;
-  n_params_ = N_SCAL_PARAMS + N_VECT_PARAMS*n_receptors;
-  i_neuron_group_ = i_neuron_group;
-  
-  rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_);
+  n_scal_var_ = N_SCAL_VAR;
+  n_vect_var_ = N_VECT_VAR;
+  n_scal_params_ = N_SCAL_PARAMS;
+  n_vect_params_ = N_VECT_PARAMS;
 
-  receptor_weight_arr_ = GetParamsArr() + N_SCAL_PARAMS
+  n_var_ = n_scal_var_ + n_vect_var_*n_receptors;
+  n_params_ = n_scal_params_ + n_vect_params_*n_receptors;
+  i_neuron_group_ = i_neuron_group;
+  scal_var_name_ = aeif_scal_var_name;
+  vect_var_name_= aeif_vect_var_name;
+  scal_param_name_ = aeif_scal_param_name;
+  vect_param_name_ = aeif_vect_param_name;
+
+  rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_);
+  var_arr_ = rk5_.GetYArr();
+  params_arr_ = rk5_.GetParamsArr();
+
+  receptor_weight_arr_ = GetParamsArr() + n_scal_params_
     + GetVectParamIdx("g0");
   receptor_weight_arr_step_ = n_params_;
-  receptor_weight_port_step_ = N_VECT_PARAMS;
+  receptor_weight_port_step_ = n_vect_params_;
 
-  receptor_input_arr_ = GetVarArr() + N_SCAL_VAR
+  receptor_input_arr_ = GetVarArr() + n_scal_var_
     + GetVectVarIdx("g1");
   receptor_input_arr_step_ = n_var_;
-  receptor_input_port_step_ = N_VECT_VAR;
+  receptor_input_port_step_ = n_vect_var_;
+
 
   return 0;
 }
@@ -134,109 +146,3 @@ int AEIF::Update(int it, float t1) {
   return 0;
 }
 
-int AEIF::SetScalParams(std::string param_name, int i_neuron,
-		    int n_neurons, float val) {
-
-  int i_param;
-  for (i_param=0; i_param<N_SCAL_PARAMS; i_param++) {
-    if (param_name == aeif_scal_param_names[i_param]) break;
-  }
-  if (i_param == N_SCAL_PARAMS) {
-    std::cerr << "Unrecognized parameter " << param_name << " .\n";
-    exit(-1);
-  }
-  	 
-  return rk5_.SetParams(i_param, i_neuron, n_params_, n_neurons, val);
-}
-
-int AEIF::SetVectParams(std::string param_name, int i_neuron, int n_neurons,
-			float *params, int vect_size) {
-
-  int i_vect;
-  for (i_vect=0; i_vect<N_VECT_PARAMS; i_vect++) {
-    if (param_name == aeif_vect_param_names[i_vect]) break;
-  }
-  if (i_vect == N_VECT_PARAMS) {
-    std::cerr << "Unrecognized vector parameter " << param_name << " \n";
-    exit(-1);
-  }  
-  if (vect_size != n_receptors_) {
-    std::cerr << "Parameter vector size must be equal to the number "
-      "of receptor ports.\n";
-    exit(-1);
-  }  
-
-  for (int i=0; i<vect_size; i++) {
-    int i_param = N_SCAL_PARAMS + N_VECT_PARAMS*i + i_vect;
-    rk5_.SetParams(i_param, i_neuron, n_params_, n_neurons, params[i]);
-  }
-  return 0;
-}
-
-int AEIF::GetScalVarIdx(std::string var_name)
-{
-  int i_var;
-  for (i_var=0; i_var<N_SCAL_VAR; i_var++) {
-    if (var_name == aeif_scal_var_names[i_var]) break;
-  }
-  if (i_var == N_SCAL_VAR) {
-    std::cerr << "Unrecognized variable " << var_name << " .\n";
-    exit(-1);
-  }
-  
-  return i_var;
-}
-
-int AEIF::GetVectVarIdx(std::string var_name)
-{
-  int i_var;
-  for (i_var=0; i_var<N_VECT_VAR; i_var++) {
-    if (var_name == aeif_vect_var_names[i_var]) break;
-  }
-  if (i_var == N_VECT_VAR) {
-    std::cerr << "Unrecognized variable " << var_name << " .\n";
-    exit(-1);
-  }
-  
-  return i_var;
-}
-
-int AEIF::GetScalParamIdx(std::string param_name)
-{
-  int i_param;
-  for (i_param=0; i_param<N_SCAL_PARAMS; i_param++) {
-    if (param_name == aeif_scal_param_names[i_param]) break;
-  }
-  if (i_param == N_SCAL_PARAMS) {
-    std::cerr << "Unrecognized parameter " << param_name << " .\n";
-    exit(-1);
-  }
-  
-  return i_param;
-}
-
-int AEIF::GetVectParamIdx(std::string param_name)
-{
-  if (param_name=="receptor_weight") return GetVectParamIdx("g0");
-  
-  int i_param;
-  for (i_param=0; i_param<N_VECT_PARAMS; i_param++) {
-    if (param_name == aeif_vect_param_names[i_param]) break;
-  }
-  if (i_param == N_VECT_PARAMS) {
-    std::cerr << "Unrecognized vector parameter " << param_name << " .\n";
-    exit(-1);
-  }
-  
-  return i_param;
-}
-
-float *AEIF::GetVarArr()
-{
-  return rk5_.GetYArr();
-}
-
-float *AEIF::GetParamsArr()
-{
-  return rk5_.GetParamsArr();
-}

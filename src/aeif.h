@@ -44,24 +44,6 @@ class AEIF : public BaseNeuron
     return rk5_.GetY(i_var, i_neuron, n_neurons, y);
   }
   
-  int SetScalParams(std::string param_name, int i_neuron, int n_neurons,
-		float val);
-
-  int SetVectParams(std::string param_name, int i_neuron, int n_neurons,
-		    float *params, int vect_size);
-
-  int GetScalVarIdx(std::string var_name);
-
-  int GetVectVarIdx(std::string var_name);
-
-  int GetScalParamIdx(std::string param_name);
-
-  int GetVectParamIdx(std::string param_name);
-
-  float *GetVarArr();
-
-  float *GetParamsArr();
-
   template<int N_RECEPTORS>
     int UpdateNR(int it, float t1);
 

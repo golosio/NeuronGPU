@@ -25,6 +25,10 @@ class BaseNeuron
   int n_receptors_;
   int n_var_;
   int n_params_;
+  int n_scal_var_;
+  int n_vect_var_;
+  int n_scal_params_;
+  int n_vect_params_;
   int i_neuron_group_;
   float *receptor_weight_arr_;
   int receptor_weight_arr_step_;
@@ -32,6 +36,12 @@ class BaseNeuron
   float *receptor_input_arr_;
   int receptor_input_arr_step_;
   int receptor_input_port_step_;
+  float *var_arr_;
+  float *params_arr_;
+  const std::string *scal_var_name_;
+  const std::string *vect_var_name_;
+  const std::string *scal_param_name_;
+  const std::string *vect_param_name_;
 
   virtual ~BaseNeuron() {}
   
@@ -47,22 +57,22 @@ class BaseNeuron
   virtual int GetY(int i_var, int i_neuron, int n_neurons, float *y) {return 0;}
   
   virtual int SetScalParams(std::string param_name, int i_neuron, int n_neurons,
-			float val) {return 0;}
+			    float val);
   
   virtual int SetVectParams(std::string param_name, int i_neuron, int n_neurons,
-			    float *params, int vect_size) {return 0;}
+			    float *params, int vect_size);
   
-  virtual int GetScalVarIdx(std::string var_name) {return 0;}
+  virtual int GetScalVarIdx(std::string var_name);
 
-  virtual int GetVectVarIdx(std::string var_name) {return 0;}
+  virtual int GetVectVarIdx(std::string var_name);
 
-  virtual int GetScalParamIdx(std::string param_name) {return 0;}
+  virtual int GetScalParamIdx(std::string param_name);
 
-  virtual int GetVectParamIdx(std::string param_name) {return 0;}
+  virtual int GetVectParamIdx(std::string param_name);
 
-  virtual float *GetVarArr() {return NULL;}
+  virtual float *GetVarArr();
 
-  virtual float *GetParamsArr() {return NULL;}
+  virtual float *GetParamsArr();
   
 };
 

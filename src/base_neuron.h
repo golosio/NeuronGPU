@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -23,13 +23,14 @@ class BaseNeuron
   int i_node_0_;
   int n_neurons_;
   int n_receptors_;
+  int i_neuron_group_;
   int n_var_;
   int n_params_;
   int n_scal_var_;
   int n_vect_var_;
   int n_scal_params_;
   int n_vect_params_;
-  int i_neuron_group_;
+
   float *receptor_weight_arr_;
   int receptor_weight_arr_step_;
   int receptor_weight_port_step_;
@@ -46,7 +47,7 @@ class BaseNeuron
   virtual ~BaseNeuron() {}
   
   virtual int Init(int i_node_0, int n_neurons, int n_receptors,
-		   int i_neuron_group) {return 0;}
+		   int i_neuron_group);
 
   virtual int Calibrate(float t_min) {return 0;}
 		

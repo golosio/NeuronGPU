@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   int pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
 
   // each host has n_neurons neurons with n_receptor receptor ports
-  int neuron = neural_gpu.CreateNeuron(n_neurons, n_receptors);
+  int neuron = neural_gpu.CreateNeuron("AEIF", n_neurons, n_receptors);
   int exc_neuron = neuron;      // excitatory neuron id
   int inh_neuron = neuron + NE; // inhibitory neuron id
   
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
   neural_gpu.SetNeuronVectParams("taus_decay", neuron, n_neurons,
 				 taus_decay, 2);
   neural_gpu.SetNeuronVectParams("taus_rise", neuron, n_neurons, taus_rise, 2);
-
+  
   float mean_delay = 0.5;
   float std_delay = 0.25;
   float min_delay = 0.1;
@@ -107,9 +107,11 @@ int main(int argc, char *argv[])
   
   char filename[100];
   sprintf(filename, "test_brunel_%d.dat", mpi_id);
-  int i_neurons[] = {2000, 5000, 49000}; // any set of neuron indexes
+  int i_neuron_arr[] = {neuron+2000, neuron+5000,
+		     neuron+49000}; // any set of neuron indexes
   // create multimeter record of V_m
-  neural_gpu.CreateRecord(string(filename), "V_m", i_neurons, 3);
+  std::string var_name_arr[] = {"V_m", "V_m", "V_m"};
+  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 3);
 
   neural_gpu.SetRandomSeed(1234ULL); // just to have same results in different simulations
   neural_gpu.Simulate();

@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -22,20 +22,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Record
 {
  public:
-  BaseNeuron *neuron_;
+  std::vector<BaseNeuron*> neuron_vect_;
   std::string file_name_;
-  std::string var_name_;
-  std::vector<int> i_neurons_;
-  int i_var_;
+  std::vector<std::string> var_name_vect_;
+  std::vector<int> i_neuron_vect_;
+  std::vector<int> i_var_vect_;
   FILE *fp_;
 
-  Record(BaseNeuron *neuron, std::string file_name, std::string var_name,
-	 int *i_neurons, int n_neurons);
+  Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
+	 std::vector<std::string> var_name_vect,
+	 std::vector<int> i_neur_vect);
 
   int OpenFile();
-
+  
   int CloseFile();
-
+  
   int WriteRecord();
 
 };
@@ -43,10 +44,12 @@ class Record
 class Multimeter
 {
  public:
-  std::vector<Record> record_array_;
+  std::vector<Record> record_vect_;
 
-  int CreateRecord(BaseNeuron *neuron, std::string file_name,
-		   std::string var_name, int *i_neurons, int n_neurons);
+  int CreateRecord(std::vector<BaseNeuron*> neur_vect,
+		   std::string file_name,
+		   std::vector<std::string> var_name_vect,
+		   std::vector<int> i_neur_vect);
   int OpenFiles();
 
   int CloseFiles();

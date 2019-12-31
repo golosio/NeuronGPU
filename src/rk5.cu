@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -18,8 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <curand.h>
 #include <curand_kernel.h>
 #include "rk5.h"
-
-using namespace std;
 
 __constant__ float c2 = 0.2;
 __constant__ float c3 = 0.3;
@@ -60,32 +58,6 @@ __constant__ float max_err = 2000.0;
 __constant__ float coeff = 0.9;
 __constant__ float alpha = 0.2;
 
-
-__global__
-void ArrayInit(int array_size, int n_var, int n_params, float *x_arr,
-        float *h_arr, float *y_arr, float *par_arr, float x_min, float h)
-{
-  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (array_idx<array_size) {
-    VarInit(array_size, n_var, n_params, x_min, &y_arr[array_idx*n_var],
-	    &par_arr[array_idx*n_params]);
-    x_arr[array_idx] = x_min;
-    h_arr[array_idx] = h;
-  }
-}
-
-__global__
-void ArrayCalibrate(int array_size, int n_var, int n_params, float *x_arr,
-        float *h_arr, float *y_arr, float *par_arr, float x_min, float h)
-{
-  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (array_idx<array_size) {
-    VarCalibrate(array_size, n_var, n_params, x_min, &y_arr[array_idx*n_var],
-		 &par_arr[array_idx*n_params]);
-    x_arr[array_idx] = x_min;
-    h_arr[array_idx] = h;
-  }
-}
 
 __global__ void SetFloatArray(float *arr, int n_elems, int step, float val)
 {

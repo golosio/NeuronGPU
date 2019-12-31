@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -16,7 +16,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cuda_error.h"
 #include "base_neuron.h"
 
-__global__ void SetFloatArray(float *arr, int n_elems, int step, float val)
+__global__ void BaseNeuronSetFloatArray(float *arr, int n_elems, int step,
+					float val)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (array_idx<n_elems) {
@@ -24,6 +25,16 @@ __global__ void SetFloatArray(float *arr, int n_elems, int step, float val)
   }
 }
 
+int BaseNeuron::Init(int i_node_0, int n_neurons, int n_receptors,
+		   int i_neuron_group)
+{
+  i_node_0_ = i_node_0;
+  n_neurons_ = n_neurons;
+  n_receptors_ = n_receptors;
+  i_neuron_group_ = i_neuron_group;
+
+  return 0;
+}			    
 int BaseNeuron::SetScalParams(std::string param_name, int i_neuron,
 		    int n_neurons, float val) {
 
@@ -36,7 +47,7 @@ int BaseNeuron::SetScalParams(std::string param_name, int i_neuron,
     exit(-1);
   }
 
-  SetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
+  BaseNeuronSetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
     (&params_arr_[i_neuron*n_params_ + i_param], n_neurons, n_params_, val);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
@@ -62,7 +73,7 @@ int BaseNeuron::SetVectParams(std::string param_name, int i_neuron,
 
   for (int i=0; i<vect_size; i++) {
     int i_param = n_scal_params_ + n_vect_params_*i + i_vect;
-    SetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
+    BaseNeuronSetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
       (&params_arr_[i_neuron*n_params_ + i_param], n_neurons, n_params_,
        params[i]);
     gpuErrchk( cudaPeekAtLastError() );

@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -14,6 +14,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef AEIFH
 #define AEIFH
+
 #include <iostream>
 #include <string>
 #include "cuda_error.h"
@@ -21,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_group.h"
 #include "base_neuron.h"
 #include "neuron_models.h"
+
 #define MAX_RECEPTOR_NUM 20
 
 class AEIF : public BaseNeuron
@@ -29,6 +31,7 @@ class AEIF : public BaseNeuron
   RungeKutta5<RK5DataStruct> rk5_;
   float h_min_;
   float h_;
+  RK5DataStruct rk5_data_struct_;
     
   int Init(int i_node_0, int n_neurons, int n_receptors, int i_neuron_group);
 
@@ -59,8 +62,7 @@ int AEIF::UpdateNR(int it, float t1)
     const int NVAR = N_SCAL_VAR + N_VECT_VAR*N_RECEPTORS;
     const int NPARAMS = N_SCAL_PARAMS + N_VECT_PARAMS*N_RECEPTORS;
 
-    RK5DataStruct data_struct = {i_AEIF_model, i_node_0_};
-    rk5_.Update<NVAR, NPARAMS>(t1, h_min_, data_struct);
+    rk5_.Update<NVAR, NPARAMS>(t1, h_min_, rk5_data_struct_);
   }
   else {
     UpdateNR<N_RECEPTORS - 1>(it, t1);
@@ -68,7 +70,5 @@ int AEIF::UpdateNR(int it, float t1)
 
   return 0;
 }
-
-
 
 #endif

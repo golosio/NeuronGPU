@@ -53,7 +53,7 @@ namespace NestedLoop
 
 #ifdef WITH_CUMUL_SUM
   PrefixScan prefix_scan_;
-  uint *d_Ny_cumul_sum_;
+  int *d_Ny_cumul_sum_;
 #endif
    
 }
@@ -145,7 +145,7 @@ __global__ void Smart2DNestedLoopKernel(int ix0, int iy0, int dim_x,
 }
 
 #ifdef WITH_CUMUL_SUM
-__device__ int locate(uint val, uint *data, int n)
+__device__ int locate(int val, int *data, int n)
 {
   int i_left = 0;
   int i_right = n-1;
@@ -160,11 +160,11 @@ __device__ int locate(uint val, uint *data, int n)
   return i;
 }
 
-__global__ void CumulSumNestedLoopKernel(int Nx, uint *Ny_cumul_sum,
-					 uint Ny_sum)
+__global__ void CumulSumNestedLoopKernel(int Nx, int *Ny_cumul_sum,
+					 int Ny_sum)
 {
-  uint blockId   = blockIdx.y * gridDim.x + blockIdx.x;
-  uint array_idx = blockId * blockDim.x + threadIdx.x;
+  int blockId   = blockIdx.y * gridDim.x + blockIdx.x;
+  int array_idx = blockId * blockDim.x + threadIdx.x;
   if (array_idx<Ny_sum) {
     int ix = locate(array_idx, Ny_cumul_sum, Nx + 1);
     int iy = (int)(array_idx - Ny_cumul_sum[ix]);
@@ -223,7 +223,7 @@ int NestedLoop::Init(int Nx_max)
 #ifdef WITH_CUMUL_SUM
   prefix_scan_.Init();
   CudaSafeCall(cudaMalloc(&d_Ny_cumul_sum_,
-			  PrefixScan::AllocSize*sizeof(uint)));
+			  PrefixScan::AllocSize*sizeof(int)));
 #endif
   
   return 0;
@@ -232,12 +232,12 @@ int NestedLoop::Init(int Nx_max)
 //////////////////////////////////////////////////////////////////////
 int NestedLoop::Run(int Nx, int *d_Ny)
 {
-  return SimpleNestedLoop(Nx, d_Ny);
+  //return SimpleNestedLoop(Nx, d_Ny);
   //return ParallelInnerNestedLoop(Nx, d_Ny);
   //return ParallelOuterNestedLoop(Nx, d_Ny);
   //return Frame1DNestedLoop(Nx, d_Ny);
   //return Frame2DNestedLoop(Nx, d_Ny);
-  //return CumulSumNestedLoop(Nx, d_Ny);
+  return CumulSumNestedLoop(Nx, d_Ny);
   //return Smart1DNestedLoop(Nx, d_Ny);
   //return Smart2DNestedLoop(Nx, d_Ny);
 
@@ -524,13 +524,13 @@ int NestedLoop::CumulSumNestedLoop(int Nx, int *d_Ny)
   //TMP
   //double time_mark=getRealTime();
   //
-  prefix_scan_.Scan(d_Ny_cumul_sum_, (uint*)d_Ny, Nx);
+  prefix_scan_.Scan(d_Ny_cumul_sum_, d_Ny, Nx);
   //TMP
   //printf("pst: %lf\n", getRealTime()-time_mark);
   //	 
-  uint Ny_sum;
+  int Ny_sum;
   CudaSafeCall(cudaMemcpy(&Ny_sum, &d_Ny_cumul_sum_[Nx],
-			  sizeof(uint), cudaMemcpyDeviceToHost));
+			  sizeof(int), cudaMemcpyDeviceToHost));
 
   //printf("CSNL: %d %d\n", Nx, Ny_sum);
   
@@ -548,7 +548,7 @@ int NestedLoop::CumulSumNestedLoop(int Nx, int *d_Ny)
       
   ////
   if(Ny_sum>0) {
-    uint grid_dim_x, grid_dim_y;
+    int grid_dim_x, grid_dim_y;
     if (Ny_sum<65536*1024) { // max grid dim * max block dim
       grid_dim_x = (Ny_sum+1023)/1024;
       grid_dim_y = 1;

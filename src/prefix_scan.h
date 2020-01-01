@@ -34,7 +34,7 @@ class PrefixScan
   
   int Init();
 
-  int Scan(uint *d_Output, uint *d_Input, uint n);
+  int Scan(int *d_Output, int *d_Input, int n);
 
   int Free();
 };

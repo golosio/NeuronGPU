@@ -5,8 +5,6 @@
 #ifndef SCANCUH
 #define SCANCUH
 
-#include "cuda_runtime.h"
-
 __global__ void prescan_arbitrary(int *g_odata, int *g_idata, int n, int powerOfTwo);
 __global__ void prescan_arbitrary_unoptimized(int *g_odata, int *g_idata, int n, int powerOfTwo);
 

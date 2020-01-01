@@ -511,6 +511,18 @@ int NeuralGPU::ConnectAllToAll
   return 0;
 }
 
+int NeuralGPU::Connect
+(
+ int i_source_neuron, int i_target_neuron, unsigned char i_port,
+ float weight, float delay
+ )
+{
+  net_connection_->Connect(i_source_neuron, i_target_neuron,
+			   i_port, weight, delay);
+
+  return 0;
+}
+
 int NeuralGPU::ConnectOneToOne
 (
  int i_source_neuron_0, int i_target_neuron_0, int n_neurons,

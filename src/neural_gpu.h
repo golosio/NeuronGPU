@@ -115,6 +115,12 @@ class NeuralGPU
      int i_target_host, int i_target_neuron_0, int n_target_neurons,
      unsigned char i_port, float weight, float delay
      );
+  
+  int Connect
+  (
+   int i_source_neuron, int i_target_neuron, unsigned char i_port,
+   float weight, float delay
+   );
 
   int ConnectOneToOne
     (

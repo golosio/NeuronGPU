@@ -213,7 +213,10 @@ int NeuralGPU::CreateSpikeGenerator(int n_nodes)
 
   spike_generator_->Create(i_node_0, n_spike_gen_nodes_,
 			  t_min_, time_resolution_);
-  InsertNeuronGroup(n_nodes, 0);
+  int i_neuron_group = InsertNeuronGroup(n_nodes, 0);
+  BaseNeuron *bn = new BaseNeuron;
+  bn->Init(i_node_0, n_nodes, 0, i_neuron_group);
+  neuron_vect_.push_back(bn);
   
   return i_node_0;
 }

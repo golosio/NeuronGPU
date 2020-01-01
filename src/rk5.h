@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -17,55 +17,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cuda_error.h"
 #include "rk5_const.h"
-#include "derivatives.h"
-#include "poisson.h"
+#include "rk5_interface.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 __global__ void SetFloatArray(float *arr, int n_elems, int step, float val);
 
-template<int NVAR, int NPARAMS, class DataStruct>
-__device__
-void RK5Update(float &x, float *y, float x1, float &h, float h_min,
-	       float *params, DataStruct data_struct);
-
-template<int NVAR, int NPARAMS, class DataStruct>
-__device__
-void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
-	     float *params, DataStruct data_struct);
-
-template<int NVAR, int NPARAMS, class DataStruct>
-__device__
-  void ExternalUpdate(float x, float *y, float *params, bool end_time_step,
-		      DataStruct data_struct);
-
+template<class DataStruct>
 __global__
 void ArrayInit(int array_size, int n_var, int n_params, float *x_arr,
 	       float *h_arr, float *y_arr, float *par_arr, float x_min,
-	       float h);
+	       float h, DataStruct data_struct)
+{
+  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (array_idx<array_size) {
+    NodeInit(n_var, n_params, x_min, &y_arr[array_idx*n_var],
+	     &par_arr[array_idx*n_params], data_struct);
+    x_arr[array_idx] = x_min;
+    h_arr[array_idx] = h;
+  }
+}
 
+template<class DataStruct>
 __global__
 void ArrayCalibrate(int array_size, int n_var, int n_params, float *x_arr,
 		    float *h_arr, float *y_arr, float *par_arr, float x_min,
-		    float h);
-
-__device__
-void VarInit(int array_size, int n_var, int n_params, float x, float *y,
-	     float *params);
-
-__device__
-void VarCalibrate(int array_size, int n_var, int n_params, float x, float *y,
-		  float *params);
-
-template<int NVAR, int NPARAMS, class DataStruct>
-__global__
-void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
-		 float *par_arr, float x1, float h_min, DataStruct data_struct);
-template<int NVAR, int NPARAMS, class DataStruct>
-__device__
-  void Derivatives(float x, float *y, float *dydx, float *params,
-		   DataStruct data_struct);
+		    float h, DataStruct data_struct)
+{
+  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (array_idx<array_size) {
+    NodeCalibrate(n_var, n_params, x_min, &y_arr[array_idx*n_var],
+		  &par_arr[array_idx*n_params], data_struct);
+    x_arr[array_idx] = x_min;
+    h_arr[array_idx] = h;
+  }
+}
 
 template<int NVAR, int NPARAMS, class DataStruct>
 __device__
@@ -228,8 +215,9 @@ class RungeKutta5
   float *GetHArr() {return d_HArr;}
   float *GetYArr() {return d_YArr;}
   float *GetParamsArr() {return d_ParamsArr;}
-  int Init(int array_size, int n_var, int n_params, float x_min, float h);
-  int Calibrate(float x_min, float h);
+  int Init(int array_size, int n_var, int n_params, float x_min, float h,
+	   DataStruct data_struct);
+  int Calibrate(float x_min, float h, DataStruct data_struct);
 
   int Free();
 
@@ -276,7 +264,8 @@ int RungeKutta5<DataStruct>::Free()
 
 template<class DataStruct>
 int RungeKutta5<DataStruct>::Init(int array_size, int n_var, int n_params,
-				  float x_min, float h)
+				  float x_min, float h,
+				  DataStruct data_struct)
 {
   array_size_ = array_size;
   n_var_ = n_var;
@@ -287,8 +276,9 @@ int RungeKutta5<DataStruct>::Init(int array_size, int n_var, int n_params,
   gpuErrchk(cudaMalloc(&d_YArr, array_size_*n_var_*sizeof(float)));
   gpuErrchk(cudaMalloc(&d_ParamsArr, array_size_*n_params_*sizeof(float)));
 
-  ArrayInit<<<(array_size+1023)/1024, 1024>>>(array_size_, n_var, n_params,
-    d_XArr, d_HArr, d_YArr, d_ParamsArr, x_min, h);
+  ArrayInit<DataStruct><<<(array_size+1023)/1024, 1024>>>
+    (array_size_, n_var, n_params, d_XArr, d_HArr, d_YArr, d_ParamsArr,
+     x_min, h, data_struct);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
   
@@ -296,10 +286,12 @@ int RungeKutta5<DataStruct>::Init(int array_size, int n_var, int n_params,
 }
 
 template<class DataStruct>
-int RungeKutta5<DataStruct>::Calibrate(float x_min, float h)
+int RungeKutta5<DataStruct>::Calibrate(float x_min, float h,
+				       DataStruct data_struct)
 {
-  ArrayCalibrate<<<(array_size_+1023)/1024, 1024>>>(array_size_, n_var_,
-     n_params_, d_XArr, d_HArr, d_YArr, d_ParamsArr, x_min, h);
+  ArrayCalibrate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
+    (array_size_, n_var_, n_params_, d_XArr, d_HArr, d_YArr, d_ParamsArr,
+     x_min, h, data_struct);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 
@@ -333,22 +325,6 @@ int RungeKutta5<DataStruct>::SetParams(int i_param, int i_array, int n_params,
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
   
-  return 0;
-}
-
-template<class DataStruct>
-int RungeKutta5<DataStruct>::SetVectParams(int i_param, int i_array,
-					   int n_params, int n_elems,
-					   float *params, int vect_size)
-{
-  for (int i=0; i<vect_size; i++) {
-    SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
-      (&d_ParamsArr[i_array*n_params_ + N0_PARAMS + i_param + 4*i], n_elems,
-       n_params, params[i]);
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-  }
-
   return 0;
 }
 

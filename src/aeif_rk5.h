@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -12,113 +12,24 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DERIVATIVESH
-#define DERIVATIVESH
+#ifndef AEIFRK5H
+#define AEIFRK5H
 
 #include <string>
 #include <stdio.h>
 #include <math.h>
-#include "rk5.h"
 #include "spike_buffer.h"
 #include "neuron_group.h"
+#include "aeif_variables.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-enum VariableIndexes {
-  i_V_m = 0,
-  i_w,
-  N0_VAR
-};
-
-enum ParamIndexes {
-  i_V_th = 0,
-  i_Delta_T,
-  i_g_L,
-  i_E_L,
-  i_C_m,
-  i_a,
-  i_b,
-  i_tau_w,
-  i_I_e,
-  i_V_peak,
-  i_V_reset,
-  i_n_refractory_steps,
-  i_refractory_step,
-  N0_PARAMS
-};
-
-const std::string aeif_var_names[] = {
-  "V_m",
-  "w"
-};
-
-const std::string aeif_vect_var_names[] = {
-  "g",
-  "g1"
-};
-
-const std::string aeif_param_names[] = {
-  "V_th",
-  "Delta_T",
-  "g_L",
-  "E_L",
-  "C_m",
-  "a",
-  "b",
-  "tau_w",
-  "I_e",
-  "V_peak",
-  "V_reset",
-  "n_refractory_steps",
-  "refractory_step"
-};
-
-const std::string aeif_vect_param_names[] = {
-  "E_rev",
-  "taus_rise",
-  "taus_decay"
-};
-
-//
-// I know that defines are "bad", but the defines below make the
-// following equations much more readable.
-// For every rule there is some exceptions!
-//
-#define V_m y[i_V_m]
-#define w y[i_w]
-#define g(i) y[N0_VAR + 2*i]
-#define g1(i) y[N0_VAR + 1 + 2*i]
-
-#define dVdt dydx[i_V_m]
-#define dwdt dydx[i_w]
-#define dgdt(i) dydx[N0_VAR + 2*i]
-#define dg1dt(i) dydx[N0_VAR + 1 + 2*i]
-
-#define E_rev(i) params[N0_PARAMS + 4*i]
-#define taus_rise(i) params[N0_PARAMS + 1 + 4*i]
-#define taus_decay(i) params[N0_PARAMS + 2 + 4*i]
-#define g0(i) params[N0_PARAMS + 3 + 4*i]
-
-#define V_th params[i_V_th]
-#define Delta_T params[i_Delta_T]
-#define g_L params[i_g_L]
-#define E_L params[i_E_L]
-#define C_m params[i_C_m]
-#define a params[i_a]
-#define b params[i_b]
-#define tau_w params[i_tau_w]
-#define I_e params[i_I_e]
-#define V_peak params[i_V_peak]
-#define V_reset params[i_V_reset]
-#define n_refractory_steps params[i_n_refractory_steps]
-#define refractory_step params[i_refractory_step]
-
-  template<int NVAR, int NPARAMS, class DataStruct>
+template<int NVAR, int NPARAMS, class DataStruct>
 __device__
-    void Derivatives(float x, float *y, float *dydx, float *params,
+    void AEIF_Derivatives(float x, float *y, float *dydx, float *params,
 		     DataStruct data_struct)
 {
-  enum { n_receptors = (NVAR-N0_VAR)/2 };
+  enum { n_receptors = (NVAR-N_SCAL_VAR)/N_VECT_VAR };
   float I_syn = 0.0;
 
   float V = ( refractory_step > 0 ) ? V_reset :  MIN(V_m, V_peak);
@@ -140,7 +51,7 @@ __device__
 
 template<int NVAR, int NPARAMS, class DataStruct>
 __device__
-    void ExternalUpdate
+    void AEIF_ExternalUpdate
     (float x, float *y, float *params, bool end_time_step,
 			RK5DataStruct data_struct)
 {
@@ -172,5 +83,75 @@ __device__
     }
   }
 }
+
+template<class DataStruct>
+__device__
+void AEIF_NodeInit(int n_var, int n_params, float x, float *y, float *params,
+		  DataStruct data_struct)
+{
+  //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  int n_receptors = (n_var-N_SCAL_VAR)/N_VECT_VAR;
+
+  V_th = -50.4;
+  Delta_T = 2.0;
+  g_L = 30.0;
+  E_L = -70.6;
+  C_m = 281.0;
+  a = 4.0;
+  b = 80.5;
+  tau_w = 144.0;
+  I_e = 0.0;
+  V_peak = 0.0;
+  V_reset = -60.0;
+  n_refractory_steps = 1;
+  
+  V_m = E_L;
+  w = 0;
+  refractory_step = 0;
+  for (int i = 0; i<n_receptors; i++) {
+    g(i) = 0;
+    g1(i) = 0;
+    E_rev(i) = 0.0;
+    taus_decay(i) = 20.0;
+    taus_rise(i) = 2.0;
+  }
+}
+
+template<class DataStruct>
+__device__
+void AEIF_NodeCalibrate(int n_var, int n_params, float x, float *y,
+		       float *params, DataStruct data_struct)
+{
+  //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  int n_receptors = (n_var-N_SCAL_VAR)/N_VECT_VAR;
+
+  V_m = E_L;
+  w = 0;
+  refractory_step = 0;
+  for (int i = 0; i<n_receptors; i++) {
+    g(i) = 0;
+    g1(i) = 0;
+    // denominator is computed here to check that it is != 0
+    float denom1 = taus_decay(i) - taus_rise(i);
+    float denom2 = 0;
+    if (denom1 != 0) {
+      // peak time
+      float t_p = taus_decay(i)*taus_rise(i)
+	*log(taus_decay(i)/taus_rise(i)) / denom1;
+      // another denominator is computed here to check that it is != 0
+      denom2 = exp(-t_p / taus_decay(i))
+	- exp(-t_p / taus_rise(i));
+    }
+    if (denom2 == 0) { // if rise time == decay time use alpha function
+      // use normalization for alpha function in this case
+      g0(i) = M_E / taus_decay(i);
+    }
+    else { // if rise time != decay time use beta function
+      g0(i) // normalization factor for conductance
+	= ( 1. / taus_rise(i) - 1. / taus_decay(i) ) / denom2;
+    }
+  }
+}
+
 
 #endif

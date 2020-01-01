@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_group.h"
 #include "send_spike.h"
 #include "spike_buffer.h"
-#include "rk5.h"
+#include "cuda_error.h"
 
 extern __constant__ NeuronGroup NeuronGroupArray[];
 extern __device__ signed char *NeuronGroupMap;
@@ -69,18 +69,35 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
 
 // improve using a grid
 __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
-			  float *y_arr)
+			  float *receptor_weight_arr,
+			  int receptor_weight_arr_step,
+			  int receptor_weight_port_step, //float *y_arr)
+			  float *receptor_input_arr,
+			  int receptor_input_arr_step,
+			  int receptor_input_port_step)
 {
   int i_array = threadIdx.x + blockIdx.x * blockDim.x;
   if (i_array < array_size*n_ports) {
      int i_target = i_array % array_size;
      int i_port = i_array / array_size;
-     int i = i_target*n_var + N0_VAR + 1 + 2*i_port; // g1(i)
-     double d_val = (double)y_arr[i]
+     //int i = i_target*n_var + N_SCAL_VAR + N_VECT_VAR*i_port + i_g1; // g1(i)
+     int i_receptor_input = i_target*receptor_input_arr_step
+       + receptor_input_port_step*i_port;
+     int i_receptor_weight = i_target*receptor_weight_arr_step
+       + receptor_weight_port_step*i_port;
+     //if (i_array==0) {
+     //  printf("npar, irw, rw %d %d %f\n",
+     // N_SCAL_PARAMS + N_VECT_PARAMS*n_ports,
+     //	      i_receptor_weight,
+     //	      NeuronGroupArray[i_group].receptor_weight_arr_
+     //	      [i_receptor_weight]);
+     //     }
+     double d_val = (double)receptor_input_arr[i_receptor_input] // (double)y_arr[i]
        + NeuronGroupArray[i_group].get_spike_array_[i_array]
-       * NeuronGroupArray[i_group].G0_[i_array];
+       * receptor_weight_arr[i_receptor_weight];
 
-     y_arr[i] = (float)d_val;
+     //y_arr[i] =
+     receptor_input_arr[i_receptor_input] = (float)d_val;
   }
 }
 
@@ -101,7 +118,6 @@ int NeuralGPU::FreeGetSpikeArrays()
     NeuronGroup ng = neuron_group_vect_[i];
     if (ng.n_neurons_*ng.n_receptors_ > 0) {
       gpuErrchk(cudaFree(ng.get_spike_array_));
-      gpuErrchk(cudaFree(ng.G0_));
     }
   }
   

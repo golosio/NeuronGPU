@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -17,14 +17,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-Record::Record(AEIF *aeif, std::string file_name, std::string var_name,
-	       int *i_neurons, int n_neurons):
-  aeif_(aeif), file_name_(file_name), var_name_(var_name)
+Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
+	       std::vector<std::string> var_name_vect,
+	       std::vector<int> i_neur_vect):
+  neuron_vect_(neur_vect), file_name_(file_name),
+  var_name_vect_(var_name_vect),
+  i_neuron_vect_(i_neur_vect)
 {
-  for (int i=0; i<n_neurons; i++) {
-    i_neurons_.push_back(i_neurons[i]);
+  i_var_vect_.clear();
+  for (unsigned int i=0; i<var_name_vect.size(); i++) {
+    int i_var = neur_vect[i]->GetScalVarIdx(var_name_vect[i]);
+    i_var_vect_.push_back(i_var);
   }
-  i_var_=aeif_->GetVarIdx(var_name_);
 }
 
 int Record::OpenFile()
@@ -44,10 +48,10 @@ int Record::CloseFile()
 int Record::WriteRecord()
 {
   float x, y;
-  aeif_->GetX(i_neurons_[0], 1, &x);
+  neuron_vect_[0]->GetX(i_neuron_vect_[0], 1, &x);
   fprintf(fp_,"%f", x);
-  for (unsigned int i=0; i<i_neurons_.size(); i++) {
-    aeif_->GetY(i_var_, i_neurons_[i], 1, &y);
+  for (unsigned int i=0; i<i_neuron_vect_.size(); i++) {
+    neuron_vect_[i]->GetY(i_var_vect_[i], i_neuron_vect_[i], 1, &y);
     fprintf(fp_,"\t%f", y);
   }
   fprintf(fp_,"\n");
@@ -55,20 +59,21 @@ int Record::WriteRecord()
   return 0;
 }
 
-int Multimeter::CreateRecord(AEIF *aeif, std::string file_name,
-			     std::string var_name, int *i_neurons,
-			     int n_neurons)
+int Multimeter::CreateRecord(std::vector<BaseNeuron*> neur_vect,
+			     std::string file_name,
+			     std::vector<std::string> var_name_vect,
+			     std::vector<int> i_neur_vect)
 {
-  Record record(aeif, file_name, var_name, i_neurons, n_neurons);
-  record_array_.push_back(record);
+  Record record(neur_vect, file_name, var_name_vect, i_neur_vect);
+  record_vect_.push_back(record);
 
   return 0;
 }
 
 int Multimeter::OpenFiles()
 {
-  for (unsigned int i=0; i<record_array_.size(); i++) {
-    record_array_[i].OpenFile();
+  for (unsigned int i=0; i<record_vect_.size(); i++) {
+    record_vect_[i].OpenFile();
   }
   
   return 0;
@@ -76,8 +81,8 @@ int Multimeter::OpenFiles()
 
 int Multimeter::CloseFiles()
 {  
-  for (unsigned int i=0; i<record_array_.size(); i++) {
-    record_array_[i].CloseFile();
+  for (unsigned int i=0; i<record_vect_.size(); i++) {
+    record_vect_[i].CloseFile();
   }
   
   return 0;
@@ -85,8 +90,8 @@ int Multimeter::CloseFiles()
 
 int Multimeter::WriteRecords()
 {  
-  for (unsigned int i=0; i<record_array_.size(); i++) {
-    record_array_[i].WriteRecord();
+  for (unsigned int i=0; i<record_vect_.size(); i++) {
+    record_vect_[i].WriteRecord();
   }
   
   return 0;

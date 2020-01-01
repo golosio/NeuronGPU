@@ -12,25 +12,24 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURONGROUPH
-#define NEURONGROUPH
+#include <iostream>
+#include <string>
 
-#define MAX_N_NEURON_GROUPS 128
+#include "cuda_error.h"
+#include "neuron_models.h"
+#include "neural_gpu.h"
+#include "aeif.h"
 
-struct NeuronGroup
+int NeuralGPU::CreateNeuron(std::string model_name, int n_neurons, int n_receptors)
 {
-  int neuron_type_;
-  int i_neuron_0_;
-  int n_neurons_;
-  int n_receptors_;
-  double *get_spike_array_;
-};
-
-struct RK5DataStruct
-{
-  int neuron_type_;
-  int i_neuron_0_;
-};
-
-#endif
+  if (model_name == neuron_model_name[i_AEIF_model]) {
+    AEIF *aeif_neuron = new AEIF;
+    neuron_vect_.push_back(aeif_neuron);
+  }
+  else {
+    std::cerr << "Unknown neuron model name: " << model_name << std::endl;
+    exit(0);
+  }
+  return CreateNeuron(n_neurons, n_receptors);
+}
 

@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "neuron_group.h"
+#include "base_neuron.h"
 //#include "connect.h"
 //#include "connect_mpi.h"
 //#include "poisson.h"
@@ -32,7 +33,7 @@ typedef struct curandGenerator_st* curandGenerator_t;
 class PoissonGenerator;
 class SpikeGenerator;
 class Multimeter;
-class AEIF;
+//class AEIF;
 class NetConnection;
 class ConnectMpi;
 
@@ -40,11 +41,12 @@ class NeuralGPU
 {
   float time_resolution_; // time resolution in ms
   curandGenerator_t *random_generator_;
+  int CreateNeuron(int n_neurons, int n_receptors);
  public:
   PoissonGenerator *poiss_generator_;
   SpikeGenerator *spike_generator_;
   Multimeter *multimeter_;
-  AEIF *aeif_;
+  std::vector<BaseNeuron*> neuron_vect_;
   
   NetConnection *net_connection_;
   ConnectMpi *connect_mpi_;
@@ -79,12 +81,11 @@ class NeuralGPU
     return time_resolution_;
   }
 
-  int CreateNeuron(int n_neurons, int n_receptors);
+  int CreateNeuron(std::string model_name, int n_neurons, int n_receptors);
   int CreatePoissonGenerator(int n_nodes, float rate);
   int CreateSpikeGenerator(int n_nodes);
-  int CreateRecord(std::string file_name, std::string var_name, int *i_neurons,
-		   int n_neurons);
-  
+  int CreateRecord(std::string file_name, std::string *var_name_arr,
+		   int *i_neuron_arr, int n_neurons);  
   int Simulate();
 
   int ConnectFixedIndegree
@@ -114,6 +115,12 @@ class NeuralGPU
      int i_target_host, int i_target_neuron_0, int n_target_neurons,
      unsigned char i_port, float weight, float delay
      );
+  
+  int Connect
+  (
+   int i_source_neuron, int i_target_neuron, unsigned char i_port,
+   float weight, float delay
+   );
 
   int ConnectOneToOne
     (

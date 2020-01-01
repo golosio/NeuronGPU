@@ -1,0 +1,11 @@
+data=load('test_brunel_0.dat');
+t=data(:,1);
+V1=data(:,2);
+V2=data(:,3);
+V3=data(:,4);
+figure(1);
+plot(t,V1);
+figure(2);
+plot(t,V2);
+figure(3);
+plot(t,V3);

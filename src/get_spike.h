@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +16,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GETSPIKEH
 
 __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
-			  float *y_arr);
+			  float *receptor_weight_arr,
+			  int receptor_weight_arr_step,
+			  int receptor_weight_port_step, //float *y_arr);
+			  float *receptor_input_arr,
+			  int receptor_input_arr_step,
+			  int receptor_input_port_step);
 
 #endif

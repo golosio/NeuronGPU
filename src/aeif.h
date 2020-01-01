@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -14,31 +14,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef AEIFH
 #define AEIFH
+
 #include <iostream>
 #include <string>
 #include "cuda_error.h"
 #include "rk5.h"
 #include "neuron_group.h"
+#include "base_neuron.h"
+#include "neuron_models.h"
+
 #define MAX_RECEPTOR_NUM 20
 
-class AEIF
+class AEIF : public BaseNeuron
 {
  public:
   RungeKutta5<RK5DataStruct> rk5_;
-  int n_receptors_;
-  int n_neurons_;
   float h_min_;
   float h_;
-
-  int n_var_;
-  int n_params_;
-  int i_node_0_;
-  int i_neuron_group_;
-
-  float *G0_;
-  
-  int Init(int i_node_0, int n_neurons, int n_receptors, int i_neuron_group,
-	   float *G0);
+  RK5DataStruct rk5_data_struct_;
+    
+  int Init(int i_node_0, int n_neurons, int n_receptors, int i_neuron_group);
 
   int Calibrate(float t_min);
 		
@@ -52,14 +47,6 @@ class AEIF
     return rk5_.GetY(i_var, i_neuron, n_neurons, y);
   }
   
-  int SetParams(std::string param_name, int i_neuron, int n_neurons,
-		float val);
-
-  int SetVectParams(std::string param_name, int i_neuron, int n_neurons,
-		    float *params, int vect_size);
-
-  int GetVarIdx(std::string var_name);
-
   template<int N_RECEPTORS>
     int UpdateNR(int it, float t1);
 
@@ -72,11 +59,10 @@ template<int N_RECEPTORS>
 int AEIF::UpdateNR(int it, float t1)
 {
   if (N_RECEPTORS == n_receptors_) {
-    const int NVAR = N0_VAR + 2*N_RECEPTORS;
-    const int NPARAMS = N0_PARAMS + 4*N_RECEPTORS;
+    const int NVAR = N_SCAL_VAR + N_VECT_VAR*N_RECEPTORS;
+    const int NPARAMS = N_SCAL_PARAMS + N_VECT_PARAMS*N_RECEPTORS;
 
-    RK5DataStruct data_struct = {0, i_node_0_};
-    rk5_.Update<NVAR, NPARAMS>(t1, h_min_, data_struct);
+    rk5_.Update<NVAR, NPARAMS>(t1, h_min_, rk5_data_struct_);
   }
   else {
     UpdateNR<N_RECEPTORS - 1>(it, t1);
@@ -84,7 +70,5 @@ int AEIF::UpdateNR(int it, float t1)
 
   return 0;
 }
-
-
 
 #endif

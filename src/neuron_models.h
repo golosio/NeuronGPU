@@ -12,24 +12,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURONGROUPH
-#define NEURONGROUPH
+#ifndef NEURONMODELSH
+#define NEURONMODELSH
 
-#define MAX_N_NEURON_GROUPS 128
-
-struct NeuronGroup
-{
-  int neuron_type_;
-  int i_neuron_0_;
-  int n_neurons_;
-  int n_receptors_;
-  double *get_spike_array_;
+enum NeuronModels {
+  i_AEIF_model = 0,
+  N_NEURON_MODELS
 };
 
-struct RK5DataStruct
-{
-  int neuron_type_;
-  int i_neuron_0_;
+const std::string neuron_model_name[N_NEURON_MODELS] = {
+  "AEIF"
 };
 
 #endif

@@ -17,13 +17,9 @@ if [ ! -d "$1" ]; then
     fi
 fi
 
-. ./cuda_samples.sh
-
 cd src
 
 nvcc -ccbin=mpicc --compiler-options -Wall --compiler-options '-fPIC' --compiler-options '-fopenmp' -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true --shared -o ../lib/libneuralgpu.so scan.cu neuron_models.cu base_neuron.cu neural_gpu.cu aeif.cu connect.cu connect_mpi.cu poisson.cu rk5.cu spike_buffer.cu send_spike.cu get_spike.cu spike_mpi.cu getRealTime.cu spike_generator.cu multimeter.cu random.cu nested_loop.cu prefix_scan.cu neuron_group.cu -lm -lstdc++ -lcurand
-
-#rm scan_tmp.cu
 
 cd ..
 

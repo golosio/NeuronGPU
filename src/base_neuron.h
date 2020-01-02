@@ -74,7 +74,24 @@ class BaseNeuron
   virtual float *GetVarArr();
 
   virtual float *GetParamsArr();
-  
+
+  virtual bool IsScalVar(std::string var_name);
+
+  virtual bool IsVectVar(std::string var_name);
+
+  virtual bool IsScalParam(std::string param_name);
+
+  virtual bool IsVectParam(std::string param_name);
+
+  int CheckNeuronIdx(int i_neuron);
+
+  int CheckReceptorIdx(int i_receptor);
+
+  float *GetVarPt(std::string var_name, int i_neuron, int i_receptor);
+
+  float *GetParamPt(std::string param_name, int i_neuron,
+		    int i_receptor);
+
 };
 
 #endif

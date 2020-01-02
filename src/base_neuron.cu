@@ -37,45 +37,39 @@ int BaseNeuron::Init(int i_node_0, int n_neurons, int n_receptors,
 }			    
 int BaseNeuron::SetScalParams(std::string param_name, int i_neuron,
 		    int n_neurons, float val) {
-
-  int i_param;
-  for (i_param=0; i_param<n_scal_params_; i_param++) {
-    if (param_name == scal_param_name_[i_param]) break;
-  }
-  if (i_param == n_scal_params_) {
-    std::cerr << "Unrecognized parameter " << param_name << " .\n";
+  if (!IsScalParam(param_name)) {
+    std::cerr << "Unrecognized scalar parameter " << param_name << " \n";
     exit(-1);
   }
-
+  CheckNeuronIdx(i_neuron);
+  CheckNeuronIdx(i_neuron + n_neurons - 1);
+  float *param_pt = GetParamPt(param_name, i_neuron, 0);
   BaseNeuronSetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
-    (&params_arr_[i_neuron*n_params_ + i_param], n_neurons, n_params_, val);
+    (param_pt, n_neurons, n_params_, val);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
-
+  
   return 0;
 }
 
 int BaseNeuron::SetVectParams(std::string param_name, int i_neuron,
 			      int n_neurons, float *params, int vect_size) {
-  int i_vect;
-  for (i_vect=0; i_vect<n_vect_params_; i_vect++) {
-    if (param_name == vect_param_name_[i_vect]) break;
-  }
-  if (i_vect == n_vect_params_) {
+  if (!IsVectParam(param_name)) {
     std::cerr << "Unrecognized vector parameter " << param_name << " \n";
     exit(-1);
-  }  
+  }
+  CheckNeuronIdx(i_neuron);
+  CheckNeuronIdx(i_neuron + n_neurons - 1);
   if (vect_size != n_receptors_) {
     std::cerr << "Parameter vector size must be equal to the number "
       "of receptor ports.\n";
     exit(-1);
-  }  
-
-  for (int i=0; i<vect_size; i++) {
-    int i_param = n_scal_params_ + n_vect_params_*i + i_vect;
+  }
+  float *param_pt = GetParamPt(param_name, i_neuron, 0);
+    
+  for (int i_vect=0; i_vect<vect_size; i_vect++) {
     BaseNeuronSetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
-      (&params_arr_[i_neuron*n_params_ + i_param], n_neurons, n_params_,
-       params[i]);
+      (param_pt, n_neurons, n_params_, params[i_vect]);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   }
@@ -89,7 +83,7 @@ int BaseNeuron::GetScalVarIdx(std::string var_name)
     if (var_name == scal_var_name_[i_var]) break;
   }
   if (i_var == n_scal_var_) {
-    std::cerr << "Unrecognized variable " << var_name << " .\n";
+    std::cerr << "Unrecognized scalar variable " << var_name << " .\n";
     exit(-1);
   }
   
@@ -103,7 +97,7 @@ int BaseNeuron::GetVectVarIdx(std::string var_name)
     if (var_name == vect_var_name_[i_var]) break;
   }
   if (i_var == n_vect_var_) {
-    std::cerr << "Unrecognized variable " << var_name << " .\n";
+    std::cerr << "Unrecognized vector variable " << var_name << " .\n";
     exit(-1);
   }
   
@@ -147,3 +141,109 @@ float *BaseNeuron::GetParamsArr()
 {
   return params_arr_;
 }
+
+bool BaseNeuron::IsScalVar(std::string var_name)
+{
+  int i_var;
+  for (i_var=0; i_var<n_scal_var_; i_var++) {
+    if (var_name == scal_var_name_[i_var]) return true;
+  }
+  return false;
+}
+
+bool BaseNeuron::IsVectVar(std::string var_name)
+{
+  int i_var;
+  for (i_var=0; i_var<n_vect_var_; i_var++) {
+    if (var_name == vect_var_name_[i_var]) return true;
+  }
+  return false;
+}
+
+bool BaseNeuron::IsScalParam(std::string param_name)
+{
+  int i_param;
+  for (i_param=0; i_param<n_scal_params_; i_param++) {
+    if (param_name == scal_param_name_[i_param]) return true;
+  }
+  return false;
+}
+
+bool BaseNeuron::IsVectParam(std::string param_name)
+{  
+  int i_param;
+  for (i_param=0; i_param<n_vect_params_; i_param++) {
+    if (param_name == vect_param_name_[i_param]) return true;
+  }
+  return false;
+}
+
+int BaseNeuron::CheckNeuronIdx(int i_neuron)
+{
+  if (i_neuron>=n_neurons_) {
+    std::cerr << "Neuron index must be lower then n. of neurons\n";
+    exit(-1);
+  }
+  else if (i_neuron<0) {
+    std::cerr << "Neuron index must be >= 0\n";
+    exit(-1);
+  }
+  return 0;
+}
+
+int BaseNeuron::CheckReceptorIdx(int i_receptor)
+{
+  if (i_receptor>=n_receptors_) {
+    std::cerr << "Receptor index must be lower then n. of receptors\n";
+    exit(-1);
+  }
+  else if (i_receptor<0) {
+    std::cerr << "Receptor index must be >= 0\n";
+    exit(-1);
+  }
+  return 0;
+}
+
+float *BaseNeuron::GetVarPt(std::string var_name, int i_neuron, int i_receptor)
+{
+  CheckNeuronIdx(i_neuron);
+  CheckReceptorIdx(i_receptor);
+    
+  if (IsScalVar(var_name)) {
+    int i_var =  GetScalVarIdx(var_name);
+    return GetVarArr() + i_neuron*n_var_ + i_var;
+  }
+  else if (IsVectVar(var_name)) {
+    int i_vvar =  GetVectVarIdx(var_name);
+    return GetVarArr() + i_neuron*n_var_ + n_scal_var_
+      + i_receptor*n_vect_var_ + i_vvar;
+  }
+  else {
+    std::cerr << "Unrecognized variable " << var_name << " .\n";
+    exit(-1);
+  }
+  return NULL;
+}
+
+float *BaseNeuron::GetParamPt(std::string param_name, int i_neuron,
+			      int i_receptor)
+{
+  CheckNeuronIdx(i_neuron);
+  CheckReceptorIdx(i_receptor);
+    
+  if (IsScalParam(param_name)) {
+    int i_param =  GetScalParamIdx(param_name);
+    return GetParamsArr() + i_neuron*n_params_ + i_param;
+  }
+  else if (IsVectParam(param_name)) {
+    int i_vparam =  GetVectParamIdx(param_name);
+    return GetParamsArr() + i_neuron*n_params_ + n_scal_params_
+      + i_receptor*n_vect_params_ + i_vparam;
+  }
+  else {
+    std::cerr << "Unrecognized parameter " << param_name << " .\n";
+    exit(-1);
+  }
+  return NULL;
+}
+

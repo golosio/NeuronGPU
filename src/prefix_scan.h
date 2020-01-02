@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -34,7 +34,7 @@ class PrefixScan
   
   int Init();
 
-  int Scan(uint *d_Output, uint *d_Input, uint n);
+  int Scan(int *d_Output, int *d_Input, int n);
 
   int Free();
 };

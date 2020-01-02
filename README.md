@@ -16,8 +16,5 @@ IMPORTANT NOTES: This is just a preliminary version of the library. You can try 
 * Simulation real time: on a machine with a single Nvidia GeForce RTX 2080 Ti GPU board, NeuralGPU is about 20 times faster than CPU code running on a PC with a CPU Intel CORE I9-9900K with with a frequency of 3.6GHz and 16 hardware threads.
 * Installation requirements:
 CUDA Toolkit
-CUDA SAMPLES
 openmpi
 openmpi-devel (libopenmpi-dev in ubuntu),
-CUB 1.8.0 (https://nvlabs.github.io/cub/index.html)
-

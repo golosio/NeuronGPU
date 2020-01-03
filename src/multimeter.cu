@@ -48,10 +48,9 @@ int Record::CloseFile()
   return 0;
 }
 
-int Record::WriteRecord()
+int Record::WriteRecord(float t)
 {
-  float t, var;
-  neuron_vect_[0]->GetX(i_neuron_vect_[0], 1, &t);
+  float var;
   fprintf(fp_,"%f", t);
   for (unsigned int i=0; i<var_pt_vect_.size(); i++) {
     gpuErrchk(cudaMemcpy(&var, var_pt_vect_[i], sizeof(float),
@@ -94,10 +93,10 @@ int Multimeter::CloseFiles()
   return 0;
 }
 
-int Multimeter::WriteRecords()
+int Multimeter::WriteRecords(float t)
 {  
   for (unsigned int i=0; i<record_vect_.size(); i++) {
-    record_vect_[i].WriteRecord();
+    record_vect_[i].WriteRecord(t);
   }
   
   return 0;

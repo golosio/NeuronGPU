@@ -54,12 +54,14 @@ class NeuralGPU
   std::vector<NeuronGroup> neuron_group_vect_;
   std::vector<signed char> neuron_group_map_;
   signed char *d_neuron_group_map_;
-  
+
+  bool calibrate_flag_; // becomes true after calibration
   int max_spike_buffer_num_;
   int max_spike_num_;
   int max_spike_per_host_;
 
   float t_min_;
+  float neural_time_; // Neural activity time
   float sim_time_; // Simulation time in ms
   int n_neurons_;
   int n_poiss_nodes_;
@@ -88,7 +90,9 @@ class NeuralGPU
 		   int *i_neuron_arr, int n_neurons);  
   int CreateRecord(std::string file_name, std::string *var_name_arr,
 		   int *i_neuron_arr, int *i_receptor_arr, int n_neurons);  
+  int Calibrate();
   int Simulate();
+  int CheckUncalibrated(std::string message);
 
   int ConnectFixedIndegree
     (

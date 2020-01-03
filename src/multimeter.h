@@ -38,7 +38,7 @@ class Record
   
   int CloseFile();
   
-  int WriteRecord();
+  int WriteRecord(float t);
 
 };
   
@@ -56,7 +56,7 @@ class Multimeter
 
   int CloseFiles();
 
-  int WriteRecords();
+  int WriteRecords(float t);
 	     
 };
 

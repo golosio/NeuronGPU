@@ -57,7 +57,8 @@ NeuralGPU::NeuralGPU()
   connect_mpi_ = new ConnectMpi;
 
   SetRandomSeed(54321ULL);
-  
+
+  calibrate_flag_ = false;
   start_real_time_ = getRealTime();
   max_spike_buffer_num_ = 100;
   t_min_ = 0.0;
@@ -221,23 +222,23 @@ int NeuralGPU::CreateSpikeGenerator(int n_nodes)
   return i_node_0;
 }
 
-int NeuralGPU::Simulate()
+int NeuralGPU::CheckUncalibrated(std::string message)
 {
-  double SpikeBufferUpdate_time = 0;
-  double poisson_generator_time = 0;
-  double spike_generator_time = 0;
-  double neuron_Update_time = 0;
-  double copy_ext_spike_time = 0;
-  double SendExternalSpike_time = 0;
-  double SendSpikeToRemote_time = 0;
-  double RecvSpikeFromRemote_time = 0;
-  double NestedLoop_time = 0;
-  double GetSpike_time = 0;
-  double SpikeReset_time = 0;
-  double ExternalSpikeReset_time = 0;
-  double time_mark;
+  if (calibrate_flag_ == true) {
+    std::cerr << message << "\n";
+    exit(0);
+  }
   
-  float t_min = 0.0;
+  return 0;
+}
+
+int NeuralGPU::Calibrate()
+{
+  CheckUncalibrated("Calibration can be made only once");
+  calibrate_flag_ = true;
+  
+  std::cout << "Calibrating on host " << connect_mpi_->mpi_id_ << " ...\n";
+  neural_time_ = t_min_;
 
   NeuronGroupArrayInit();
   
@@ -257,11 +258,8 @@ int NeuralGPU::Simulate()
 
   multimeter_->OpenFiles();
   
-  int Nt=(int)round(sim_time_/time_resolution_);
-  printf("%d\n", Nt);
-
   for (unsigned int i=0; i<neuron_vect_.size(); i++) {
-    neuron_vect_[i]->Calibrate(t_min);
+    neuron_vect_[i]->Calibrate(t_min_);
   }
   //float x;
   //float y;
@@ -270,17 +268,41 @@ int NeuralGPU::Simulate()
   //fprintf(fp,"%f\t%f\n", x, y);
 
 ///////////////////////////////////
-  multimeter_->WriteRecords();
-  
+
+  return 0;
+}
+
+int NeuralGPU::Simulate()
+{
+  double SpikeBufferUpdate_time = 0;
+  double poisson_generator_time = 0;
+  double spike_generator_time = 0;
+  double neuron_Update_time = 0;
+  double copy_ext_spike_time = 0;
+  double SendExternalSpike_time = 0;
+  double SendSpikeToRemote_time = 0;
+  double RecvSpikeFromRemote_time = 0;
+  double NestedLoop_time = 0;
+  double GetSpike_time = 0;
+  double SpikeReset_time = 0;
+  double ExternalSpikeReset_time = 0;
+  double time_mark;
+
+  if (!calibrate_flag_) {
+    Calibrate();
+  }
+  multimeter_->WriteRecords(neural_time_);
   build_real_time_ = getRealTime();
-  
+
   std::cout << "Simulating on host " << connect_mpi_->mpi_id_ << " ...\n";
 
+  int Nt=(int)round(sim_time_/time_resolution_);
+  printf("Neural activity simulation time: %.3f\n", sim_time_);
+  float neur_t0 = neural_time_;
   for (int it=0; it<Nt; it++) {
-    float t1 = t_min_ + time_resolution_*(it + 1);
-    if (it%100==0)
-      printf("%d\n", it);
-
+    if (it%100==0) {
+      printf("%.3f\n", neural_time_);
+    }
     time_mark = getRealTime();
     SpikeBufferUpdate<<<(net_connection_->connection_.size()+1023)/1024,
       1024>>>();
@@ -300,11 +322,12 @@ int NeuralGPU::Simulate()
     }
 
     time_mark = getRealTime();
+    neural_time_ = neur_t0 + time_resolution_*(it+1);
     for (unsigned int i=0; i<neuron_vect_.size(); i++) {
-      neuron_vect_[i]->Update(it, t1);
+      neuron_vect_[i]->Update(it, neural_time_);
     }
     neuron_Update_time += (getRealTime() - time_mark);
-    multimeter_->WriteRecords();
+    multimeter_->WriteRecords(neural_time_);
     int n_ext_spike;
     time_mark = getRealTime();
     gpuErrchk(cudaMemcpy(&n_ext_spike, d_ExternalSpikeNum, sizeof(int),
@@ -379,6 +402,7 @@ int NeuralGPU::Simulate()
     gpuErrchk( cudaDeviceSynchronize() );
     ExternalSpikeReset_time += (getRealTime() - time_mark);
   }
+  printf("%.3f\n", neural_time_);
   end_real_time_ = getRealTime();
 
   multimeter_->CloseFiles();

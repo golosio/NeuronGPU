@@ -15,7 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "cuda_error.h"
 #include "base_neuron.h"
-
+#include "spike_buffer.h"
 __global__ void BaseNeuronSetFloatArray(float *arr, int n_elems, int step,
 					float val)
 {
@@ -246,5 +246,28 @@ float *BaseNeuron::GetParamPt(std::string param_name, int i_neuron,
     exit(-1);
   }
   return NULL;
+}
+
+float BaseNeuron::GetSpikeActivity(int i_neuron)
+{
+  int i_spike_buffer = i_neuron + i_node_0_;
+  int Ns;
+  gpuErrchk(cudaMemcpy(&Ns, d_SpikeBufferSize + i_spike_buffer,
+		       sizeof(int), cudaMemcpyDeviceToHost));
+  if (Ns==0) {
+    return 0.0;
+  }
+  int time_idx;
+  // get first (most recent) spike from buffer
+  gpuErrchk(cudaMemcpy(&time_idx, d_SpikeBufferTimeIdx + i_spike_buffer,
+		       sizeof(int), cudaMemcpyDeviceToHost));
+  if (time_idx!=0) { // neuron is not spiking now
+    return 0.0;
+  }
+  float spike_height;
+  gpuErrchk(cudaMemcpy(&spike_height, d_SpikeBufferHeight + i_spike_buffer,
+		       sizeof(float), cudaMemcpyDeviceToHost));
+
+  return spike_height;
 }
 

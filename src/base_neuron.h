@@ -87,10 +87,11 @@ class BaseNeuron
 
   int CheckReceptorIdx(int i_receptor);
 
-  float *GetVarPt(std::string var_name, int i_neuron, int i_receptor);
+  virtual float *GetVarPt(std::string var_name, int i_neuron, int i_receptor);
 
-  float *GetParamPt(std::string param_name, int i_neuron,
+  virtual float *GetParamPt(std::string param_name, int i_neuron,
 		    int i_receptor);
+  virtual float GetSpikeActivity(int i_neuron);
 
 };
 

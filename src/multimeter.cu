@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
+const   std::string SpikeVarName = "spike";
+
 Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
 	       std::vector<std::string> var_name_vect,
 	       std::vector<int> i_neur_vect, std::vector<int> i_receptor_vect):
@@ -28,9 +30,11 @@ Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
 {
   var_pt_vect_.clear();
   for (unsigned int i=0; i<var_name_vect.size(); i++) {
-    float *var_pt = neur_vect[i]->GetVarPt(var_name_vect[i], i_neur_vect[i],
-					   i_receptor_vect[i]);
-    var_pt_vect_.push_back(var_pt);
+    if (var_name_vect[i]!=SpikeVarName) {
+      float *var_pt = neur_vect[i]->GetVarPt(var_name_vect[i], i_neur_vect[i],
+					     i_receptor_vect[i]);
+      var_pt_vect_.push_back(var_pt);
+    }
   }
 }
 
@@ -52,9 +56,14 @@ int Record::WriteRecord(float t)
 {
   float var;
   fprintf(fp_,"%f", t);
-  for (unsigned int i=0; i<var_pt_vect_.size(); i++) {
-    gpuErrchk(cudaMemcpy(&var, var_pt_vect_[i], sizeof(float),
-                         cudaMemcpyDeviceToHost));
+  for (unsigned int i=0; i<var_name_vect_.size(); i++) {
+    if (var_name_vect_[i]!=SpikeVarName) {
+      gpuErrchk(cudaMemcpy(&var, var_pt_vect_[i], sizeof(float),
+			   cudaMemcpyDeviceToHost));
+    }
+    else {
+      var = neuron_vect_[i]->GetSpikeActivity(i_neuron_vect_[i]);
+    }
     fprintf(fp_,"\t%f", var);
   }
   fprintf(fp_,"\n");

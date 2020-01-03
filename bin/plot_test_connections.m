@@ -21,6 +21,16 @@ z4=data(:,5);
 z5=data(:,6);
 z6=data(:,7);
 %
+%
+data=load('test_connections_spikes.dat');
+sp1=data(:,2);
+sp2=data(:,3);
+sp3=data(:,4);
+sp4=data(:,5);
+sp5=data(:,6);
+sp6=data(:,7);
+sp7=data(:,8);
+
 figure(1);
 plot(t,n1);
 figure(2);
@@ -36,46 +46,47 @@ figure(5);
 plot(t,y3)
 %
 figure(6)
-plot(t,n1>-45 | n2>-45 | n3>-45 | n4>-45)
+plot(t,sp1+sp2+sp3+sp4)
 hold on
 plot(t,(y1+70.6)*70,'r')
 %
 figure(7)
-plot(t,n5>-45)
+plot(t,sp5)
 hold on
 plot(t,(y2+70.6)*70,'r')
 %
 figure(8)
-plot(t,n6>-45 | n7>-45)
+plot(t,sp6 + sp7)
 hold on
 plot(t,(y3+70.6)*70,'r')
 %
 figure(9)
-plot(t,n1>-45)
+plot(t,sp1)
 hold on
 plot(t,z1*50,'r')
 %
 figure(10)
-plot(t,n2>-45 | n3>-45)
+plot(t,sp2+sp3)
 hold on
 plot(t,z2*50,'r')
 %
 figure(11)
-plot(t,n4>-45)
+plot(t,sp4)
 hold on
 plot(t,z3*50,'r')
 %
 figure(12)
-plot(t,n5>-45)
+plot(t,sp5)
 hold on
 plot(t,z4*50,'r')
 %
 figure(13)
-plot(t,n6>-45)
+plot(t,sp6)
 hold on
 plot(t,z5*50,'r')
 %
 figure(14)
-plot(t,n7>-45)
+plot(t,sp7)
 hold on
-plot(t,z6*50,'r')
+plot(t,z6*50,'r');
+%

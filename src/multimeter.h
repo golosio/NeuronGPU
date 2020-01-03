@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Record
 {
  public:
+
   std::vector<BaseNeuron*> neuron_vect_;
   std::string file_name_;
   std::vector<std::string> var_name_vect_;

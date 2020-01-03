@@ -131,6 +131,13 @@ int main(int argc, char *argv[])
   neural_gpu.CreateRecord(string(filename2), var_name_arr2, i_neuron_arr2,
 			  i_receptor_arr, 6);
 
+  // create multimeter record n.3
+  char filename3[] = "test_neuron_groups_spikes.dat";
+  int i_neuron_arr3[] = {i11, i12, i13, i14, i21, i31, i32};
+  std::string var_name_arr3[] = {"spike", "spike", "spike", "spike", "spike",
+				 "spike", "spike"};
+  neural_gpu.CreateRecord(string(filename3), var_name_arr3, i_neuron_arr3, 7);
+
   neural_gpu.SetRandomSeed(1234ULL);
   neural_gpu.Simulate();
 

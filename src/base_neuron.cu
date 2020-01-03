@@ -65,9 +65,10 @@ int BaseNeuron::SetVectParams(std::string param_name, int i_neuron,
       "of receptor ports.\n";
     exit(-1);
   }
-  float *param_pt = GetParamPt(param_name, i_neuron, 0);
+  float *param_pt;
     
   for (int i_vect=0; i_vect<vect_size; i_vect++) {
+    param_pt = GetParamPt(param_name, i_neuron, i_vect);
     BaseNeuronSetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
       (param_pt, n_neurons, n_params_, params[i_vect]);
     gpuErrchk( cudaPeekAtLastError() );

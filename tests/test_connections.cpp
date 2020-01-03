@@ -116,12 +116,20 @@ int main(int argc, char *argv[])
   neural_gpu.Connect(i31, it3, 0, weight, delay);
   neural_gpu.Connect(i32, it3, 1, weight, delay);
   
-  char filename[] = "test_connections.dat";
-  int i_neuron_arr[] = {i11, i12, i13, i14, i21, i31, i32, it1, it2, it3};
-  // create multimeter record
-  std::string var_name_arr[] = {"V_m", "V_m", "V_m", "V_m", "V_m", "V_m",
+  // create multimeter record n.1
+  char filename1[] = "test_connections_voltage.dat";
+  int i_neuron_arr1[] = {i11, i12, i13, i14, i21, i31, i32, it1, it2, it3};
+  std::string var_name_arr1[] = {"V_m", "V_m", "V_m", "V_m", "V_m", "V_m",
 				"V_m", "V_m", "V_m", "V_m"};
-  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 10);
+  neural_gpu.CreateRecord(string(filename1), var_name_arr1, i_neuron_arr1, 10);
+
+  // create multimeter record n.2
+  char filename2[] = "test_connections_g1.dat";
+  int i_neuron_arr2[] = {it1, it1, it1, it2, it3, it3};
+  int i_receptor_arr[] = {0, 1, 2, 0, 0, 1};
+  std::string var_name_arr2[] = {"g1", "g1", "g1", "g1", "g1", "g1"};
+  neural_gpu.CreateRecord(string(filename2), var_name_arr2, i_neuron_arr2,
+			  i_receptor_arr, 6);
 
   neural_gpu.SetRandomSeed(1234ULL);
   neural_gpu.Simulate();

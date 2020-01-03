@@ -13,21 +13,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "multimeter.h"
+#include "cuda_error.h"
 #include <vector>
 
 using namespace std;
 
 Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
 	       std::vector<std::string> var_name_vect,
-	       std::vector<int> i_neur_vect):
+	       std::vector<int> i_neur_vect, std::vector<int> i_receptor_vect):
   neuron_vect_(neur_vect), file_name_(file_name),
   var_name_vect_(var_name_vect),
-  i_neuron_vect_(i_neur_vect)
+  i_neuron_vect_(i_neur_vect),
+  i_receptor_vect_(i_receptor_vect)
 {
-  i_var_vect_.clear();
+  var_pt_vect_.clear();
   for (unsigned int i=0; i<var_name_vect.size(); i++) {
-    int i_var = neur_vect[i]->GetScalVarIdx(var_name_vect[i]);
-    i_var_vect_.push_back(i_var);
+    float *var_pt = neur_vect[i]->GetVarPt(var_name_vect[i], i_neur_vect[i],
+					   i_receptor_vect[i]);
+    var_pt_vect_.push_back(var_pt);
   }
 }
 
@@ -47,12 +50,13 @@ int Record::CloseFile()
 
 int Record::WriteRecord()
 {
-  float x, y;
-  neuron_vect_[0]->GetX(i_neuron_vect_[0], 1, &x);
-  fprintf(fp_,"%f", x);
-  for (unsigned int i=0; i<i_neuron_vect_.size(); i++) {
-    neuron_vect_[i]->GetY(i_var_vect_[i], i_neuron_vect_[i], 1, &y);
-    fprintf(fp_,"\t%f", y);
+  float t, var;
+  neuron_vect_[0]->GetX(i_neuron_vect_[0], 1, &t);
+  fprintf(fp_,"%f", t);
+  for (unsigned int i=0; i<var_pt_vect_.size(); i++) {
+    gpuErrchk(cudaMemcpy(&var, var_pt_vect_[i], sizeof(float),
+                         cudaMemcpyDeviceToHost));
+    fprintf(fp_,"\t%f", var);
   }
   fprintf(fp_,"\n");
 
@@ -62,9 +66,11 @@ int Record::WriteRecord()
 int Multimeter::CreateRecord(std::vector<BaseNeuron*> neur_vect,
 			     std::string file_name,
 			     std::vector<std::string> var_name_vect,
-			     std::vector<int> i_neur_vect)
+			     std::vector<int> i_neur_vect,
+			     std::vector<int> i_receptor_vect)
 {
-  Record record(neur_vect, file_name, var_name_vect, i_neur_vect);
+  Record record(neur_vect, file_name, var_name_vect, i_neur_vect,
+		i_receptor_vect);
   record_vect_.push_back(record);
 
   return 0;

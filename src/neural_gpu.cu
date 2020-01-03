@@ -408,22 +408,33 @@ int NeuralGPU::Simulate()
 }
 
 int NeuralGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
-			    int *i_neuron_arr, int n_neurons)
+			    int *i_neuron_arr, int *i_receptor_arr,
+			    int n_neurons)
 {
   std::vector<BaseNeuron*> neur_vect;
   std::vector<int> i_neur_vect;
+  std::vector<int> i_receptor_vect;
   std::vector<std::string> var_name_vect;
   for (int i=0; i<n_neurons; i++) {
     var_name_vect.push_back(var_name_arr[i]);
     int i_group = neuron_group_map_[i_neuron_arr[i]];
     i_neur_vect.push_back(i_neuron_arr[i] - neuron_vect_[i_group]->i_node_0_);
+    i_receptor_vect.push_back(i_receptor_arr[i]);
     neur_vect.push_back(neuron_vect_[i_group]);
   }
-  return multimeter_->CreateRecord(neur_vect, file_name, var_name_vect,
-  				   i_neur_vect);
 
-  //  return multimeter_->CreateRecord(neuron_vect_[1], file_name, var_name,
-  //				   i_neur_vect.data(), n_neurons);
+  return multimeter_->CreateRecord(neur_vect, file_name, var_name_vect,
+  				   i_neur_vect, i_receptor_vect);
+
+}
+
+int NeuralGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
+			    int *i_neuron_arr, int n_neurons)
+{
+  std::vector<int> i_receptor_vect(n_neurons, 0);
+  return CreateRecord(file_name, var_name_arr, i_neuron_arr,
+		      i_receptor_vect.data(), n_neurons);
+
 }
 
 int NeuralGPU::ConnectFixedIndegree

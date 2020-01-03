@@ -86,6 +86,8 @@ class NeuralGPU
   int CreateSpikeGenerator(int n_nodes);
   int CreateRecord(std::string file_name, std::string *var_name_arr,
 		   int *i_neuron_arr, int n_neurons);  
+  int CreateRecord(std::string file_name, std::string *var_name_arr,
+		   int *i_neuron_arr, int *i_receptor_arr, int n_neurons);  
   int Simulate();
 
   int ConnectFixedIndegree

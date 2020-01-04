@@ -89,7 +89,9 @@ class NeuralGPU
   int CreateRecord(std::string file_name, std::string *var_name_arr,
 		   int *i_neuron_arr, int n_neurons);  
   int CreateRecord(std::string file_name, std::string *var_name_arr,
-		   int *i_neuron_arr, int *i_receptor_arr, int n_neurons);  
+		   int *i_neuron_arr, int *i_receptor_arr, int n_neurons);
+  std::vector<std::vector<float>> *GetRecordData(int i_record);
+
   int Calibrate();
   int Simulate();
   int CheckUncalibrated(std::string message);

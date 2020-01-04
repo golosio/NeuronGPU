@@ -458,7 +458,11 @@ int NeuralGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
   std::vector<int> i_receptor_vect(n_neurons, 0);
   return CreateRecord(file_name, var_name_arr, i_neuron_arr,
 		      i_receptor_vect.data(), n_neurons);
+}
 
+std::vector<std::vector<float>> *NeuralGPU::GetRecordData(int i_record)
+{
+  return multimeter_->GetRecordData(i_record);
 }
 
 int NeuralGPU::ConnectFixedIndegree

@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <vector>
 #include "neural_gpu.h"
 
 using namespace std;
@@ -121,27 +122,44 @@ int main(int argc, char *argv[])
   int i_neuron_arr1[] = {i11, i12, i13, i14, i21, i31, i32, it1, it2, it3};
   std::string var_name_arr1[] = {"V_m", "V_m", "V_m", "V_m", "V_m", "V_m",
 				"V_m", "V_m", "V_m", "V_m"};
-  neural_gpu.CreateRecord(string(filename1), var_name_arr1, i_neuron_arr1, 10);
+  int record1 = neural_gpu.CreateRecord(string(filename1), var_name_arr1,
+					i_neuron_arr1, 10);
 
   // create multimeter record n.2
   char filename2[] = "test_neuron_groups_g1.dat";
   int i_neuron_arr2[] = {it1, it1, it1, it2, it3, it3};
   int i_receptor_arr[] = {0, 1, 2, 0, 0, 1};
   std::string var_name_arr2[] = {"g1", "g1", "g1", "g1", "g1", "g1"};
-  neural_gpu.CreateRecord(string(filename2), var_name_arr2, i_neuron_arr2,
-			  i_receptor_arr, 6);
+  //int record2 =
+  neural_gpu.CreateRecord(string(filename2), var_name_arr2,
+			  i_neuron_arr2, i_receptor_arr, 6);
 
   // create multimeter record n.3
   char filename3[] = "test_neuron_groups_spikes.dat";
   int i_neuron_arr3[] = {i11, i12, i13, i14, i21, i31, i32};
   std::string var_name_arr3[] = {"spike", "spike", "spike", "spike", "spike",
 				 "spike", "spike"};
-  neural_gpu.CreateRecord(string(filename3), var_name_arr3, i_neuron_arr3, 7);
+  //int record3 =
+  neural_gpu.CreateRecord(string(filename3), var_name_arr3,
+			  i_neuron_arr3, 7);
 
   neural_gpu.SetRandomSeed(1234ULL);
   neural_gpu.Simulate();
 
   neural_gpu.MpiFinalize();
 
+  std::vector<std::vector<float>> data_vect1 =
+    *neural_gpu.GetRecordData(record1);
+
+  FILE *fp=fopen("test_neuron_group_record.dat", "w");
+  for (uint i=0; i<data_vect1.size(); i++) {
+    std::vector<float> vect = data_vect1[i];
+    for (uint j=0; j<vect.size()-1; j++) {
+      fprintf(fp,"%f\t", vect[j]);
+    }
+    fprintf(fp,"%f\n", vect[vect.size()-1]);
+  }
+  fclose(fp);
+  
   return 0;
 }

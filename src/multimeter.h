@@ -22,7 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Record
 {
  public:
-
+  bool data_vect_flag_;
+  bool out_file_flag_;
+  std::vector<std::vector<float>> data_vect_;
   std::vector<BaseNeuron*> neuron_vect_;
   std::string file_name_;
   std::vector<std::string> var_name_vect_;
@@ -58,6 +60,8 @@ class Multimeter
   int CloseFiles();
 
   int WriteRecords(float t);
+
+  std::vector<std::vector<float>> *GetRecordData(int i_record);
 	     
 };
 

@@ -12,9 +12,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
+#include <vector>
 #include "multimeter.h"
 #include "cuda_error.h"
-#include <vector>
 
 using namespace std;
 
@@ -28,6 +29,12 @@ Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
   i_neuron_vect_(i_neur_vect),
   i_receptor_vect_(i_receptor_vect)
 {
+  data_vect_flag_ = true;
+  if (file_name=="") {
+    out_file_flag_ = false;
+  } else {
+    out_file_flag_ = true;
+  }
   var_pt_vect_.clear();
   for (unsigned int i=0; i<var_name_vect.size(); i++) {
     if (var_name_vect[i]!=SpikeVarName) {
@@ -55,7 +62,14 @@ int Record::CloseFile()
 int Record::WriteRecord(float t)
 {
   float var;
-  fprintf(fp_,"%f", t);
+  vector<float> vect;
+  
+  if (out_file_flag_) {
+    fprintf(fp_,"%f", t);
+  }
+  if (data_vect_flag_) {
+    vect.push_back(t);
+  }
   for (unsigned int i=0; i<var_name_vect_.size(); i++) {
     if (var_name_vect_[i]!=SpikeVarName) {
       gpuErrchk(cudaMemcpy(&var, var_pt_vect_[i], sizeof(float),
@@ -64,9 +78,19 @@ int Record::WriteRecord(float t)
     else {
       var = neuron_vect_[i]->GetSpikeActivity(i_neuron_vect_[i]);
     }
-    fprintf(fp_,"\t%f", var);
+    if (out_file_flag_) {
+      fprintf(fp_,"\t%f", var);
+    }
+    if (data_vect_flag_) {
+      vect.push_back(var);
+    }
   }
-  fprintf(fp_,"\n");
+  if (out_file_flag_) {
+    fprintf(fp_,"\n");
+  }
+  if (data_vect_flag_) {
+    data_vect_.push_back(vect);
+  }
 
   return 0;
 }
@@ -81,13 +105,15 @@ int Multimeter::CreateRecord(std::vector<BaseNeuron*> neur_vect,
 		i_receptor_vect);
   record_vect_.push_back(record);
 
-  return 0;
+  return (record_vect_.size() - 1);
 }
 
 int Multimeter::OpenFiles()
 {
   for (unsigned int i=0; i<record_vect_.size(); i++) {
-    record_vect_[i].OpenFile();
+    if (record_vect_[i].out_file_flag_) {
+      record_vect_[i].OpenFile();
+    }
   }
   
   return 0;
@@ -96,7 +122,9 @@ int Multimeter::OpenFiles()
 int Multimeter::CloseFiles()
 {  
   for (unsigned int i=0; i<record_vect_.size(); i++) {
-    record_vect_[i].CloseFile();
+    if (record_vect_[i].out_file_flag_) {
+      record_vect_[i].CloseFile();
+    }
   }
   
   return 0;
@@ -109,4 +137,14 @@ int Multimeter::WriteRecords(float t)
   }
   
   return 0;
+}
+
+std::vector<std::vector<float>> *Multimeter::GetRecordData(int i_record)
+{
+  if (i_record<0 || i_record>=(int)record_vect_.size()) {
+    std::cerr << "Record does not exist.\n";
+    exit(0);
+  }
+  
+  return &record_vect_[i_record].data_vect_;
 }

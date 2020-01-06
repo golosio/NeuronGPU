@@ -14,7 +14,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
 
-#include "neural_gpu.h"
+#include "neuralgpu.h"
 #include "neuron_group.h"
 #include "send_spike.h"
 #include "spike_buffer.h"

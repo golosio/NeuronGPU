@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "poisson.h"
 #include "getRealTime.h"
 #include "random.h"
-#include "neural_gpu.h"
+#include "neuralgpu.h"
 #include "nested_loop.h"
 
 #ifdef _OPENMP
@@ -59,6 +59,7 @@ NeuralGPU::NeuralGPU()
   SetRandomSeed(54321ULL);
 
   calibrate_flag_ = false;
+  mpi_flag_ = false;
   start_real_time_ = getRealTime();
   max_spike_buffer_num_ = 100;
   t_min_ = 0.0;
@@ -109,21 +110,7 @@ int NeuralGPU::SetTimeResolution(float time_res)
 
 int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
 {
-  /*
-  if (n_neurons_ != 0) {
-    std::cerr << "Number of neurons cannot be modified.\n";
-    exit(0);
-  }
-  else if (n_neurons <= 0) {
-    std::cerr << "Number of neurons must be greater than zero.\n";
-    exit(0);
-  }
-  else if (n_receptors <= 0) {
-    std::cerr << "Number of receptors must be greater than zero.\n";
-    exit(0);
-  }
-  */
-  n_neurons_ = n_neurons;               
+   n_neurons_ = n_neurons;               
 
   int i_node_0 = net_connection_->connection_.size();
   
@@ -146,6 +133,7 @@ int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
 
 int NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
 {
+  CheckUncalibrated("Poisson generator cannot be created after calibration");
   if (n_poiss_nodes_ != 0) {
     std::cerr << "Number of poisson generators cannot be modified.\n";
     exit(0);
@@ -185,6 +173,7 @@ int NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
 
 int NeuralGPU::CreateSpikeGenerator(int n_nodes)
 {
+  CheckUncalibrated("Spike generator cannot be created after calibration");
   if (n_spike_gen_nodes_ != 0) {
     std::cerr << "Number of spike generators cannot be modified.\n";
     exit(0);
@@ -236,10 +225,16 @@ int NeuralGPU::Calibrate()
 {
   CheckUncalibrated("Calibration can be made only once");
   calibrate_flag_ = true;
-  
-  std::cout << "Calibrating on host " << connect_mpi_->mpi_id_ << " ...\n";
+  if (mpi_flag_) {
+    std::cout << "Calibrating on host " << connect_mpi_->mpi_id_ << " ...\n";
+  }
+  else {
+    std::cout << "Calibrating ...\n";
+  }
   neural_time_ = t_min_;
-
+  
+  gpuErrchk(cudaMemcpyToSymbol(NeuralGPUMpiFlag, &mpi_flag_, sizeof(bool)));
+	    
   NeuronGroupArrayInit();
   
   max_spike_num_ = net_connection_->connection_.size()
@@ -251,11 +246,13 @@ int NeuralGPU::Calibrate()
   SpikeInit(max_spike_num_);
   SpikeBufferInit(net_connection_, max_spike_buffer_num_);
 
-  // remove superfluous argument mpi_np
-  connect_mpi_->ExternalSpikeInit(connect_mpi_->extern_connection_.size(),
-				 max_spike_num_, connect_mpi_->mpi_np_,
-				 max_spike_per_host_);
-
+  if (mpi_flag_) {
+    // remove superfluous argument mpi_np
+    connect_mpi_->ExternalSpikeInit(connect_mpi_->extern_connection_.size(),
+				    max_spike_num_, connect_mpi_->mpi_np_,
+				    max_spike_per_host_);
+  }
+  
   multimeter_->OpenFiles();
   
   for (unsigned int i=0; i<neuron_vect_.size(); i++) {
@@ -293,9 +290,13 @@ int NeuralGPU::Simulate()
   }
   multimeter_->WriteRecords(neural_time_);
   build_real_time_ = getRealTime();
-
-  std::cout << "Simulating on host " << connect_mpi_->mpi_id_ << " ...\n";
-
+  if (mpi_flag_) {
+    std::cout << "Simulating on host " << connect_mpi_->mpi_id_ << " ...\n";
+  }
+  else {
+    std::cout << "Simulating ...\n";
+  }
+  
   int Nt=(int)round(sim_time_/time_resolution_);
   printf("Neural activity simulation time: %.3f\n", sim_time_);
   float neur_t0 = neural_time_;
@@ -328,33 +329,33 @@ int NeuralGPU::Simulate()
     }
     neuron_Update_time += (getRealTime() - time_mark);
     multimeter_->WriteRecords(neural_time_);
-    int n_ext_spike;
-    time_mark = getRealTime();
-    gpuErrchk(cudaMemcpy(&n_ext_spike, d_ExternalSpikeNum, sizeof(int),
-			 cudaMemcpyDeviceToHost));
-    copy_ext_spike_time += (getRealTime() - time_mark);
-
-    if (n_ext_spike != 0) {
-      //cout << "n_ext_spike " << n_ext_spike << endl;
+    if (mpi_flag_) {
+      int n_ext_spike;
       time_mark = getRealTime();
-      SendExternalSpike<<<(n_ext_spike+1023)/1024, 1024>>>();
-      gpuErrchk( cudaPeekAtLastError() );
-      gpuErrchk( cudaDeviceSynchronize() );
-      SendExternalSpike_time += (getRealTime() - time_mark);
-      
-    }
-    for (int ih=0; ih<connect_mpi_->mpi_np_; ih++) {
+      gpuErrchk(cudaMemcpy(&n_ext_spike, d_ExternalSpikeNum, sizeof(int),
+			   cudaMemcpyDeviceToHost));
+      copy_ext_spike_time += (getRealTime() - time_mark);
 
-      if (ih == connect_mpi_->mpi_id_) {
+      if (n_ext_spike != 0) {
+	//cout << "n_ext_spike " << n_ext_spike << endl;
 	time_mark = getRealTime();
-	connect_mpi_->SendSpikeToRemote(connect_mpi_->mpi_np_,
-				       max_spike_per_host_);
-	SendSpikeToRemote_time += (getRealTime() - time_mark);
+	SendExternalSpike<<<(n_ext_spike+1023)/1024, 1024>>>();
+	gpuErrchk( cudaPeekAtLastError() );
+	gpuErrchk( cudaDeviceSynchronize() );
+	SendExternalSpike_time += (getRealTime() - time_mark);
       }
-      else {
-	time_mark = getRealTime();
-	connect_mpi_->RecvSpikeFromRemote(ih, max_spike_per_host_);
-	RecvSpikeFromRemote_time += (getRealTime() - time_mark);
+      for (int ih=0; ih<connect_mpi_->mpi_np_; ih++) {
+	if (ih == connect_mpi_->mpi_id_) {
+	  time_mark = getRealTime();
+	  connect_mpi_->SendSpikeToRemote(connect_mpi_->mpi_np_,
+					  max_spike_per_host_);
+	  SendSpikeToRemote_time += (getRealTime() - time_mark);
+	}
+	else {
+	  time_mark = getRealTime();
+	  connect_mpi_->RecvSpikeFromRemote(ih, max_spike_per_host_);
+	  RecvSpikeFromRemote_time += (getRealTime() - time_mark);
+	}
       }
     }
 
@@ -395,12 +396,14 @@ int NeuralGPU::Simulate()
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
     SpikeReset_time += (getRealTime() - time_mark);
-    
-    time_mark = getRealTime();
-    ExternalSpikeReset<<<1, 1>>>();
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-    ExternalSpikeReset_time += (getRealTime() - time_mark);
+
+    if (mpi_flag_) {
+      time_mark = getRealTime();
+      ExternalSpikeReset<<<1, 1>>>();
+      gpuErrchk( cudaPeekAtLastError() );
+      gpuErrchk( cudaDeviceSynchronize() );
+      ExternalSpikeReset_time += (getRealTime() - time_mark);
+    }
   }
   printf("%.3f\n", neural_time_);
   end_real_time_ = getRealTime();
@@ -472,6 +475,7 @@ int NeuralGPU::ConnectFixedIndegree
  unsigned char i_port, float weight, float delay, int indegree
  )
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   unsigned int *rnd = RandomInt(n_target_neurons*indegree);
   std::vector<int> input_array;
   for (int i=0; i<n_source_neurons; i++) {
@@ -522,6 +526,7 @@ int NeuralGPU::ConnectAllToAll
  unsigned char i_port, float weight, float delay
  )
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
 #ifdef _OPENMP
   omp_lock_t *lock = new omp_lock_t[n_source_neurons];
   for (int i=0; i<n_source_neurons; i++) {
@@ -550,24 +555,21 @@ int NeuralGPU::ConnectAllToAll
   return 0;
 }
 
-int NeuralGPU::Connect
-(
- int i_source_neuron, int i_target_neuron, unsigned char i_port,
- float weight, float delay
- )
+int NeuralGPU::Connect(int i_source_neuron, int i_target_neuron,
+		       unsigned char i_port, float weight, float delay)
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   net_connection_->Connect(i_source_neuron, i_target_neuron,
 			   i_port, weight, delay);
 
   return 0;
 }
 
-int NeuralGPU::ConnectOneToOne
-(
- int i_source_neuron_0, int i_target_neuron_0, int n_neurons,
- unsigned char i_port, float weight, float delay
- )
+int NeuralGPU::ConnectOneToOne(int i_source_neuron_0, int i_target_neuron_0,
+			       int n_neurons, unsigned char i_port,
+			       float weight, float delay)
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   for (int in=0; in<n_neurons; in++) {
     net_connection_->Connect(i_source_neuron_0+in,i_target_neuron_0+in ,
 			    i_port, weight, delay);
@@ -597,7 +599,13 @@ int NeuralGPU::SetNeuronVectParams(std::string param_name, int i_node,
 
 int NeuralGPU::ConnectMpiInit(int argc, char *argv[])
 {
-  return connect_mpi_->MpiInit(argc, argv);
+  CheckUncalibrated("MPI connections cannot be initialized after calibration");
+  int err = connect_mpi_->MpiInit(argc, argv);
+  if (err==0) {
+    mpi_flag_ = true;
+  }
+  
+  return err;
 }
 
 int NeuralGPU::MpiId()
@@ -617,7 +625,15 @@ int NeuralGPU::ProcMaster()
 
 int NeuralGPU::MpiFinalize()
 {
-  return MPI_Finalize();
+  if (mpi_flag_) {
+    int finalized;
+    MPI_Finalized(&finalized);
+    if (!finalized) {
+      MPI_Finalize();
+    }
+  }
+  
+  return 0;
 }
 
 int NeuralGPU::SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
@@ -627,12 +643,12 @@ int NeuralGPU::SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 }
 
 int NeuralGPU::RemoteConnectFixedIndegree
-(
- int i_source_host, int i_source_neuron_0, int n_source_neurons,
+(int i_source_host, int i_source_neuron_0, int n_source_neurons,
  int i_target_host, int i_target_neuron_0, int n_target_neurons,
  unsigned char i_port, float weight, float delay, int indegree
  )
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   if (MpiId()==i_source_host && i_source_host==i_target_host) {
     return ConnectFixedIndegree(i_source_neuron_0, n_source_neurons, i_target_neuron_0,
 			 n_target_neurons, i_port, weight, delay, indegree);
@@ -715,6 +731,7 @@ int NeuralGPU::RemoteConnectAllToAll
  unsigned char i_port, float weight, float delay
  )
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   if (MpiId()==i_source_host && i_source_host==i_target_host) {
     return ConnectAllToAll(i_source_neuron_0, n_source_neurons, i_target_neuron_0,
 			 n_target_neurons, i_port, weight, delay);
@@ -789,6 +806,7 @@ int NeuralGPU::RemoteConnectOneToOne
  unsigned char i_port, float weight, float delay
  )
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   if (MpiId()==i_source_host && i_source_host==i_target_host) {
     return ConnectOneToOne(i_source_neuron_0, i_target_neuron_0,
 			 n_neurons, i_port, weight, delay);
@@ -854,6 +872,7 @@ int NeuralGPU::RemoteConnect(int i_source_host, int i_source_neuron,
 			     int i_target_host, int i_target_neuron,
 			     unsigned char i_port, float weight, float delay)
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   return connect_mpi_->RemoteConnect(i_source_host, i_source_neuron,
 				     i_target_host, i_target_neuron,
 				     i_port, weight, delay);
@@ -866,6 +885,7 @@ int NeuralGPU::ConnectFixedIndegreeArray
  unsigned char i_port, float *weight_arr, float *delay_arr, int indegree
  )
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   unsigned int *rnd = RandomInt(n_target_neurons*indegree);
   std::vector<int> input_array;
   for (int i=0; i<n_source_neurons; i++) {
@@ -918,6 +938,7 @@ int NeuralGPU::ConnectFixedTotalNumberArray
  unsigned char i_port, float *weight_arr, float *delay_arr, int n_conn
  )
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   unsigned int *rnd = RandomInt(2*n_conn);
 #ifdef _OPENMP
   omp_lock_t *lock = new omp_lock_t[n_source_neurons];

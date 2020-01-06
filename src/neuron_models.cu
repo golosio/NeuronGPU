@@ -17,11 +17,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cuda_error.h"
 #include "neuron_models.h"
-#include "neural_gpu.h"
+#include "neuralgpu.h"
 #include "aeif.h"
 
 int NeuralGPU::CreateNeuron(std::string model_name, int n_neurons, int n_receptors)
 {
+  CheckUncalibrated("Neurons cannot be created after calibration");
+   if (n_neurons <= 0) {
+    std::cerr << "Number of neurons must be greater than zero.\n";
+    exit(0);
+  }
+  else if (n_receptors <= 0) {
+    std::cerr << "Number of receptors must be greater than zero.\n";
+    exit(0);
+  }
   if (model_name == neuron_model_name[i_AEIF_model]) {
     AEIF *aeif_neuron = new AEIF;
     neuron_vect_.push_back(aeif_neuron);

@@ -1,0 +1,38 @@
+finish C interface
+
+Produce python examples
+
+make test/python directory
+make example/python directory
+
+make test/c directory
+make example/c directory
+
+make test/c++ directory
+make example/c++ directory
+
+Produce python examples
+
+Fix c++ examples
+
+unify neuralgpu.h and neuralgpu-python.h
+neuralgpu-python.cu -> neuralgpu-interface.cu
+unify make
+
+Check error handling
+How to prevent python to crash and exit in case of error in neuralgpu?
+
+Produce build system and check it on different linux, mac (windows?)
+
+check redundancy and possible inconsistencies between neuron_group and base_neuron
+check and prevent possible inconsistencies in i_node_0 in spike_buffer and in neuron_group[]
+
+Make rk5 dynamic
+
+make user_neuron1, 2, ...
+
+make 'poiss_gen' model with variable rates
+
+convert spike generator to model
+
+Write tutorial

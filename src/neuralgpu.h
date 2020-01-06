@@ -12,37 +12,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURAL_GPU_H
-#define NEURAL_GPU_H
+#ifndef NEURALGPUCLASSH
+#define NEURALGPUCLASSH
 
 #include <vector>
 #include <string>
 
 #include "neuron_group.h"
 #include "base_neuron.h"
-//#include "connect.h"
-//#include "connect_mpi.h"
-//#include "poisson.h"
-//#include "aeif.h"
-//#include "spike_generator.h"
-//#include "multimeter.h"
 
-//class curandGenerator_t;
-struct curandGenerator_st;
-typedef struct curandGenerator_st* curandGenerator_t;
 class PoissonGenerator;
 class SpikeGenerator;
 class Multimeter;
-//class AEIF;
 class NetConnection;
 class ConnectMpi;
+struct curandGenerator_st;
+typedef struct curandGenerator_st* curandGenerator_t;
 
 class NeuralGPU
 {
   float time_resolution_; // time resolution in ms
   curandGenerator_t *random_generator_;
-  int CreateNeuron(int n_neurons, int n_receptors);
- public:
+  bool calibrate_flag_; // becomes true after calibration
+  bool mpi_flag_; // true if MPI is initialized
+
   PoissonGenerator *poiss_generator_;
   SpikeGenerator *spike_generator_;
   Multimeter *multimeter_;
@@ -55,7 +48,7 @@ class NeuralGPU
   std::vector<signed char> neuron_group_map_;
   signed char *d_neuron_group_map_;
 
-  bool calibrate_flag_; // becomes true after calibration
+
   int max_spike_buffer_num_;
   int max_spike_num_;
   int max_spike_per_host_;
@@ -70,7 +63,16 @@ class NeuralGPU
   double start_real_time_;
   double build_real_time_;
   double end_real_time_;
+  
+  int CreateNeuron(int n_neurons, int n_receptors);
+  int CheckUncalibrated(std::string message);
+  int InsertNeuronGroup(int n_neurons, int n_receptors);
+  int NeuronGroupArrayInit();
+  int ClearGetSpikeArrays();
+  int FreeGetSpikeArrays();
+  int FreeNeuronGroupMap();
     
+ public:
   NeuralGPU();
 
   ~NeuralGPU();
@@ -92,43 +94,42 @@ class NeuralGPU
 		   int *i_neuron_arr, int *i_receptor_arr, int n_neurons);
   std::vector<std::vector<float>> *GetRecordData(int i_record);
 
+  int SetNeuronParams(std::string param_name, int i_node, int n_neurons,
+		      float val);
+
+  int SetNeuronVectParams(std::string param_name, int i_node, int n_neurons,
+			  float *params, int vect_size);
+  
+  int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
+			float *spike_height);
+
   int Calibrate();
   int Simulate();
-  int CheckUncalibrated(std::string message);
 
-  int ConnectFixedIndegree
-    (
-     int i_source_neuron_0, int n_source_neurons,
-     int i_target_neuron_0, int n_target_neurons,
-     unsigned char i_port, float weight, float delay, int indegree
-     );
+  int ConnectMpiInit(int argc, char *argv[]);
 
-  int RemoteConnectFixedIndegree
-    (
-     int i_source_host, int i_source_neuron_0, int n_source_neurons,
-     int i_target_host, int i_target_neuron_0, int n_target_neurons,
-     unsigned char i_port, float weight, float delay, int indegree
-     );
+  int MpiId();
+
+  int MpiNp();
+
+  int ProcMaster();
+
+  int MpiFinalize();
   
-  int ConnectAllToAll
-    (
-     int i_source_neuron_0, int n_source_neurons,
-     int i_target_neuron_0, int n_target_neurons,
-     unsigned char i_port, float weight, float delay
-     );
-
-  int RemoteConnectAllToAll
-    (
-     int i_source_host, int i_source_neuron_0, int n_source_neurons,
-     int i_target_host, int i_target_neuron_0, int n_target_neurons,
-     unsigned char i_port, float weight, float delay
-     );
+  unsigned int *RandomInt(size_t n);
   
+  float *RandomUniform(size_t n);
+
+  float *RandomNormal(size_t n, float mean, float stddev);
+
+  float *RandomNormalClipped(size_t n, float mean, float stddev, float vmin,
+			     float vmax);  
+
   int Connect
-  (
-   int i_source_neuron, int i_target_neuron, unsigned char i_port,
-   float weight, float delay
-   );
+    (
+     int i_source_neuron, int i_target_neuron, unsigned char i_port,
+     float weight, float delay
+     );
 
   int ConnectOneToOne
     (
@@ -136,17 +137,20 @@ class NeuralGPU
      unsigned char i_port, float weight, float delay
      );
 
-  int RemoteConnectOneToOne
+  int ConnectAllToAll
     (
-     int i_source_host, int i_source_neuron_0,
-     int i_target_host, int i_target_neuron_0, int n_neurons,
+     int i_source_neuron_0, int n_source_neurons,
+     int i_target_neuron_0, int n_target_neurons,
      unsigned char i_port, float weight, float delay
      );
   
-  int RemoteConnect(int i_source_host, int i_source_neuron,
-		    int i_target_host, int i_target_neuron,
-		    unsigned char i_port, float weight, float delay);
-    
+  int ConnectFixedIndegree
+    (
+     int i_source_neuron_0, int n_source_neurons,
+     int i_target_neuron_0, int n_target_neurons,
+     unsigned char i_port, float weight, float delay, int indegree
+     );
+
   int ConnectFixedIndegreeArray
     (
      int i_source_neuron_0, int n_source_neurons,
@@ -159,39 +163,31 @@ class NeuralGPU
 				   unsigned char i_port, float *weight_arr,
 				   float *delay_arr, int n_conn);
 
-  int SetNeuronParams(std::string param_name, int i_node, int n_neurons,
-		      float val);
-
-  int SetNeuronVectParams(std::string param_name, int i_node, int n_neurons,
-			  float *params, int vect_size);
-
-  int ConnectMpiInit(int argc, char *argv[]);
-
-  int MpiId();
-
-  int MpiNp();
-
-  int ProcMaster();
-
-  int MpiFinalize();
-
-  int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
-			float *spike_height);
+  int RemoteConnect(int i_source_host, int i_source_neuron,
+		    int i_target_host, int i_target_neuron,
+		    unsigned char i_port, float weight, float delay);
   
-  unsigned int *RandomInt(size_t n);
+  int RemoteConnectOneToOne
+    (
+     int i_source_host, int i_source_neuron_0,
+     int i_target_host, int i_target_neuron_0, int n_neurons,
+     unsigned char i_port, float weight, float delay
+     );
+
+  int RemoteConnectAllToAll
+    (
+     int i_source_host, int i_source_neuron_0, int n_source_neurons,
+     int i_target_host, int i_target_neuron_0, int n_target_neurons,
+     unsigned char i_port, float weight, float delay
+     );
   
-  float *RandomUniform(size_t n);
-
-  float *RandomNormal(size_t n, float mean, float stddev);
-
-  float *RandomNormalClipped(size_t n, float mean, float stddev, float vmin,
-			     float vmax);  
-
-  int InsertNeuronGroup(int n_neurons, int n_receptors);
-  int NeuronGroupArrayInit();
-  int ClearGetSpikeArrays();
-  int FreeGetSpikeArrays();
-  int FreeNeuronGroupMap();
+  int RemoteConnectFixedIndegree
+    (
+     int i_source_host, int i_source_neuron_0, int n_source_neurons,
+     int i_target_host, int i_target_neuron_0, int n_target_neurons,
+     unsigned char i_port, float weight, float delay, int indegree
+     );
+      
 };
 
 #endif

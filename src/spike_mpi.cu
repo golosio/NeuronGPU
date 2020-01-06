@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
+__constant__ bool NeuralGPUMpiFlag;
+
 __device__ int NExternalTargetHost;
 __device__ int MaxSpikePerHost;
 

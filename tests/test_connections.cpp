@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include "neural_gpu.h"
+#include "neuralgpu.h"
 
 using namespace std;
 

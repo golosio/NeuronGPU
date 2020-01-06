@@ -86,8 +86,10 @@ __device__ float *SpikeBufferHeight; // [NSpikeBuffer*MaxSpikeBufferNum];
 
 
 __device__ void PushSpike(int i_spike_buffer, float height)
-{    
-  PushExternalSpike(i_spike_buffer, height);
+{
+  if (NeuralGPUMpiFlag) {
+    PushExternalSpike(i_spike_buffer, height);
+  }
   if (ConnectionGroupSize[i_spike_buffer]>0) {
     int Ns = SpikeBufferSize[i_spike_buffer]; 
     if (Ns>=MaxSpikeBufferSize) {

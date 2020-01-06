@@ -80,7 +80,11 @@ int ConnectMpi::MPI_Send_uchar(unsigned char *uchar_val, int n, int target_id)
 
 int ConnectMpi::MpiInit(int argc, char *argv[])
 {
-  MPI_Init(&argc,&argv);
+  int initialized;
+  MPI_Initialized(&initialized);
+  if (!initialized) {
+    MPI_Init(&argc,&argv);
+  }
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_np_);
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_id_);
   mpi_master_ = 0;

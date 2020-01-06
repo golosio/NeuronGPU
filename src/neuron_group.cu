@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cuda_error.h"
 #include "neuron_group.h"
-#include "neural_gpu.h"
+#include "neuralgpu.h"
 
 __constant__ NeuronGroup NeuronGroupArray[MAX_N_NEURON_GROUPS];
 __device__ signed char *NeuronGroupMap;

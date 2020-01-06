@@ -120,7 +120,7 @@ extern "C" {
 					       n_neurons, val);
   }
 
-  int NeuralGPU_SetNeuronVectParams(std::string param_name, int i_node,
+  int NeuralGPU_SetNeuronVectParams(char *param_name, int i_node,
 				    int n_neurons, float *params,
 				    int vect_size)
   {
@@ -211,6 +211,129 @@ extern "C" {
   {
     return NeuralGPU_instance->Connect(i_source_neuron, i_target_neuron,
 				       i_port, weight, delay);
+  }
+
+  int NeuralGPU_ConnectOneToOne
+  (
+   int i_source_neuron_0, int i_target_neuron_0, int n_neurons,
+   unsigned char i_port, float weight, float delay
+   )
+  {
+    return NeuralGPU_instance->ConnectOneToOne
+      (i_source_neuron_0, i_target_neuron_0, n_neurons, i_port, weight, delay);
+  }
+
+  int NeuralGPU_ConnectAllToAll
+  (
+   int i_source_neuron_0, int n_source_neurons,
+   int i_target_neuron_0, int n_target_neurons,
+   unsigned char i_port, float weight, float delay
+   )
+  {
+    return NeuralGPU_instance->ConnectAllToAll
+      (
+       i_source_neuron_0, n_source_neurons, i_target_neuron_0,
+       n_target_neurons, i_port, weight, delay
+       );
+  }
+  
+  int NeuralGPU_ConnectFixedIndegree
+  (
+   int i_source_neuron_0, int n_source_neurons,
+   int i_target_neuron_0, int n_target_neurons,
+   unsigned char i_port, float weight, float delay, int indegree
+   )
+  {
+    return NeuralGPU_instance->ConnectFixedIndegree
+      (
+       i_source_neuron_0, n_source_neurons, i_target_neuron_0,
+       n_target_neurons, i_port, weight, delay, indegree
+     );
+  }
+
+  int NeuralGPU_ConnectFixedIndegreeArray
+  (
+   int i_source_neuron_0, int n_source_neurons,
+   int i_target_neuron_0, int n_target_neurons,
+   unsigned char i_port, float *weight_arr, float *delay_arr, int indegree
+   )
+  {
+    return NeuralGPU_instance->ConnectFixedIndegreeArray
+      (
+       i_source_neuron_0, n_source_neurons, i_target_neuron_0,
+       n_target_neurons, i_port, weight_arr, delay_arr, indegree
+       );
+  }
+  
+  int NeuralGPU_ConnectFixedTotalNumberArray
+  (
+   int i_source_neuron_0, int n_source_neurons,
+   int i_target_neuron_0, int n_target_neurons,
+   unsigned char i_port, float *weight_arr,
+   float *delay_arr, int n_conn
+   )
+  {
+    return NeuralGPU_instance->ConnectFixedTotalNumberArray
+      (
+       i_source_neuron_0, n_source_neurons, i_target_neuron_0,
+       n_target_neurons, i_port, weight_arr, delay_arr, n_conn
+       );
+  }
+
+  int NeuralGPU_RemoteConnect
+  (
+   int i_source_host, int i_source_neuron,
+   int i_target_host, int i_target_neuron,
+   unsigned char i_port, float weight, float delay
+   )
+  {
+    return NeuralGPU_instance->RemoteConnect
+      (
+       i_source_host, i_source_neuron, i_target_host, i_target_neuron,
+       i_port, weight, delay
+       );
+  }
+  
+  int NeuralGPU_RemoteConnectOneToOne
+  (
+   int i_source_host, int i_source_neuron_0,
+   int i_target_host, int i_target_neuron_0, int n_neurons,
+   unsigned char i_port, float weight, float delay
+   )
+  {
+    return NeuralGPU_instance->RemoteConnectOneToOne
+      (
+       i_source_host, i_source_neuron_0, i_target_host, i_target_neuron_0,
+       n_neurons, i_port, weight, delay
+       );
+  }
+
+  int NeuralGPU_RemoteConnectAllToAll
+  (
+   int i_source_host, int i_source_neuron_0, int n_source_neurons,
+   int i_target_host, int i_target_neuron_0, int n_target_neurons,
+   unsigned char i_port, float weight, float delay
+   )
+  {
+    return NeuralGPU_instance->RemoteConnectAllToAll
+  (
+   i_source_host, i_source_neuron_0, n_source_neurons, i_target_host,
+   i_target_neuron_0, n_target_neurons, i_port, weight, delay
+   );
+  }
+  
+  int NeuralGPU_RemoteConnectFixedIndegree
+  (
+   int i_source_host, int i_source_neuron_0, int n_source_neurons,
+   int i_target_host, int i_target_neuron_0, int n_target_neurons,
+   unsigned char i_port, float weight, float delay, int indegree
+   )
+  {
+    return NeuralGPU_instance->RemoteConnectFixedIndegree
+      (
+       i_source_host, i_source_neuron_0, n_source_neurons, i_target_host,
+       i_target_neuron_0, n_target_neurons, i_port, weight, delay, indegree
+       );
   }
 
 }

@@ -122,7 +122,7 @@ NeuralGPU_SetNeuronVectParams.restype = ctypes.c_int
 def SetNeuronVectParams(param_name, i_node, n_neurons, params_list):
     "Set neuron vector parameter value"
     c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
-    vect_size = len(params)
+    vect_size = len(params_list)
     array_float_type = ctypes.c_float * vect_size
     return NeuralGPU_SetNeuronVectParams(c_param_name, ctypes.c_int(i_node), ctypes.c_int(n_neurons),
                                          array_float_type(*params_list), ctypes.c_int(vect_size))  
@@ -201,7 +201,12 @@ NeuralGPU_RandomInt.argtypes = (ctypes.c_size_t,)
 NeuralGPU_RandomInt.restype = ctypes.POINTER(ctypes.c_uint)
 def RandomInt(n):
     "Generate n random integers in CUDA memory"
-    return NeuralGPU_RandomInt(ctypes.c_size_t(n))
+    dist_arr = NeuralGPU_RandomInt(ctypes.c_size_t(n))
+    dist_list = []
+    for i in range(n):
+        dist_list.append(dist_arr[i])
+        
+    return dist_list
 
 
 NeuralGPU_RandomUniform = _neuralgpu.NeuralGPU_RandomUniform
@@ -209,7 +214,12 @@ NeuralGPU_RandomUniform.argtypes = (ctypes.c_size_t,)
 NeuralGPU_RandomUniform.restype = ctypes.POINTER(ctypes.c_float)
 def RandomUniform(n):
     "Generate n random floats with uniform distribution in (0,1) in CUDA memory"
-    return NeuralGPU_RandomUniform(ctypes.c_size_t(n))
+    dist_arr = NeuralGPU_RandomUniform(ctypes.c_size_t(n))
+    dist_list = []
+    for i in range(n):
+        dist_list.append(dist_arr[i])
+        
+    return dist_list
 
 
 NeuralGPU_RandomNormal = _neuralgpu.NeuralGPU_RandomNormal
@@ -217,7 +227,12 @@ NeuralGPU_RandomNormal.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_flo
 NeuralGPU_RandomNormal.restype = ctypes.POINTER(ctypes.c_float)
 def RandomNormal(n, mean, stddev):
     "Generate n random floats with normal distribution in CUDA memory"
-    return NeuralGPU_RandomNormal(ctypes.c_size_t(n), ctypes.c_float(mean), ctypes.c_float(stddev))
+    dist_arr = NeuralGPU_RandomNormal(ctypes.c_size_t(n), ctypes.c_float(mean), ctypes.c_float(stddev))
+    dist_list = []
+    for i in range(n):
+        dist_list.append(dist_arr[i])
+        
+    return dist_list
 
 
 NeuralGPU_RandomNormalClipped = _neuralgpu.NeuralGPU_RandomNormalClipped
@@ -226,17 +241,13 @@ NeuralGPU_RandomNormalClipped.argtypes = (ctypes.c_size_t, ctypes.c_float, ctype
 NeuralGPU_RandomNormalClipped.restype = ctypes.POINTER(ctypes.c_float)
 def RandomNormalClipped(n, mean, stddev, vmin, vmax):
     "Generate n random floats with normal clipped distribution in CUDA memory"
-    return NeuralGPU_RandomNormalClipped(ctypes.c_size_t(n), ctypes.c_float(mean), ctypes.c_float(stddev),
-                                         ctypes.c_float(vmin), ctypes.c_float(vmax))
-
-
-NeuralGPU_Connect = _neuralgpu.NeuralGPU_Connect
-NeuralGPU_Connect.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_ubyte, ctypes.c_float, ctypes.c_float)
-NeuralGPU_Connect.restype = ctypes.c_int
-def Connect(i_source_neuron, i_target_neuron, i_port, weight, delay):
-    "Connect two neurons"
-    return NeuralGPU_Connect(ctypes.c_int(i_source_neuron), ctypes.c_int(i_target_neuron), ctypes.c_ubyte(i_port), ctypes.c_float(weight), ctypes.c_float(delay))
-
+    dist_arr = NeuralGPU_RandomNormalClipped(ctypes.c_size_t(n), ctypes.c_float(mean), ctypes.c_float(stddev),
+                                        ctypes.c_float(vmin), ctypes.c_float(vmax))
+    dist_list = []
+    for i in range(n):
+        dist_list.append(dist_arr[i])
+        
+    return dist_list
 
 
 NeuralGPU_ConnectMpiInit = _neuralgpu.NeuralGPU_ConnectMpiInit
@@ -252,4 +263,44 @@ def ConnectMpiInit():
         c_arg = ctypes.create_string_buffer(str.encode(sys.argv[i]), 100)
         c_var_name_list.append(c_arg)        
     return NeuralGPU_ConnectMpiInit(ctypes.c_int(argc), array_char_pt_type(*c_var_name_list))
+
+
+NeuralGPU_Connect = _neuralgpu.NeuralGPU_Connect
+NeuralGPU_Connect.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_ubyte, ctypes.c_float, ctypes.c_float)
+NeuralGPU_Connect.restype = ctypes.c_int
+def Connect(i_source_neuron, i_target_neuron, i_port, weight, delay):
+    "Connect two neurons"
+    return NeuralGPU_Connect(ctypes.c_int(i_source_neuron), ctypes.c_int(i_target_neuron), ctypes.c_ubyte(i_port), ctypes.c_float(weight), ctypes.c_float(delay))
+
+
+NeuralGPU_ConnectOneToOne = _neuralgpu.NeuralGPU_ConnectOneToOne
+NeuralGPU_ConnectOneToOne.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_ubyte, ctypes.c_float,
+                                      ctypes.c_float)
+NeuralGPU_ConnectOneToOne.restype = ctypes.c_int
+def ConnectOneToOne(i_source_neuron_0, i_target_neuron_0, n_neurons,
+                              i_port, weight, delay):
+    "Connect two neuron groups with OneToOne rule"
+    return NeuralGPU_ConnectOneToOne(ctypes.c_int(i_source_neuron_0), ctypes.c_int(i_target_neuron_0),
+                                     ctypes.c_int(n_neurons), ctypes.c_ubyte(i_port),
+                                     ctypes.c_float(weight), ctypes.c_float(delay))
+
+
+NeuralGPU_ConnectFixedIndegreeArray = _neuralgpu.NeuralGPU_ConnectFixedIndegreeArray
+NeuralGPU_ConnectFixedIndegreeArray.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                                ctypes.c_ubyte, ctypes.POINTER(ctypes.c_float),
+                                                ctypes.POINTER(ctypes.c_float), ctypes.c_int)
+NeuralGPU_ConnectFixedIndegreeArray.restype = ctypes.c_int
+def ConnectFixedIndegreeArray(i_source_neuron_0, n_source_neurons, i_target_neuron_0, n_target_neurons,
+                              i_port, weight_list, delay_list, indegree):
+    "Connect two neuron groups with FixedIndegree rule and weights and delays from arrays"
+    arr_size = indegree*n_target_neurons
+    c_weights = (ctypes.c_float * arr_size)(*weight_list)
+    c_delays = (ctypes.c_float * arr_size)(*delay_list)    
+
+    return NeuralGPU_ConnectFixedIndegreeArray(ctypes.c_int(i_source_neuron_0), ctypes.c_int(n_source_neurons),
+                                               ctypes.c_int(i_target_neuron_0), ctypes.c_int(n_target_neurons),
+                                               ctypes.c_ubyte(i_port),
+                                               ctypes.POINTER(ctypes.c_float)(c_weights),
+                                               ctypes.POINTER(ctypes.c_float)(c_delays),
+                                               ctypes.c_int(indegree))
 

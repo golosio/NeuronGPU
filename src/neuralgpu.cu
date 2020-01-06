@@ -61,7 +61,7 @@ NeuralGPU::NeuralGPU()
   calibrate_flag_ = false;
   mpi_flag_ = false;
   start_real_time_ = getRealTime();
-  max_spike_buffer_num_ = 100;
+  max_spike_buffer_size_ = 100;
   t_min_ = 0.0;
   sim_time_ = 1000.0;        //Simulation time in ms
   n_neurons_ = 0;
@@ -106,6 +106,18 @@ int NeuralGPU::SetTimeResolution(float time_res)
   net_connection_->time_resolution_ = time_res;
   
   return 0;
+}
+
+int NeuralGPU::SetMaxSpikeBufferSize(int max_size)
+{
+  max_spike_buffer_size_ = max_size;
+  
+  return 0;
+}
+
+int NeuralGPU::GetMaxSpikeBufferSize()
+{
+  return max_spike_buffer_size_;
 }
 
 int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
@@ -244,7 +256,7 @@ int NeuralGPU::Calibrate()
     * net_connection_->MaxDelayNum();
 
   SpikeInit(max_spike_num_);
-  SpikeBufferInit(net_connection_, max_spike_buffer_num_);
+  SpikeBufferInit(net_connection_, max_spike_buffer_size_);
 
   if (mpi_flag_) {
     // remove superfluous argument mpi_np

@@ -46,6 +46,18 @@ extern "C" {
     return NeuralGPU_instance->GetTimeResolution();
   }
 
+  int NeuralGPU_SetMaxSpikeBufferSize(int max_size)
+  {
+    checkNeuralGPUInstance();
+    return NeuralGPU_instance->SetMaxSpikeBufferSize(max_size);
+  }
+
+  int NeuralGPU_GetMaxSpikeBufferSize()
+  {
+    checkNeuralGPUInstance();
+    return NeuralGPU_instance->GetMaxSpikeBufferSize();
+  }
+
   int NeuralGPU_CreateNeuron(char *model_name, int n_neurons, int n_receptors)
   {
     checkNeuralGPUInstance();

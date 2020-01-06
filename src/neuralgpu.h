@@ -49,7 +49,7 @@ class NeuralGPU
   signed char *d_neuron_group_map_;
 
 
-  int max_spike_buffer_num_;
+  int max_spike_buffer_size_;
   int max_spike_num_;
   int max_spike_per_host_;
 
@@ -85,6 +85,8 @@ class NeuralGPU
     return time_resolution_;
   }
 
+  int SetMaxSpikeBufferSize(int max_size);
+  int GetMaxSpikeBufferSize();
   int CreateNeuron(std::string model_name, int n_neurons, int n_receptors);
   int CreatePoissonGenerator(int n_nodes, float rate);
   int CreateSpikeGenerator(int n_nodes);

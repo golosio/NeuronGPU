@@ -29,6 +29,21 @@ def GetTimeResolution():
     return NeuralGPU_GetTimeResolution()
 
 
+NeuralGPU_SetMaxSpikeBufferSize = _neuralgpu.NeuralGPU_SetMaxSpikeBufferSize
+NeuralGPU_SetMaxSpikeBufferSize.argtypes = (ctypes.c_int,)
+NeuralGPU_SetMaxSpikeBufferSize.restype = ctypes.c_int
+def SetMaxSpikeBufferSize(max_size):
+    "Set maximum size of spike buffer per neuron"
+    return NeuralGPU_SetMaxSpikeBufferSize(ctypes.c_int(max_size))
+
+
+NeuralGPU_GetMaxSpikeBufferSize = _neuralgpu.NeuralGPU_GetMaxSpikeBufferSize
+NeuralGPU_GetMaxSpikeBufferSize.restype = ctypes.c_int
+def GetMaxSpikeBufferSize():
+    "Get maximum size of spike buffer per neuron"
+    return NeuralGPU_GetMaxSpikeBufferSize()
+
+
 NeuralGPU_CreateNeuron = _neuralgpu.NeuralGPU_CreateNeuron
 NeuralGPU_CreateNeuron.argtypes = (ctypes.POINTER(ctypes.c_char), ctypes.c_int, ctypes.c_int)
 NeuralGPU_CreateNeuron.restype = ctypes.c_int
@@ -285,6 +300,33 @@ def ConnectOneToOne(i_source_neuron_0, i_target_neuron_0, n_neurons,
                                      ctypes.c_float(weight), ctypes.c_float(delay))
 
 
+NeuralGPU_ConnectAllToAll = _neuralgpu.NeuralGPU_ConnectAllToAll
+NeuralGPU_ConnectAllToAll.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                                ctypes.c_ubyte, ctypes.c_float, ctypes.c_float)
+NeuralGPU_ConnectAllToAll.restype = ctypes.c_int
+def ConnectAllToAll(i_source_neuron_0, n_source_neurons, i_target_neuron_0, n_target_neurons,
+                              i_port, weight, delay):
+    "Connect two neuron groups with AllToAll rule"
+    return NeuralGPU_ConnectAllToAll(ctypes.c_int(i_source_neuron_0), ctypes.c_int(n_source_neurons),
+                                     ctypes.c_int(i_target_neuron_0), ctypes.c_int(n_target_neurons),
+                                     ctypes.c_ubyte(i_port),
+                                     ctypes.c_float(weight), ctypes.c_float(delay))
+
+
+NeuralGPU_ConnectFixedIndegree = _neuralgpu.NeuralGPU_ConnectFixedIndegree
+NeuralGPU_ConnectFixedIndegree.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                                ctypes.c_ubyte, ctypes.c_float, ctypes.c_float, ctypes.c_int)
+NeuralGPU_ConnectFixedIndegree.restype = ctypes.c_int
+def ConnectFixedIndegree(i_source_neuron_0, n_source_neurons, i_target_neuron_0, n_target_neurons,
+                              i_port, weight, delay, indegree):
+    "Connect two neuron groups with FixedIndegree rule"
+    return NeuralGPU_ConnectFixedIndegree(ctypes.c_int(i_source_neuron_0), ctypes.c_int(n_source_neurons),
+                                          ctypes.c_int(i_target_neuron_0), ctypes.c_int(n_target_neurons),
+                                          ctypes.c_ubyte(i_port),
+                                          ctypes.c_float(weight), ctypes.c_float(delay),
+                                          ctypes.c_int(indegree))
+
+
 NeuralGPU_ConnectFixedIndegreeArray = _neuralgpu.NeuralGPU_ConnectFixedIndegreeArray
 NeuralGPU_ConnectFixedIndegreeArray.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
                                                 ctypes.c_ubyte, ctypes.POINTER(ctypes.c_float),
@@ -303,4 +345,72 @@ def ConnectFixedIndegreeArray(i_source_neuron_0, n_source_neurons, i_target_neur
                                                ctypes.POINTER(ctypes.c_float)(c_weights),
                                                ctypes.POINTER(ctypes.c_float)(c_delays),
                                                ctypes.c_int(indegree))
+
+
+NeuralGPU_ConnectFixedTotalNumberArray = _neuralgpu.NeuralGPU_ConnectFixedTotalNumberArray
+NeuralGPU_ConnectFixedTotalNumberArray.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                                ctypes.c_ubyte, ctypes.POINTER(ctypes.c_float),
+                                                ctypes.POINTER(ctypes.c_float), ctypes.c_int)
+NeuralGPU_ConnectFixedTotalNumberArray.restype = ctypes.c_int
+def ConnectFixedTotalNumberArray(i_source_neuron_0, n_source_neurons, i_target_neuron_0, n_target_neurons,
+                                 i_port, weight_list, delay_list, n_conn):
+    "Connect two neuron groups with FixedTotalNumber rule and weights and delays from arrays"
+    c_weights = (ctypes.c_float * n_conn)(*weight_list)
+    c_delays = (ctypes.c_float * n_conn)(*delay_list)    
+
+    return NeuralGPU_ConnectFixedTotalNumberArray(ctypes.c_int(i_source_neuron_0), ctypes.c_int(n_source_neurons),
+                                               ctypes.c_int(i_target_neuron_0), ctypes.c_int(n_target_neurons),
+                                               ctypes.c_ubyte(i_port),
+                                               ctypes.POINTER(ctypes.c_float)(c_weights),
+                                               ctypes.POINTER(ctypes.c_float)(c_delays),
+                                               ctypes.c_int(n_conn))
+
+
+NeuralGPU_RemoteConnect = _neuralgpu.NeuralGPU_RemoteConnect
+NeuralGPU_RemoteConnect.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                                ctypes.c_ubyte, ctypes.c_float, ctypes.c_float)
+NeuralGPU_RemoteConnect.restype = ctypes.c_int
+def RemoteConnect(i_source_host, i_source_neuron, i_target_host, i_target_neuron,
+                              i_port, weight, delay):
+    "Connect two neurons on different MPI hosts"
+    return NeuralGPU_RemoteConnect(ctypes.c_int(i_source_host), ctypes.c_int(i_source_neuron),
+                                          ctypes.c_int(i_target_host), ctypes.c_int(i_target_neuron),
+                                          ctypes.c_ubyte(i_port), ctypes.c_float(weight), ctypes.c_float(delay))
+
+
+NeuralGPU_RemoteConnectOneToOne = _neuralgpu.NeuralGPU_RemoteConnectOneToOne
+NeuralGPU_RemoteConnectOneToOne.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                                ctypes.c_ubyte, ctypes.c_float, ctypes.c_float)
+NeuralGPU_RemoteConnectOneToOne.restype = ctypes.c_int
+def RemoteConnectOneToOne(i_source_host, i_source_neuron_0, i_target_host, i_target_neuron_0, n_neurons,
+                              i_port, weight, delay):
+    "Connect two neuron groups on different MPI hosts with OneToOne rule"
+    return NeuralGPU_RemoteConnectOneToOne(ctypes.c_int(i_source_host), ctypes.c_int(i_source_neuron_0),
+                                          ctypes.c_int(i_target_host), ctypes.c_int(i_target_neuron_0), ctypes.c_int(n_neurons),
+                                          ctypes.c_ubyte(i_port), ctypes.c_float(weight), ctypes.c_float(delay))
+
+
+NeuralGPU_RemoteConnectAllToAll = _neuralgpu.NeuralGPU_RemoteConnectAllToAll
+NeuralGPU_RemoteConnectAllToAll.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                                ctypes.c_ubyte, ctypes.c_float, ctypes.c_float)
+NeuralGPU_RemoteConnectAllToAll.restype = ctypes.c_int
+def RemoteConnectAllToAll(i_source_host, i_source_neuron_0, n_source_neurons, i_target_host, i_target_neuron_0, n_target_neurons,
+                              i_port, weight, delay):
+    "Connect two neuron groups on different MPI hosts with AllToAll rule"
+    return NeuralGPU_RemoteConnectAllToAll(ctypes.c_int(i_source_host), ctypes.c_int(i_source_neuron_0), ctypes.c_int(n_source_neurons),
+                                          ctypes.c_int(i_target_host), ctypes.c_int(i_target_neuron_0), ctypes.c_int(n_target_neurons),
+                                          ctypes.c_ubyte(i_port), ctypes.c_float(weight), ctypes.c_float(delay))
+
+
+NeuralGPU_RemoteConnectFixedIndegree = _neuralgpu.NeuralGPU_RemoteConnectFixedIndegree
+NeuralGPU_RemoteConnectFixedIndegree.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                                ctypes.c_ubyte, ctypes.c_float, ctypes.c_float, ctypes.c_int)
+NeuralGPU_RemoteConnectFixedIndegree.restype = ctypes.c_int
+def RemoteConnectFixedIndegree(i_source_host, i_source_neuron_0, n_source_neurons, i_target_host, i_target_neuron_0, n_target_neurons,
+                              i_port, weight, delay, indegree):
+    "Connect two neuron groups on different MPI hosts with FixedIndegree rule"
+    return NeuralGPU_RemoteConnectFixedIndegree(ctypes.c_int(i_source_host), ctypes.c_int(i_source_neuron_0), ctypes.c_int(n_source_neurons),
+                                          ctypes.c_int(i_target_host), ctypes.c_int(i_target_neuron_0), ctypes.c_int(n_target_neurons),
+                                          ctypes.c_ubyte(i_port), ctypes.c_float(weight), ctypes.c_float(delay), ctypes.c_int(indegree))
+
 

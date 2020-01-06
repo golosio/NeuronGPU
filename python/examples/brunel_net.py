@@ -1,15 +1,20 @@
+import sys
 import ctypes
-import neuralgpu
+import neuralgpu as ngpu
+from random import randrange
 
-print("Building")
+if len(sys.argv) != 2:
+    print ("Usage: python %s n_neurons" % sys.argv[0])
+    quit()
+    
+order = int(sys.argv[1])/5
 
-#  neuralgpu.max_spike_buffer_num_=10; //reduce it to save GPU memory
+print("Building ...")
   
 n_receptors = 2
 
 delay = 1.0       # synaptic delay in ms
 
-order = 10000
 NE = 4 * order       # number of excitatory neurons
 NI = 1 * order       # number of inhibitory neurons
 n_neurons = NE + NI  # number of neurons in total
@@ -26,10 +31,10 @@ poiss_weight = 0.369
 poiss_delay = 0.2 # poisson signal delay in ms
 n_pg = n_neurons  # number of poisson generators
 # create poisson generator
-pg = neuralgpu.CreatePoissonGenerator(n_pg, poiss_rate)
+pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
 
 # Create n_neurons neurons with n_receptor receptor ports
-neuron = neuralgpu.CreateNeuron("AEIF", n_neurons, n_receptors)
+neuron = ngpu.CreateNeuron("AEIF", n_neurons, n_receptors)
 exc_neuron = neuron      # excitatory neuron id
 inh_neuron = neuron + NE # inhibitory neuron id
   
@@ -38,71 +43,76 @@ E_rev = [0.0, -85.0]
 taus_decay = [1.0, 1.0]
 taus_rise = [1.0, 1.0]
 
-neuralgpu.SetNeuronVectParams("E_rev", neuron, n_neurons, E_rev)
-neuralgpu.SetNeuronVectParams("taus_decay", neuron, n_neurons, taus_decay)
-neuralgpu.SetNeuronVectParams("taus_rise", neuron, n_neurons, taus_rise)
+ngpu.SetNeuronVectParams("E_rev", neuron, n_neurons, E_rev)
+ngpu.SetNeuronVectParams("taus_decay", neuron, n_neurons, taus_decay)
+ngpu.SetNeuronVectParams("taus_rise", neuron, n_neurons, taus_rise)
 mean_delay = 0.5
 std_delay = 0.25
 min_delay = 0.1
 # Excitatory connections
 # connect excitatory neurons to port 0 of all neurons
 # normally distributed delays, weight Wex and CE connections per neuron
-exc_delays = neuralgpu.RandomNormalClipped(CE*n_neurons, mean_delay,
+exc_delays = ngpu.RandomNormalClipped(CE*n_neurons, mean_delay,
   					   std_delay, min_delay,
   					   mean_delay+3*std_delay)
 exc_weights = []
 for i in range(CE*n_neurons):
     exc_weights.append(Wex)
-neuralgpu.ConnectFixedIndegreeArray(exc_neuron, NE, neuron, n_neurons,
+ngpu.ConnectFixedIndegreeArray(exc_neuron, NE, neuron, n_neurons,
 				  0, exc_weights, exc_delays, CE)
 
 # Inhibitory connections
 # connect inhibitory neurons to port 1 of all neurons
 # normally distributed delays, weight Win and CI connections per neuron
-inh_delays = neuralgpu.RandomNormalClipped(CI*n_neurons, mean_delay,
+inh_delays = ngpu.RandomNormalClipped(CI*n_neurons, mean_delay,
   					    std_delay, min_delay,
   					    mean_delay+3*std_delay)
 inh_weights = []
 for i in range(CI*n_neurons):
     inh_weights.append(Win)
-neuralgpu.ConnectFixedIndegreeArray(inh_neuron, NI, neuron, n_neurons,
+ngpu.ConnectFixedIndegreeArray(inh_neuron, NI, neuron, n_neurons,
 				  1, inh_weights, inh_delays, CI)
 
 #connect poisson generator to port 0 of all neurons
-neuralgpu.ConnectOneToOne(pg, neuron, n_neurons, 0, poiss_weight,
+ngpu.ConnectOneToOne(pg, neuron, n_neurons, 0, poiss_weight,
 			   poiss_delay)
 
-filename = "test_brunel_del_50k.dat"
-i_neuron_arr = [neuron+2000, neuron+3000, neuron+4000]
+filename = "test_brunel_net.dat"
+i_neuron_arr = [neuron, neuron+randrange(n_neurons), neuron+n_neurons-1]
 i_receptor_arr = [0, 0, 0]
 # any set of neuron indexes
 # create multimeter record of V_m
 var_name_arr = ["V_m", "V_m", "V_m"]
-record = neuralgpu.CreateRecord(filename, var_name_arr, i_neuron_arr,
+record = ngpu.CreateRecord(filename, var_name_arr, i_neuron_arr,
                                 i_receptor_arr)
 # just to have same results in different simulations
-neuralgpu.SetRandomSeed(1234)
-neuralgpu.Simulate()
+ngpu.SetRandomSeed(1234)
+ngpu.SetMaxSpikeBufferSize(20) # spike buffer per neuron size
 
-nrows=neuralgpu.GetRecordDataRows(record)
-ncol=neuralgpu.GetRecordDataColumns(record)
+ngpu.Simulate()
+
+nrows=ngpu.GetRecordDataRows(record)
+ncol=ngpu.GetRecordDataColumns(record)
 #print nrows, ncol
 
-data_list = neuralgpu.GetRecordData(record)
+data_list = ngpu.GetRecordData(record)
 t=[row[0] for row in data_list]
 V1=[row[1] for row in data_list]
 V2=[row[2] for row in data_list]
 V3=[row[3] for row in data_list]
 
-import pylab
+import matplotlib.pyplot as plt
 
-pylab.figure(1)
-pylab.plot(t, V1)
+plt.figure(1)
+plt.plot(t, V1)
 
-pylab.figure(2)
-pylab.plot(t, V2)
+plt.figure(2)
+plt.plot(t, V2)
 
-pylab.figure(3)
-pylab.plot(t, V3)
+plt.figure(3)
+plt.plot(t, V3)
 
-pylab.show()
+plt.draw()
+plt.pause(1)
+raw_input("<Hit Enter To Close>")
+plt.close()

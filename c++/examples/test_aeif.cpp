@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
   string filename = "test_aeif.dat";
   int i_neuron[] = {neuron+rand()%n_neurons}; // any set of neuron indexes
-  std::string var_name[] = {"V_m"};
+  string var_name[] = {"V_m"};
   // create multimeter record of V_m
   ngpu.CreateRecord(filename, var_name, i_neuron, 1);
 

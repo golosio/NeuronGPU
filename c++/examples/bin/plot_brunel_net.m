@@ -1,4 +1,4 @@
-data=load('test_brunel_0.dat');
+data=load('test_brunel_net.dat');
 t=data(:,1);
 V1=data(:,2);
 V2=data(:,3);

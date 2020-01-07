@@ -214,8 +214,9 @@ extern "C" {
 				       float vmin, float vmax)
   {
     checkNeuralGPUInstance();
-    return NeuralGPU_instance->RandomNormalClipped(n, mean, stddev, vmin,
-						   vmax);
+    float *arr = NeuralGPU_instance->RandomNormalClipped(n, mean, stddev, vmin,
+							 vmax);
+    return arr;
   }
   
   int NeuralGPU_Connect(int i_source_neuron, int i_target_neuron,

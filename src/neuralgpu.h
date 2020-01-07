@@ -80,9 +80,18 @@ class NeuralGPU
   int SetRandomSeed(unsigned long long seed);
 
   int SetTimeResolution(float time_res);
-
+  
   inline float GetTimeResolution() {
     return time_resolution_;
+  }
+
+  inline int SetSimTime(float sim_time) {
+    sim_time_ = sim_time;
+    return 0;
+  }
+
+  inline float GetSimTime() {
+    return sim_time_;
   }
 
   int SetMaxSpikeBufferSize(int max_size);

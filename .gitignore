@@ -4,6 +4,7 @@
 *.a
 *.so
 *.dylib
+*.pyc
 Makefile.in
 config.h.in
 configure

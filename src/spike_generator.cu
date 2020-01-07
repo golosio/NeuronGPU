@@ -171,8 +171,8 @@ int SpikeGenerator::Set(int i_node, int n_spikes, float *spike_time,
 	"\nconsecutive spikes must be >= the time resolution\n";
       exit(-1);
     }
-    cout << "ti " << spike_time_idx[i] << endl;
-    cout << spike_time[i] << " " << time_min_ << endl;
+    //cout << "ti " << spike_time_idx[i] << endl;
+    //cout << spike_time[i] << " " << time_min_ << endl;
       
   }
   

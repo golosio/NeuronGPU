@@ -1022,7 +1022,6 @@ float *NeuralGPU::RandomNormalClipped(size_t n, float mean, float stddev,
   if (i_extra != 0) {
     delete[](arr_extra);
   }
-  
   return arr; 
 }
 

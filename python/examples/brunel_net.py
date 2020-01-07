@@ -53,13 +53,13 @@ min_delay = 0.1
 # connect excitatory neurons to port 0 of all neurons
 # normally distributed delays, weight Wex and CE connections per neuron
 exc_delays = ngpu.RandomNormalClipped(CE*n_neurons, mean_delay,
-  					   std_delay, min_delay,
-  					   mean_delay+3*std_delay)
-exc_weights = []
-for i in range(CE*n_neurons):
-    exc_weights.append(Wex)
+  			              std_delay, min_delay,
+  			              mean_delay+3*std_delay)
+
+# efficient way to build float array with equal elements
+exc_weights = (ctypes.c_float * (CE*n_neurons))(*([Wex] * (CE*n_neurons)))
 ngpu.ConnectFixedIndegreeArray(exc_neuron, NE, neuron, n_neurons,
-				  0, exc_weights, exc_delays, CE)
+			       0, exc_weights, exc_delays, CE)
 
 # Inhibitory connections
 # connect inhibitory neurons to port 1 of all neurons
@@ -67,9 +67,9 @@ ngpu.ConnectFixedIndegreeArray(exc_neuron, NE, neuron, n_neurons,
 inh_delays = ngpu.RandomNormalClipped(CI*n_neurons, mean_delay,
   					    std_delay, min_delay,
   					    mean_delay+3*std_delay)
-inh_weights = []
-for i in range(CI*n_neurons):
-    inh_weights.append(Win)
+
+# efficient way to build float array with equal elements
+inh_weights = (ctypes.c_float * (CI*n_neurons))(*([Win] * (CI*n_neurons)))
 ngpu.ConnectFixedIndegreeArray(inh_neuron, NI, neuron, n_neurons,
 				  1, inh_weights, inh_delays, CI)
 
@@ -87,7 +87,7 @@ record = ngpu.CreateRecord(filename, var_name_arr, i_neuron_arr,
                                 i_receptor_arr)
 # just to have same results in different simulations
 ngpu.SetRandomSeed(1234)
-ngpu.SetMaxSpikeBufferSize(20) # spike buffer per neuron size
+ngpu.SetMaxSpikeBufferSize(10) # spike buffer per neuron size
 
 ngpu.Simulate()
 

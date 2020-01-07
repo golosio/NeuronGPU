@@ -5,6 +5,10 @@ import ctypes, ctypes.util
 lib_path="/home/golosio/lib/libpyneuralgpu.so"
 _neuralgpu=ctypes.CDLL(lib_path)
 
+c_float_p = ctypes.POINTER(ctypes.c_float)
+c_int_p = ctypes.POINTER(ctypes.c_int)
+c_char_p = ctypes.POINTER(ctypes.c_char)
+
 
 NeuralGPU_SetRandomSeed = _neuralgpu.NeuralGPU_SetRandomSeed
 NeuralGPU_SetRandomSeed.argtypes = (ctypes.c_ulonglong,)
@@ -45,7 +49,7 @@ def GetMaxSpikeBufferSize():
 
 
 NeuralGPU_CreateNeuron = _neuralgpu.NeuralGPU_CreateNeuron
-NeuralGPU_CreateNeuron.argtypes = (ctypes.POINTER(ctypes.c_char), ctypes.c_int, ctypes.c_int)
+NeuralGPU_CreateNeuron.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int)
 NeuralGPU_CreateNeuron.restype = ctypes.c_int
 def CreateNeuron(model_name, n_neurons, n_receptors):
     "Create a neuron group"
@@ -70,14 +74,14 @@ def CreateSpikeGenerator(n_nodes):
 
 
 NeuralGPU_CreateRecord = _neuralgpu.NeuralGPU_CreateRecord
-NeuralGPU_CreateRecord.argtypes = (ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.POINTER(ctypes.c_char)), ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), ctypes.c_int); 
+NeuralGPU_CreateRecord.argtypes = (c_char_p, ctypes.POINTER(c_char_p), c_int_p, c_int_p, ctypes.c_int); 
 NeuralGPU_CreateRecord.restype = ctypes.c_int
 def CreateRecord(file_name, var_name_list, i_neuron_list, i_receptor_list):
     "Create a record of neuron variables"
     n_neurons = len(i_neuron_list)
     c_file_name = ctypes.create_string_buffer(str.encode(file_name), len(file_name)+1)    
     array_int_type = ctypes.c_int * n_neurons
-    array_char_pt_type = ctypes.POINTER(ctypes.c_char) * n_neurons;
+    array_char_pt_type = c_char_p * n_neurons;
     c_var_name_list=[]
     for i in range(n_neurons):
         c_var_name = ctypes.create_string_buffer(str.encode(var_name_list[i]), len(var_name_list[i])+1)
@@ -104,7 +108,7 @@ def GetRecordDataColumns(i_record):
 
 NeuralGPU_GetRecordData = _neuralgpu.NeuralGPU_GetRecordData
 NeuralGPU_GetRecordData.argtypes = (ctypes.c_int,)
-NeuralGPU_GetRecordData.restype = ctypes.POINTER(ctypes.POINTER(ctypes.c_float))
+NeuralGPU_GetRecordData.restype = ctypes.POINTER(c_float_p)
 def GetRecordData(i_record):
     "Get record data"
     data_arr_pt = NeuralGPU_GetRecordData(ctypes.c_int(i_record))
@@ -122,7 +126,7 @@ def GetRecordData(i_record):
 
 
 NeuralGPU_SetNeuronParams = _neuralgpu.NeuralGPU_SetNeuronParams
-NeuralGPU_SetNeuronParams.argtypes = (ctypes.POINTER(ctypes.c_char), ctypes.c_int, ctypes.c_int, ctypes.c_float)
+NeuralGPU_SetNeuronParams.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_float)
 NeuralGPU_SetNeuronParams.restype = ctypes.c_int
 def SetNeuronParams(param_name, i_node, n_neurons, val):
     "Set neuron scalar parameter value"
@@ -131,8 +135,8 @@ def SetNeuronParams(param_name, i_node, n_neurons, val):
 
 
 NeuralGPU_SetNeuronVectParams = _neuralgpu.NeuralGPU_SetNeuronVectParams
-NeuralGPU_SetNeuronVectParams.argtypes = (ctypes.POINTER(ctypes.c_char), ctypes.c_int, ctypes.c_int,
-                                          ctypes.POINTER(ctypes.c_float), ctypes.c_int)
+NeuralGPU_SetNeuronVectParams.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int,
+                                          c_float_p, ctypes.c_int)
 NeuralGPU_SetNeuronVectParams.restype = ctypes.c_int
 def SetNeuronVectParams(param_name, i_node, n_neurons, params_list):
     "Set neuron vector parameter value"
@@ -143,8 +147,8 @@ def SetNeuronVectParams(param_name, i_node, n_neurons, params_list):
                                          array_float_type(*params_list), ctypes.c_int(vect_size))  
 
 NeuralGPU_SetSpikeGenerator = _neuralgpu.NeuralGPU_SetSpikeGenerator
-NeuralGPU_SetSpikeGenerator.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_float),
-                                        ctypes.POINTER(ctypes.c_float))
+NeuralGPU_SetSpikeGenerator.argtypes = (ctypes.c_int, ctypes.c_int, c_float_p,
+                                        c_float_p)
 NeuralGPU_SetSpikeGenerator.restype = ctypes.c_int
 def SetSpikeGenerator(i_node, spike_time_list, spike_height_list):
     "Set spike generator spike times and heights"
@@ -169,13 +173,13 @@ def Simulate():
 
 
 NeuralGPU_ConnectMpiInit = _neuralgpu.NeuralGPU_ConnectMpiInit
-NeuralGPU_ConnectMpiInit.argtypes = (ctypes.c_int, ctypes.POINTER(ctypes.POINTER(ctypes.c_char)))
+NeuralGPU_ConnectMpiInit.argtypes = (ctypes.c_int, ctypes.POINTER(c_char_p))
 NeuralGPU_ConnectMpiInit.restype = ctypes.c_int
 def ConnectMpiInit():
     "Initialize MPI connections"
     from mpi4py import MPI
     argc=len(sys.argv)
-    array_char_pt_type = ctypes.POINTER(ctypes.c_char) * argc;
+    array_char_pt_type = c_char_p * argc;
     c_var_name_list=[]
     for i in range(argc):
         c_arg = ctypes.create_string_buffer(str.encode(sys.argv[i]), 100)
@@ -216,63 +220,43 @@ NeuralGPU_RandomInt.argtypes = (ctypes.c_size_t,)
 NeuralGPU_RandomInt.restype = ctypes.POINTER(ctypes.c_uint)
 def RandomInt(n):
     "Generate n random integers in CUDA memory"
-    dist_arr = NeuralGPU_RandomInt(ctypes.c_size_t(n))
-    dist_list = []
-    for i in range(n):
-        dist_list.append(dist_arr[i])
-        
-    return dist_list
+    return NeuralGPU_RandomInt(ctypes.c_size_t(n))
 
 
 NeuralGPU_RandomUniform = _neuralgpu.NeuralGPU_RandomUniform
 NeuralGPU_RandomUniform.argtypes = (ctypes.c_size_t,)
-NeuralGPU_RandomUniform.restype = ctypes.POINTER(ctypes.c_float)
+NeuralGPU_RandomUniform.restype = c_float_p
 def RandomUniform(n):
     "Generate n random floats with uniform distribution in (0,1) in CUDA memory"
-    dist_arr = NeuralGPU_RandomUniform(ctypes.c_size_t(n))
-    dist_list = []
-    for i in range(n):
-        dist_list.append(dist_arr[i])
-        
-    return dist_list
+    return NeuralGPU_RandomUniform(ctypes.c_size_t(n))
 
 
 NeuralGPU_RandomNormal = _neuralgpu.NeuralGPU_RandomNormal
 NeuralGPU_RandomNormal.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float)
-NeuralGPU_RandomNormal.restype = ctypes.POINTER(ctypes.c_float)
+NeuralGPU_RandomNormal.restype = c_float_p
 def RandomNormal(n, mean, stddev):
     "Generate n random floats with normal distribution in CUDA memory"
-    dist_arr = NeuralGPU_RandomNormal(ctypes.c_size_t(n), ctypes.c_float(mean), ctypes.c_float(stddev))
-    dist_list = []
-    for i in range(n):
-        dist_list.append(dist_arr[i])
-        
-    return dist_list
+    return NeuralGPU_RandomNormal(ctypes.c_size_t(n), ctypes.c_float(mean), ctypes.c_float(stddev))
 
 
 NeuralGPU_RandomNormalClipped = _neuralgpu.NeuralGPU_RandomNormalClipped
 NeuralGPU_RandomNormalClipped.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float, ctypes.c_float,
                                           ctypes.c_float)
-NeuralGPU_RandomNormalClipped.restype = ctypes.POINTER(ctypes.c_float)
+NeuralGPU_RandomNormalClipped.restype = c_float_p
 def RandomNormalClipped(n, mean, stddev, vmin, vmax):
     "Generate n random floats with normal clipped distribution in CUDA memory"
-    dist_arr = NeuralGPU_RandomNormalClipped(ctypes.c_size_t(n), ctypes.c_float(mean), ctypes.c_float(stddev),
-                                        ctypes.c_float(vmin), ctypes.c_float(vmax))
-    dist_list = []
-    for i in range(n):
-        dist_list.append(dist_arr[i])
-        
-    return dist_list
+    return NeuralGPU_RandomNormalClipped(ctypes.c_size_t(n), ctypes.c_float(mean), ctypes.c_float(stddev),
+                                                        ctypes.c_float(vmin), ctypes.c_float(vmax))
 
 
 NeuralGPU_ConnectMpiInit = _neuralgpu.NeuralGPU_ConnectMpiInit
-NeuralGPU_ConnectMpiInit.argtypes = (ctypes.c_int, ctypes.POINTER(ctypes.POINTER(ctypes.c_char)))
+NeuralGPU_ConnectMpiInit.argtypes = (ctypes.c_int, ctypes.POINTER(c_char_p))
 NeuralGPU_ConnectMpiInit.restype = ctypes.c_int
 def ConnectMpiInit():
     "Initialize MPI connections"
     from mpi4py import MPI
     argc=len(sys.argv)
-    array_char_pt_type = ctypes.POINTER(ctypes.c_char) * argc;
+    array_char_pt_type = c_char_p * argc;
     c_var_name_list=[]
     for i in range(argc):
         c_arg = ctypes.create_string_buffer(str.encode(sys.argv[i]), 100)
@@ -329,41 +313,46 @@ def ConnectFixedIndegree(i_source_neuron_0, n_source_neurons, i_target_neuron_0,
 
 NeuralGPU_ConnectFixedIndegreeArray = _neuralgpu.NeuralGPU_ConnectFixedIndegreeArray
 NeuralGPU_ConnectFixedIndegreeArray.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                                                ctypes.c_ubyte, ctypes.POINTER(ctypes.c_float),
-                                                ctypes.POINTER(ctypes.c_float), ctypes.c_int)
+                                                ctypes.c_ubyte, ctypes.c_void_p,
+                                                ctypes.c_void_p, ctypes.c_int)
 NeuralGPU_ConnectFixedIndegreeArray.restype = ctypes.c_int
 def ConnectFixedIndegreeArray(i_source_neuron_0, n_source_neurons, i_target_neuron_0, n_target_neurons,
-                              i_port, weight_list, delay_list, indegree):
+                              i_port, weight_arr, delay_arr, indegree):
+                              #weight_list, delay_list, indegree):
     "Connect two neuron groups with FixedIndegree rule and weights and delays from arrays"
     arr_size = indegree*n_target_neurons
-    c_weights = (ctypes.c_float * arr_size)(*weight_list)
-    c_delays = (ctypes.c_float * arr_size)(*delay_list)    
-
+    if type(weight_arr) is list:
+        weight_arr = (ctypes.c_float * arr_size)(*weight_arr)
+    if type(delay_arr) is list:
+        delay_arr = (ctypes.c_float * arr_size)(*delay_arr)
+        
+    weight_pt = ctypes.cast(weight_arr, ctypes.c_void_p)
+    delay_pt = ctypes.cast(delay_arr, ctypes.c_void_p)
     return NeuralGPU_ConnectFixedIndegreeArray(ctypes.c_int(i_source_neuron_0), ctypes.c_int(n_source_neurons),
                                                ctypes.c_int(i_target_neuron_0), ctypes.c_int(n_target_neurons),
-                                               ctypes.c_ubyte(i_port),
-                                               ctypes.POINTER(ctypes.c_float)(c_weights),
-                                               ctypes.POINTER(ctypes.c_float)(c_delays),
-                                               ctypes.c_int(indegree))
+                                               ctypes.c_ubyte(i_port), weight_pt, delay_pt, ctypes.c_int(indegree))
 
 
 NeuralGPU_ConnectFixedTotalNumberArray = _neuralgpu.NeuralGPU_ConnectFixedTotalNumberArray
 NeuralGPU_ConnectFixedTotalNumberArray.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                                                ctypes.c_ubyte, ctypes.POINTER(ctypes.c_float),
-                                                ctypes.POINTER(ctypes.c_float), ctypes.c_int)
+                                                ctypes.c_ubyte, c_float_p,
+                                                c_float_p, ctypes.c_int)
 NeuralGPU_ConnectFixedTotalNumberArray.restype = ctypes.c_int
 def ConnectFixedTotalNumberArray(i_source_neuron_0, n_source_neurons, i_target_neuron_0, n_target_neurons,
-                                 i_port, weight_list, delay_list, n_conn):
+                                 i_port, weight_arr, delay_arr, n_conn):
     "Connect two neuron groups with FixedTotalNumber rule and weights and delays from arrays"
-    c_weights = (ctypes.c_float * n_conn)(*weight_list)
-    c_delays = (ctypes.c_float * n_conn)(*delay_list)    
+    if type(weight_arr) is list:
+        weight_arr = (ctypes.c_float * n_conn)(*weight_arr)
+    if type(delay_arr) is list:
+        delay_arr = (ctypes.c_float * n_conn)(*delay_arr)
+        
+    weight_pt = ctypes.cast(weight_arr, ctypes.c_void_p)
+    delay_pt = ctypes.cast(delay_arr, ctypes.c_void_p)
 
     return NeuralGPU_ConnectFixedTotalNumberArray(ctypes.c_int(i_source_neuron_0), ctypes.c_int(n_source_neurons),
                                                ctypes.c_int(i_target_neuron_0), ctypes.c_int(n_target_neurons),
                                                ctypes.c_ubyte(i_port),
-                                               ctypes.POINTER(ctypes.c_float)(c_weights),
-                                               ctypes.POINTER(ctypes.c_float)(c_delays),
-                                               ctypes.c_int(n_conn))
+                                               weight_pt, delay_pt, ctypes.c_int(n_conn))
 
 
 NeuralGPU_RemoteConnect = _neuralgpu.NeuralGPU_RemoteConnect

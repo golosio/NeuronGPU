@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -22,21 +22,20 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+  if (argc != 2) {
+    cout << "Usage: " << argv[0] << " n_neurons\n";
+    return 0;
+  }
+  int arg1;
+  sscanf(argv[1], "%d", &arg1);
   NeuralGPU neural_gpu;
-  neural_gpu.ConnectMpiInit(argc, argv);
-  int mpi_id = neural_gpu.MpiId();
-  cout << "Building on host " << mpi_id << " ..." <<endl;
+  cout << "Building ...\n";
 
-  neural_gpu.max_spike_buffer_num_=10; //reduce it to save GPU memory
+  neural_gpu.SetMaxSpikeBufferSize(10); // max spike buffer size per neuron
   
-  //////////////////////////////////////////////////////////////////////
-  // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
-  //////////////////////////////////////////////////////////////////////
   int n_receptors = 2;
 
-  //float delay = 1.0;       // synaptic delay in ms
-
-  int order = 40000;
+  int order = arg1/5;
   int NE = 4 * order;      // number of excitatory neurons
   int NI = 1 * order;      // number of inhibitory neurons
   int n_neurons = NE + NI; // number of neurons in total
@@ -47,8 +46,16 @@ int main(int argc, char *argv[])
   float Wex = 0.04995;
   float Win = 0.35;
 
+  // each host has a poisson generator
+  float poiss_rate = 20000.0; // poisson signal rate in Hz
+  float poiss_weight = 0.369;
+  float poiss_delay = 0.2; // poisson signal delay in ms
+  int n_pg = n_neurons; // number of poisson generators
+  // create poisson generator
+  int pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
+
   // each host has n_neurons neurons with n_receptor receptor ports
-  int neuron = neural_gpu.CreateNeuron(n_neurons, n_receptors);
+  int neuron = neural_gpu.CreateNeuron("AEIF", n_neurons, n_receptors);
   int exc_neuron = neuron;      // excitatory neuron id
   int inh_neuron = neuron + NE; // inhibitory neuron id
   
@@ -60,16 +67,7 @@ int main(int argc, char *argv[])
   neural_gpu.SetNeuronVectParams("taus_decay", neuron, n_neurons,
 				 taus_decay, 2);
   neural_gpu.SetNeuronVectParams("taus_rise", neuron, n_neurons, taus_rise, 2);
-
-  // each host has a poisson generator
-  float poiss_rate = 20000.0; // poisson signal rate in Hz
-  float poiss_weight = 0.369;
-  float poiss_delay = 0.2; // poisson signal delay in ms
-  int n_pg = n_neurons; // number of poisson generators
-  // create poisson generator
-  int pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
-
-
+  
   float mean_delay = 0.5;
   float std_delay = 0.25;
   float min_delay = 0.1;
@@ -106,11 +104,13 @@ int main(int argc, char *argv[])
   neural_gpu.ConnectOneToOne(pg, neuron, n_neurons, 0, poiss_weight,
 				  poiss_delay);
   
-  char filename[100];
-  sprintf(filename, "test_brunel_%d.dat", mpi_id);
-  int i_neurons[] = {2000, 50000, 190000}; // any set of neuron indexes
+  char filename[] = "test_brunel_net.dat";
+  
+  int i_neuron_arr[] = {neuron, neuron+rand()%n_neurons,
+		     neuron+n_neurons-1}; // any set of neuron indexes
   // create multimeter record of V_m
-  neural_gpu.CreateRecord(string(filename), "V_m", i_neurons, 3);
+  std::string var_name_arr[] = {"V_m", "V_m", "V_m"};
+  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 3);
 
   neural_gpu.SetRandomSeed(1234ULL); // just to have same results in different simulations
   neural_gpu.Simulate();

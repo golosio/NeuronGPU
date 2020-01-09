@@ -28,6 +28,11 @@ class NetConnection;
 class ConnectMpi;
 struct curandGenerator_st;
 typedef struct curandGenerator_st* curandGenerator_t;
+struct RemoteNeuron;
+struct RemoteNeuronPt;
+struct ConnSpec;
+struct SynSpec;
+
 
 class NeuralGPU
 {
@@ -71,7 +76,40 @@ class NeuralGPU
   int ClearGetSpikeArrays();
   int FreeGetSpikeArrays();
   int FreeNeuronGroupMap();
-    
+
+
+  template <class T>
+  int _Connect(T source, int n_source, T target, int n_target,
+	       ConnSpec &conn_spec, SynSpec &syn_spec);
+  
+  template<class T>
+  int _SingleConnect(T source, int i_source, T target, int i_target,
+		     int i_array, SynSpec &syn_spec);
+  template<class T>
+  int _SingleConnect(T source, int i_source, T target, int i_target,
+		     float weight, float delay, int i_array, SynSpec &syn_spec);
+
+  template <class T>
+  int _ConnectOneToOne(T source, T target, int n_neurons, SynSpec &syn_spec);
+  template <class T>
+  int _ConnectAllToAll
+  (T source, int n_source, T target, int n_target, SynSpec &syn_spec);
+
+  template <class T>
+  int _ConnectFixedTotalNumber
+  (T source, int n_source, T target, int n_target, int n_conn,
+   SynSpec &syn_spec);
+
+  template <class T>
+  int _ConnectFixedIndegree
+  (
+   T source, int n_source, T target, int n_target, int indegree,
+   SynSpec &syn_spec
+   );
+
+
+
+  
  public:
   NeuralGPU();
 
@@ -198,7 +236,10 @@ class NeuralGPU
      int i_target_host, int i_target_neuron_0, int n_target_neurons,
      unsigned char i_port, float weight, float delay, int indegree
      );
-      
+  
+  int Connect(int i_source, int n_source, int i_target, int n_target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec);
+
 };
 
 #endif

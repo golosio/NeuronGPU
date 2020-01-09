@@ -53,21 +53,20 @@ int main(int argc, char *argv[])
   float poiss_delay = 0.2; // poisson signal delay in ms
   int n_pg = n_neurons; // number of poisson generators
   // create poisson generator
-  int pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
+  Nodes pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
 
   // each host has n_neurons neurons with n_receptor receptor ports
-  int neuron = neural_gpu.CreateNeuron("AEIF", n_neurons, n_receptors);
-  int exc_neuron = neuron;      // excitatory neuron id
-  int inh_neuron = neuron + NE; // inhibitory neuron id
+  Nodes neuron = neural_gpu.CreateNeuron("AEIF", n_neurons, n_receptors);
+  Nodes exc_neuron = neuron.Subset(0,NE-1);      // excitatory neuron group
+  Nodes inh_neuron = neuron.Subset(NE, n_neurons-1); // inhibitory neuron group
   
   // the following parameters are set to the same values on all hosts
   float E_rev[] = {0.0, -85.0};
   float taus_decay[] = {1.0, 1.0};
   float taus_rise[] = {1.0, 1.0};
-  neural_gpu.SetNeuronVectParams("E_rev", neuron, n_neurons, E_rev, 2);
-  neural_gpu.SetNeuronVectParams("taus_decay", neuron, n_neurons,
-				 taus_decay, 2);
-  neural_gpu.SetNeuronVectParams("taus_rise", neuron, n_neurons, taus_rise, 2);
+  neural_gpu.SetNeuronParams("E_rev", neuron, E_rev, 2);
+  neural_gpu.SetNeuronParams("taus_decay", neuron, taus_decay, 2);
+  neural_gpu.SetNeuronParams("taus_rise", neuron, taus_rise, 2);
   
   float mean_delay = 0.5;
   float std_delay = 0.25;
@@ -82,14 +81,13 @@ int main(int argc, char *argv[])
   for (int i=0; i<CE*n_neurons; i++) exc_weights[i] = Wex;
   
   cout << "ok4\n";
-  ConnSpec conn_spec1;
-  conn_spec1.rule_ = FIXED_INDEGREE;
-  conn_spec1.indegree_ = CE;
+  ConnSpec conn_spec1(FIXED_INDEGREE, CE);
   SynSpec syn_spec1;
-  syn_spec1.receptor_ = 0;
-  syn_spec1.weight_array_ = exc_weights;
-  syn_spec1.delay_array_ = exc_delays;
-  neural_gpu.Connect(exc_neuron, NE, neuron, n_neurons, conn_spec1, syn_spec1);
+  syn_spec1.SetParam("receptor", 0);
+  syn_spec1.SetParam("weight_array", exc_weights);
+  syn_spec1.SetParam("delay_array", exc_delays);
+  cout << exc_neuron.i0 << " " << exc_neuron.n << " ok4\n";
+  neural_gpu.Connect(exc_neuron, neuron, conn_spec1, syn_spec1);
   cout << "ok5\n";
   //neural_gpu.ConnectFixedIndegreeArray(exc_neuron, NE, neuron, n_neurons,
   //				  0, exc_weights, exc_delays, CE);
@@ -106,14 +104,12 @@ int main(int argc, char *argv[])
   for (int i=0; i<CI*n_neurons; i++) inh_weights[i] = Win;
 
   cout << "ok6\n";
-  ConnSpec conn_spec2;
-  conn_spec2.rule_ = FIXED_INDEGREE;
-  conn_spec2.indegree_ = CI;
+  ConnSpec conn_spec2(FIXED_INDEGREE, CI);
   SynSpec syn_spec2;
-  syn_spec2.receptor_ = 1;
-  syn_spec2.weight_array_ = inh_weights;
-  syn_spec2.delay_array_ = inh_delays;
-  neural_gpu.Connect(inh_neuron, NI, neuron, n_neurons, conn_spec2, syn_spec2);
+  syn_spec2.SetParam("receptor", 1);
+  syn_spec2.SetParam("weight_array", inh_weights);
+  syn_spec2.SetParam("delay_array", inh_delays);
+  neural_gpu.Connect(inh_neuron, neuron, conn_spec2, syn_spec2);
   //neural_gpu.ConnectFixedIndegreeArray(inh_neuron, NI, neuron, n_neurons,
   //				  1, inh_weights, inh_delays, CI);
 
@@ -122,22 +118,17 @@ int main(int argc, char *argv[])
 
   cout << "ok7\n";
  
-  ConnSpec conn_spec3;
-  conn_spec3.rule_ = ONE_TO_ONE;
-  SynSpec syn_spec3;
-  syn_spec3.receptor_ = 0;
-  syn_spec3.weight_ = poiss_weight;
-  syn_spec3.delay_ = poiss_delay;
-
+  ConnSpec conn_spec3(ONE_TO_ONE);
+  SynSpec syn_spec3(STANDARD_SYNAPSE, poiss_weight, poiss_delay, 0);
   // connect poisson generator to port 0 of all neurons
-  neural_gpu.Connect(pg, n_neurons, neuron, n_neurons, conn_spec3, syn_spec3);
+  neural_gpu.Connect(pg, neuron, conn_spec3, syn_spec3);
   //neural_gpu.ConnectOneToOne(pg, neuron, n_neurons, 0, poiss_weight,
   //				  poiss_delay);
   cout << "ok8\n";
   char filename[] = "test_brunel_net.dat";
   
-  int i_neuron_arr[] = {neuron, neuron+rand()%n_neurons,
-		     neuron+n_neurons-1}; // any set of neuron indexes
+  int i_neuron_arr[] = {neuron[0], neuron[rand()%n_neurons],
+		     neuron[n_neurons-1]}; // any set of neuron indexes
   // create multimeter record of V_m
   std::string var_name_arr[] = {"V_m", "V_m", "V_m"};
   neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 3);

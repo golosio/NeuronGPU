@@ -143,7 +143,7 @@ int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
   return i_node_0;
 }
 
-int NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
+Nodes NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
 {
   CheckUncalibrated("Poisson generator cannot be created after calibration");
   if (n_poiss_nodes_ != 0) {
@@ -180,10 +180,10 @@ int NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
   bn->Init(i_node_0, n_nodes, 0, i_neuron_group);
   neuron_vect_.push_back(bn);
     
-  return i_node_0;
+  return Nodes(i_node_0, n_nodes);
 }
 
-int NeuralGPU::CreateSpikeGenerator(int n_nodes)
+Nodes NeuralGPU::CreateSpikeGenerator(int n_nodes)
 {
   CheckUncalibrated("Spike generator cannot be created after calibration");
   if (n_spike_gen_nodes_ != 0) {
@@ -220,7 +220,7 @@ int NeuralGPU::CreateSpikeGenerator(int n_nodes)
   bn->Init(i_node_0, n_nodes, 0, i_neuron_group);
   neuron_vect_.push_back(bn);
   
-  return i_node_0;
+  return Nodes(i_node_0, n_nodes);
 }
 
 int NeuralGPU::CheckUncalibrated(std::string message)
@@ -600,8 +600,8 @@ int NeuralGPU::SetNeuronParams(std::string param_name, int i_node,
 					      n_neurons, val);
 }
 
-int NeuralGPU::SetNeuronVectParams(std::string param_name, int i_node,
-				   int n_neurons, float *params, int vect_size)
+int NeuralGPU::SetNeuronParams(std::string param_name, int i_node,
+			       int n_neurons, float *params, int vect_size)
 {
   int i_group = neuron_group_map_[i_node];
   int i_neuron = i_node - neuron_vect_[i_group]->i_node_0_;  

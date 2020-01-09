@@ -59,6 +59,8 @@ class ConnSpec
 public:
   ConnSpec();
   ConnSpec(int rule, int degree=0);
+  int Init();
+  int Init(int rule, int degree=0);
   int SetParam(std::string param_name, int value);
   int GetParam(std::string param_name);
   friend class NeuralGPU;
@@ -78,16 +80,20 @@ class SynSpec
 {
   unsigned char synapse_type_;
   unsigned char receptor_;
+ public:
   int weight_distr_;
   float *weight_array_;
   float weight_;
   int delay_distr_;
   float *delay_array_;
   float delay_;
-public:
+ public:
   SynSpec();
   SynSpec(float weight, float delay);
   SynSpec(int syn_type, float weight, float delay, int receptor=0);
+  int Init();
+  int Init(float weight, float delay);
+  int Init(int syn_type, float weight, float delay, int receptor=0);
   int SetParam(std::string param_name, int value);
   int SetParam(std::string param_name, float value);
   int SetParam(std::string param_name, float *array_pt);

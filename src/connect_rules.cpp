@@ -49,11 +49,47 @@ ConnSpec::ConnSpec(int rule, int degree /*=0*/)
   }
 }
 
-//int ConnSpec::SetParam(std::string param_name, int value);
+int ConnSpec::SetParam(std::string param_name, int value)
+{
+  if (param_name=="rule") {
+    if (value<0 || value>N_CONN_RULE) {
+      std::cerr << "Unknown connection rule\n";
+      exit(0);
+    }
+    rule_ = value;
+    return 0;
+  }
+  else if (param_name=="indegree") {
+    if (value<0) {
+      std::cerr << "Indegree must be >=0\n";
+      exit(0);
+    }
+    indegree_ = value;
+    return 0;
+  }
+  else if (param_name=="outdegree") {
+    if (value<0) {
+      std::cerr << "Outdegree must be >=0\n";
+      exit(0);
+    }
+    outdegree_ = value;
+    return 0;
+  }
+  else {
+    std::cerr << "Unknown connection int parameter\n";
+    exit(0);
+  }
+  return 0;
+}
 //int ConnSpec::GetParam(std::string param_name);
 
-
 SynSpec::SynSpec()
+{
+  Init();
+}
+
+
+int SynSpec::Init()
 {
   synapse_type_ = STANDARD_SYNAPSE;
   receptor_ = 0;
@@ -63,20 +99,35 @@ SynSpec::SynSpec()
   delay_distr_ = 0;
   weight_array_ = NULL;
   delay_array_ = NULL;
+
+  return 0;
 }
 
+
 SynSpec::SynSpec(float weight, float delay)
+{
+  Init(weight, delay);
+}
+
+int SynSpec::Init(float weight, float delay)
 {
   if (delay<0) {
     std::cerr << "Delay must be >=0\n";
     exit(0);
   }
+  Init();
   weight_ = weight;
   delay_ = delay;
-  SynSpec();
-}
+
+  return 0;
+ }
 
 SynSpec::SynSpec(int syn_type, float weight, float delay, int receptor /*=0*/)
+{
+  Init(syn_type, weight, delay, receptor);
+}
+
+int SynSpec::Init(int syn_type, float weight, float delay, int receptor /*=0*/)
 {
   if (syn_type<0 || syn_type>N_SYNAPSE_TYPE) {
     std::cerr << "Unknown synapse type\n";
@@ -86,10 +137,12 @@ SynSpec::SynSpec(int syn_type, float weight, float delay, int receptor /*=0*/)
     std::cerr << "Receptor index must be >=0\n";
     exit(0);
   }
-  SynSpec(weight, delay);
+  Init(weight, delay);
   synapse_type_ = syn_type;
   receptor_ = receptor;
-}
+
+  return 0;
+ }
 
 int SynSpec::SetParam(std::string param_name, int value)
 {
@@ -116,7 +169,26 @@ int SynSpec::SetParam(std::string param_name, int value)
   return 0;
 }
 
-//int SynSpec::SetParam(std::string param_name, float value);
+int SynSpec::SetParam(std::string param_name, float value)
+{
+  if (param_name=="weight") {
+    weight_ = value;
+  }
+  else if (param_name=="delay") {
+    if (value<0) {
+      std::cerr << "Delay must be >=0\n";
+      exit(0);
+    }
+    delay_ = value;
+  }
+  else {
+    std::cerr << "Unknown synapse float parameter\n";
+    exit(0);
+  }
+  return 0;
+}
+
+ 
 int SynSpec::SetParam(std::string param_name, float *array_pt)
 {
   if (param_name=="weight_array") {
@@ -191,4 +263,12 @@ int NeuralGPU::Connect(int i_source, int n_source, int i_target, int n_target,
 		       conn_spec, syn_spec);
 
 }
-  
+
+int NeuralGPU::Connect(Nodes source, Nodes target,
+		       ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  return _Connect<int>(source.i0, source.n, target.i0, target.n,
+		       conn_spec, syn_spec);
+
+}
+

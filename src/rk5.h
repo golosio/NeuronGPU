@@ -205,7 +205,7 @@ class RungeKutta5
   float *d_XArr;
   float *d_HArr;
   float *d_YArr;
-  float *d_ParamsArr;
+  float *d_ParamArr;
 
   public:
 
@@ -214,7 +214,7 @@ class RungeKutta5
   float *GetXArr() {return d_XArr;}
   float *GetHArr() {return d_HArr;}
   float *GetYArr() {return d_YArr;}
-  float *GetParamsArr() {return d_ParamsArr;}
+  float *GetParamArr() {return d_ParamArr;}
   int Init(int array_size, int n_var, int n_params, float x_min, float h,
 	   DataStruct data_struct);
   int Calibrate(float x_min, float h, DataStruct data_struct);
@@ -223,8 +223,8 @@ class RungeKutta5
 
   int GetX(int i_array, int n_elems, float *x);
   int GetY(int i_var, int i_array, int n_elems, float *y);
-  int SetParams(int i_param, int i_array, int n_params, int n_elems, float val);
-  int SetVectParams(int i_param, int i_array, int n_params, int n_elems,
+  int SetParam(int i_param, int i_array, int n_params, int n_elems, float val);
+  int SetVectParam(int i_param, int i_array, int n_params, int n_elems,
 		    float *params, int vect_size);
   template<int NVAR, int NPARAMS> int Update(float x1, float h_min,
 					     DataStruct data_struct);
@@ -238,7 +238,7 @@ template<int NVAR, int NPARAMS>
 				      DataStruct data_struct)
 {
   ArrayUpdate<NVAR, NPARAMS, DataStruct><<<(array_size_+1023)/1024, 1024>>>
-    (array_size_, d_XArr, d_HArr, d_YArr, d_ParamsArr, x1, h_min, data_struct);
+    (array_size_, d_XArr, d_HArr, d_YArr, d_ParamArr, x1, h_min, data_struct);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 
@@ -257,7 +257,7 @@ int RungeKutta5<DataStruct>::Free()
   cudaFree(d_XArr);
   cudaFree(d_HArr);
   cudaFree(d_YArr);
-  cudaFree(d_ParamsArr);
+  cudaFree(d_ParamArr);
 
   return 0;
 }
@@ -274,10 +274,10 @@ int RungeKutta5<DataStruct>::Init(int array_size, int n_var, int n_params,
   gpuErrchk(cudaMalloc(&d_XArr, array_size_*sizeof(float)));
   gpuErrchk(cudaMalloc(&d_HArr, array_size_*sizeof(float)));
   gpuErrchk(cudaMalloc(&d_YArr, array_size_*n_var_*sizeof(float)));
-  gpuErrchk(cudaMalloc(&d_ParamsArr, array_size_*n_params_*sizeof(float)));
+  gpuErrchk(cudaMalloc(&d_ParamArr, array_size_*n_params_*sizeof(float)));
 
   ArrayInit<DataStruct><<<(array_size+1023)/1024, 1024>>>
-    (array_size_, n_var, n_params, d_XArr, d_HArr, d_YArr, d_ParamsArr,
+    (array_size_, n_var, n_params, d_XArr, d_HArr, d_YArr, d_ParamArr,
      x_min, h, data_struct);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
@@ -290,7 +290,7 @@ int RungeKutta5<DataStruct>::Calibrate(float x_min, float h,
 				       DataStruct data_struct)
 {
   ArrayCalibrate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
-    (array_size_, n_var_, n_params_, d_XArr, d_HArr, d_YArr, d_ParamsArr,
+    (array_size_, n_var_, n_params_, d_XArr, d_HArr, d_YArr, d_ParamArr,
      x_min, h, data_struct);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
@@ -317,11 +317,11 @@ int RungeKutta5<DataStruct>::GetY(int i_var, int i_array, int n_elems, float *y)
 }
 
 template<class DataStruct>
-int RungeKutta5<DataStruct>::SetParams(int i_param, int i_array, int n_params,
+int RungeKutta5<DataStruct>::SetParam(int i_param, int i_array, int n_params,
 			   int n_elems, float val)
 {
   SetFloatArray<<<(n_elems+1023)/1024, 1024>>>
-    (&d_ParamsArr[i_array*n_params_ + i_param], n_elems, n_params, val);
+    (&d_ParamArr[i_array*n_params_ + i_param], n_elems, n_params, val);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
   

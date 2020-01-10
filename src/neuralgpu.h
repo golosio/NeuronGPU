@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "neuron_group.h"
 #include "base_neuron.h"
+#include "connect_spec.h"
 
 class PoissonGenerator;
 class SpikeGenerator;
@@ -44,7 +45,7 @@ class Sequence
     Sequence(int i0=0, int n=0) : i0(i0), n(n) {}
     
     inline int operator[](int i) {return i0 + i;} 
-    inline Sequence Subset(int first, int last) {
+    inline Sequence Subseq(int first, int last) {
       if (first<0 || last>=n) {
       std::cerr << "Sequence subset out of range\n";
       exit(0);
@@ -60,7 +61,7 @@ class Sequence
   }
 };
 
-typedef Sequence Nodes;
+typedef Sequence NodeSeq;
 
 class NeuralGPU
 {
@@ -162,29 +163,52 @@ class NeuralGPU
 
   int SetMaxSpikeBufferSize(int max_size);
   int GetMaxSpikeBufferSize();
-  Nodes CreateNeuron(std::string model_name, int n_neurons, int n_receptors);
-  Nodes CreatePoissonGenerator(int n_nodes, float rate);
-  Nodes CreateSpikeGenerator(int n_nodes);
+  NodeSeq CreateNeuron(std::string model_name, int n_neurons, int n_receptors);
+  NodeSeq CreatePoissonGenerator(int n_nodes, float rate);
+  NodeSeq CreateSpikeGenerator(int n_nodes);
   int CreateRecord(std::string file_name, std::string *var_name_arr,
 		   int *i_neuron_arr, int n_neurons);  
   int CreateRecord(std::string file_name, std::string *var_name_arr,
 		   int *i_neuron_arr, int *i_receptor_arr, int n_neurons);
   std::vector<std::vector<float>> *GetRecordData(int i_record);
 
-  int SetNeuronParams(std::string param_name, int i_node, int n_neurons,
+  int SetNeuronParam(std::string param_name, int i_node, int n_neurons,
 		      float val);
 
-  int SetNeuronParams(std::string param_name, int i_node, int n_neurons,
+  int SetNeuronParam(std::string param_name, int *i_node, int n_neurons,
+		     float val);
+
+  int SetNeuronParam(std::string param_name, int i_node, int n_neurons,
 			  float *params, int vect_size);
 
-  int SetNeuronParams(std::string param_name, Nodes nodes, float val) {
-    return SetNeuronParams(param_name, nodes.i0, nodes.n, val);
+  int SetNeuronParam(std::string param_name, int *i_node, int n_neurons,
+			  float *params, int vect_size);
+
+  int SetNeuronParam(std::string param_name, NodeSeq nodes, float val) {
+    return SetNeuronParam(param_name, nodes.i0, nodes.n, val);
   }
 
-  int SetNeuronParams(std::string param_name, Nodes nodes, float *params,
+  int SetNeuronParam(std::string param_name, NodeSeq nodes, float *params,
 		      int vect_size) {
-    return SetNeuronParams(param_name, nodes.i0, nodes.n, params, vect_size);
+    return SetNeuronParam(param_name, nodes.i0, nodes.n, params, vect_size);
   }
+  
+  int SetNeuronParam(std::string param_name, std::vector<int> nodes,
+		     float val) {
+    return SetNeuronParam(param_name, nodes.data(), nodes.size(), val);
+  }
+
+  int SetNeuronParam(std::string param_name, std::vector<int> nodes,
+		     float *params, int vect_size) {
+    return SetNeuronParam(param_name, nodes.data(), nodes.size(), params,
+			  vect_size);
+  }
+
+  int GetNodeSequenceOffset(int i_node, int n_neurons, int &i_group);
+
+  std::vector<int> GetNodeArrayWithOffset(int *i_node, int n_neurons,
+					  int &i_group);
+
   int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 			float *spike_height);
 
@@ -276,9 +300,11 @@ class NeuralGPU
   int Connect(int i_source, int n_source, int i_target, int n_target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
   
-  int Connect(Nodes source, Nodes target,
+  int Connect(NodeSeq source, NodeSeq target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
 
+  int Connect(std::vector<int> source, std::vector<int> target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec);
 
 };
 

@@ -57,12 +57,18 @@ class BaseNeuron
   
   virtual int GetY(int i_var, int i_neuron, int n_neurons, float *y) {return 0;}
   
-  virtual int SetScalParams(std::string param_name, int i_neuron, int n_neurons,
-			    float val);
+  virtual int SetScalParam(std::string param_name, int i_neuron, int n_neurons,
+			   float val);
+
+  virtual int SetScalParam(std::string param_name, int *i_neuron, int n_neurons,
+			   float val);
   
-  virtual int SetVectParams(std::string param_name, int i_neuron, int n_neurons,
+  virtual int SetVectParam(std::string param_name, int i_neuron, int n_neurons,
 			    float *params, int vect_size);
   
+  virtual int SetVectParam(std::string param_name, int *i_neuron,
+			   int n_neurons, float *params, int vect_size);
+
   virtual int GetScalVarIdx(std::string var_name);
 
   virtual int GetVectVarIdx(std::string var_name);
@@ -73,7 +79,7 @@ class BaseNeuron
 
   virtual float *GetVarArr();
 
-  virtual float *GetParamsArr();
+  virtual float *GetParamArr();
 
   virtual bool IsScalVar(std::string var_name);
 
@@ -87,10 +93,10 @@ class BaseNeuron
 
   int CheckReceptorIdx(int i_receptor);
 
-  virtual float *GetVarPt(std::string var_name, int i_neuron, int i_receptor);
+  virtual float *GetVarPt(std::string var_name, int i_neuron, int i_receptor=0);
 
   virtual float *GetParamPt(std::string param_name, int i_neuron,
-		    int i_receptor);
+		    int i_receptor=0);
   virtual float GetSpikeActivity(int i_neuron);
 
 };

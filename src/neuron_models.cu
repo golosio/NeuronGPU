@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuralgpu.h"
 #include "aeif.h"
 
-Nodes NeuralGPU::CreateNeuron(std::string model_name, int n_neurons, int n_receptors)
+NodeSeq NeuralGPU::CreateNeuron(std::string model_name, int n_neurons, int n_receptors)
 {
   CheckUncalibrated("Neurons cannot be created after calibration");
    if (n_neurons <= 0) {
@@ -39,6 +39,6 @@ Nodes NeuralGPU::CreateNeuron(std::string model_name, int n_neurons, int n_recep
     std::cerr << "Unknown neuron model name: " << model_name << std::endl;
     exit(0);
   }
-  return Nodes(CreateNeuron(n_neurons, n_receptors), n_neurons);
+  return NodeSeq(CreateNeuron(n_neurons, n_receptors), n_neurons);
 }
 

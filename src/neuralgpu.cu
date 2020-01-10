@@ -143,7 +143,7 @@ int NeuralGPU::CreateNeuron(int n_neurons, int n_receptors)
   return i_node_0;
 }
 
-Nodes NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
+NodeSeq NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
 {
   CheckUncalibrated("Poisson generator cannot be created after calibration");
   if (n_poiss_nodes_ != 0) {
@@ -180,10 +180,10 @@ Nodes NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
   bn->Init(i_node_0, n_nodes, 0, i_neuron_group);
   neuron_vect_.push_back(bn);
     
-  return Nodes(i_node_0, n_nodes);
+  return NodeSeq(i_node_0, n_nodes);
 }
 
-Nodes NeuralGPU::CreateSpikeGenerator(int n_nodes)
+NodeSeq NeuralGPU::CreateSpikeGenerator(int n_nodes)
 {
   CheckUncalibrated("Spike generator cannot be created after calibration");
   if (n_spike_gen_nodes_ != 0) {
@@ -220,7 +220,7 @@ Nodes NeuralGPU::CreateSpikeGenerator(int n_nodes)
   bn->Init(i_node_0, n_nodes, 0, i_neuron_group);
   neuron_vect_.push_back(bn);
   
-  return Nodes(i_node_0, n_nodes);
+  return NodeSeq(i_node_0, n_nodes);
 }
 
 int NeuralGPU::CheckUncalibrated(std::string message)
@@ -590,22 +590,87 @@ int NeuralGPU::ConnectOneToOne(int i_source_neuron_0, int i_target_neuron_0,
   return 0;
 }
 
-int NeuralGPU::SetNeuronParams(std::string param_name, int i_node,
+int NeuralGPU::GetNodeSequenceOffset(int i_node, int n_neurons, int &i_group)
+{
+  if (i_node<0 || (i_node+n_neurons > (int)neuron_group_map_.size())) {
+    std::cerr << "Unrecognized node in setting neuron parameter\n";
+    exit(0);
+  }
+  i_group = neuron_group_map_[i_node];  
+  if (neuron_group_map_[i_node+n_neurons-1] != i_group) {
+    std::cerr << "Nodes belong to different neuron groups "
+      "in setting parameter\n";
+    exit(0);
+  }
+  return neuron_vect_[i_group]->i_node_0_;
+}
+  
+std::vector<int> NeuralGPU::GetNodeArrayWithOffset(int *i_node, int n_neurons,
+						   int &i_group)
+{
+  int in0 = i_node[0];
+  if (in0<0 || in0>(int)neuron_group_map_.size()) {
+    std::cerr << "Unrecognized node in setting parameter\n";
+    exit(0);
+  }
+  i_group = neuron_group_map_[in0];
+  int i0 = neuron_vect_[i_group]->i_node_0_;
+  std::vector<int> node_vect;
+  node_vect.assign(i_node, i_node+n_neurons);
+  for(int i=0; i<n_neurons; i++) {
+    int in = node_vect[i];
+    if (in<0 || in>=(int)neuron_group_map_.size()) {
+      std::cerr << "Unrecognized node in setting parameter\n";
+      exit(0);
+    }
+    if (neuron_group_map_[in] != i_group) {
+      std::cerr << "Nodes belong to different neuron groups "
+	"in setting parameter\n";
+      exit(0);
+    }
+    node_vect[i] -= i0;
+  }
+  return node_vect;
+}
+
+int NeuralGPU::SetNeuronParam(std::string param_name, int i_node,
 			       int n_neurons, float val)
 {
-  int i_group = neuron_group_map_[i_node];
-  int i_neuron = i_node - neuron_vect_[i_group]->i_node_0_;
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_neurons, i_group);
   
-  return neuron_vect_[i_group]->SetScalParams(param_name, i_neuron,
+  return neuron_vect_[i_group]->SetScalParam(param_name, i_neuron,
 					      n_neurons, val);
 }
 
-int NeuralGPU::SetNeuronParams(std::string param_name, int i_node,
+int NeuralGPU::SetNeuronParam(std::string param_name, int *i_node,
+			       int n_neurons, float val)
+{
+  int i_group;
+  std::vector<int> node_vect = GetNodeArrayWithOffset(i_node, n_neurons,
+						      i_group);
+  return neuron_vect_[i_group]->SetScalParam(param_name, node_vect.data(),
+					      n_neurons, val);
+}
+
+int NeuralGPU::SetNeuronParam(std::string param_name, int i_node,
 			       int n_neurons, float *params, int vect_size)
 {
-  int i_group = neuron_group_map_[i_node];
-  int i_neuron = i_node - neuron_vect_[i_group]->i_node_0_;  
-  return neuron_vect_[i_group]->SetVectParams(param_name, i_neuron,
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_neurons, i_group);
+  
+  return neuron_vect_[i_group]->SetVectParam(param_name, i_neuron,
+					     n_neurons, params, vect_size);
+}
+
+int NeuralGPU::SetNeuronParam(std::string param_name, int *i_node,
+			       int n_neurons, float *params, int vect_size)
+{
+  int i_group;
+  std::vector<int> node_vect = GetNodeArrayWithOffset(i_node, n_neurons,
+						      i_group);
+  
+  return neuron_vect_[i_group]->SetVectParam(param_name, node_vect.data(),
 					      n_neurons, params, vect_size);
 }
 

@@ -29,16 +29,16 @@ int main(int argc, char *argv[])
   int n_neurons = 10000;
   
   // each host has n_neurons neurons with 1 receptor ports
-  int neuron = ngpu.CreateNeuron("AEIF", n_neurons, 1);
+  NodeSeq neuron = ngpu.CreateNeuron("AEIF", n_neurons, 1);
 
   // the following parameters are set to the same values on all hosts
-  ngpu.SetNeuronParams("a", neuron, n_neurons,  4.0);
-  ngpu.SetNeuronParams("b", neuron, n_neurons,  80.5);
-  ngpu.SetNeuronParams("E_L", neuron, n_neurons,  -70.6);
-  ngpu.SetNeuronParams("I_e", neuron, n_neurons,  700.0);
+  ngpu.SetNeuronParam("a", neuron,  4.0);
+  ngpu.SetNeuronParam("b", neuron,  80.5);
+  ngpu.SetNeuronParam("E_L", neuron,  -70.6);
+  ngpu.SetNeuronParam("I_e", neuron,  700.0);
 
   string filename = "test_constcurr.dat";
-  int i_neurons[] = {rand()%n_neurons}; // any set of neuron indexes
+  int i_neurons[] = {neuron[rand()%n_neurons]}; // any set of neuron indexes
   string var_name[] = {"V_m"};
 
   // create multimeter record of V_m

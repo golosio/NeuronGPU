@@ -43,9 +43,9 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
 
   rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_, rk5_data_struct_);
   var_arr_ = rk5_.GetYArr();
-  params_arr_ = rk5_.GetParamsArr();
+  params_arr_ = rk5_.GetParamArr();
 
-  receptor_weight_arr_ = GetParamsArr() + n_scal_params_
+  receptor_weight_arr_ = GetParamArr() + n_scal_params_
     + GetVectParamIdx("g0");
   receptor_weight_arr_step_ = n_params_;
   receptor_weight_port_step_ = n_vect_params_;

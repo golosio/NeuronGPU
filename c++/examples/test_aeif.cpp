@@ -31,23 +31,22 @@ int main(int argc, char *argv[])
   int n_neurons = 10000;
   
   // each host has n_neurons neurons with 3 receptor ports
-  int neuron = ngpu.CreateNeuron("AEIF", n_neurons, 3);
+  NodeSeq neuron = ngpu.CreateNeuron("AEIF", n_neurons, 3);
 
   // the following parameters are set to the same values on all hosts
   float E_rev[] = {20.0, 0.0, -85.0};
   float taus_decay[] = {40.0, 20.0, 30.0};
   float taus_rise[] = {20.0, 10.0, 5.0};
-  ngpu.SetNeuronVectParams("E_rev", neuron, n_neurons, E_rev, 3);
-  ngpu.SetNeuronVectParams("taus_decay", neuron, n_neurons,
-				 taus_decay, 3);
-  ngpu.SetNeuronVectParams("taus_rise", neuron, n_neurons, taus_rise, 3);
-  ngpu.SetNeuronParams("a", neuron, n_neurons,  4.0);
-  ngpu.SetNeuronParams("b", neuron, n_neurons,  80.5);
-  ngpu.SetNeuronParams("E_L", neuron, n_neurons,  -70.6);
-  ngpu.SetNeuronParams("g_L", neuron, n_neurons,  300.0);
+  ngpu.SetNeuronParam("E_rev", neuron, E_rev, 3);
+  ngpu.SetNeuronParam("taus_decay", neuron, taus_decay, 3);
+  ngpu.SetNeuronParam("taus_rise", neuron, taus_rise, 3);
+  ngpu.SetNeuronParam("a", neuron,  4.0);
+  ngpu.SetNeuronParam("b", neuron,  80.5);
+  ngpu.SetNeuronParam("E_L", neuron,  -70.6);
+  ngpu.SetNeuronParam("g_L", neuron,  300.0);
 
   int n_sg = 1; // number of spike generators
-  int sg = ngpu.CreateSpikeGenerator(n_sg); // create spike generator
+  NodeSeq sg = ngpu.CreateSpikeGenerator(n_sg); // create spike generator
 
   float spike_time[] = {10.0};
   float spike_height[] = {1.0};
@@ -59,12 +58,13 @@ int main(int argc, char *argv[])
   float weight[] = {0.1, 0.2, 0.15};
 
   for (int i_port=0; i_port<3; i_port++) {
-    ngpu.ConnectAllToAll(sg, n_sg, neuron, n_neurons, i_port,
-			       weight[i_port], delay[i_port]);
+    ConnSpec conn_spec(ALL_TO_ALL);
+    SynSpec syn_spec(STANDARD_SYNAPSE, weight[i_port], delay[i_port], i_port);
+    ngpu.Connect(sg, neuron, conn_spec, syn_spec);
   }
 
   string filename = "test_aeif.dat";
-  int i_neuron[] = {neuron+rand()%n_neurons}; // any set of neuron indexes
+  int i_neuron[] = {neuron[rand()%n_neurons]}; // any set of neuron indexes
   string var_name[] = {"V_m"};
   // create multimeter record of V_m
   ngpu.CreateRecord(filename, var_name, i_neuron, 1);

@@ -2,7 +2,7 @@
 import sys, platform
 import ctypes, ctypes.util
 
-lib_path="/home/golosio/lib/libpyneuralgpu.so"
+lib_path="/home/golosio/lib/libneuralgpu_C.so"
 _neuralgpu=ctypes.CDLL(lib_path)
 
 c_float_p = ctypes.POINTER(ctypes.c_float)
@@ -125,25 +125,25 @@ def GetRecordData(i_record):
     return data_list    
 
 
-NeuralGPU_SetNeuronParams = _neuralgpu.NeuralGPU_SetNeuronParams
-NeuralGPU_SetNeuronParams.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_float)
-NeuralGPU_SetNeuronParams.restype = ctypes.c_int
-def SetNeuronParams(param_name, i_node, n_neurons, val):
+NeuralGPU_SetNeuronParam = _neuralgpu.NeuralGPU_SetNeuronParam
+NeuralGPU_SetNeuronParam.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_float)
+NeuralGPU_SetNeuronParam.restype = ctypes.c_int
+def SetNeuronParam(param_name, i_node, n_neurons, val):
     "Set neuron scalar parameter value"
     c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
-    return NeuralGPU_SetNeuronParams(c_param_name, ctypes.c_int(i_node), ctypes.c_int(n_neurons), ctypes.c_float(val)) 
+    return NeuralGPU_SetNeuronParam(c_param_name, ctypes.c_int(i_node), ctypes.c_int(n_neurons), ctypes.c_float(val)) 
 
 
-NeuralGPU_SetNeuronVectParams = _neuralgpu.NeuralGPU_SetNeuronVectParams
-NeuralGPU_SetNeuronVectParams.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int,
+NeuralGPU_SetNeuronVectParam = _neuralgpu.NeuralGPU_SetNeuronVectParam
+NeuralGPU_SetNeuronVectParam.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int,
                                           c_float_p, ctypes.c_int)
-NeuralGPU_SetNeuronVectParams.restype = ctypes.c_int
-def SetNeuronVectParams(param_name, i_node, n_neurons, params_list):
+NeuralGPU_SetNeuronVectParam.restype = ctypes.c_int
+def SetNeuronVectParam(param_name, i_node, n_neurons, params_list):
     "Set neuron vector parameter value"
     c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
     vect_size = len(params_list)
     array_float_type = ctypes.c_float * vect_size
-    return NeuralGPU_SetNeuronVectParams(c_param_name, ctypes.c_int(i_node), ctypes.c_int(n_neurons),
+    return NeuralGPU_SetNeuronVectParam(c_param_name, ctypes.c_int(i_node), ctypes.c_int(n_neurons),
                                          array_float_type(*params_list), ctypes.c_int(vect_size))  
 
 NeuralGPU_SetSpikeGenerator = _neuralgpu.NeuralGPU_SetSpikeGenerator

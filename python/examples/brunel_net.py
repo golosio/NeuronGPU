@@ -43,9 +43,9 @@ E_rev = [0.0, -85.0]
 taus_decay = [1.0, 1.0]
 taus_rise = [1.0, 1.0]
 
-ngpu.SetNeuronVectParams("E_rev", neuron, n_neurons, E_rev)
-ngpu.SetNeuronVectParams("taus_decay", neuron, n_neurons, taus_decay)
-ngpu.SetNeuronVectParams("taus_rise", neuron, n_neurons, taus_rise)
+ngpu.SetNeuronVectParam("E_rev", neuron, n_neurons, E_rev)
+ngpu.SetNeuronVectParam("taus_decay", neuron, n_neurons, taus_decay)
+ngpu.SetNeuronVectParam("taus_rise", neuron, n_neurons, taus_rise)
 mean_delay = 0.5
 std_delay = 0.25
 min_delay = 0.1

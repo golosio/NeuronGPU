@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "neuralgpu.h"
-#include "pyneuralgpu.h"
+#include "neuralgpu_C.h"
 
 extern "C" {
   static NeuralGPU *NeuralGPU_instance = NULL;
@@ -62,20 +62,25 @@ extern "C" {
   {
     checkNeuralGPUInstance();
     std::string model_name_str = std::string(model_name);
-    return NeuralGPU_instance->CreateNeuron(model_name_str, n_neurons,
-					    n_receptors);
+    NodeSeq neur = NeuralGPU_instance->CreateNeuron(model_name_str, n_neurons,
+						    n_receptors);
+    return neur[0];
   }
 
   int NeuralGPU_CreatePoissonGenerator(int n_nodes, float rate)
   {
     checkNeuralGPUInstance();
-    return NeuralGPU_instance->CreatePoissonGenerator(n_nodes, rate);
+    NodeSeq pg = NeuralGPU_instance->CreatePoissonGenerator(n_nodes, rate);
+
+    return pg[0];
   }
   
   int NeuralGPU_CreateSpikeGenerator(int n_nodes)
   {
     checkNeuralGPUInstance();
-    return NeuralGPU_instance->CreateSpikeGenerator(n_nodes);
+    NodeSeq sg = NeuralGPU_instance->CreateSpikeGenerator(n_nodes);
+
+    return sg[0];
   }
   
   int NeuralGPU_CreateRecord(char *file_name, char *var_name_arr[],
@@ -123,22 +128,22 @@ extern "C" {
     return data_arr; 
   }
 
-  int NeuralGPU_SetNeuronParams(char *param_name, int i_node, int n_neurons,
+  int NeuralGPU_SetNeuronParam(char *param_name, int i_node, int n_neurons,
 				float val)
   {
     checkNeuralGPUInstance();
     std::string param_name_str = std::string(param_name);
-    return NeuralGPU_instance->SetNeuronParams(param_name_str, i_node,
+    return NeuralGPU_instance->SetNeuronParam(param_name_str, i_node,
 					       n_neurons, val);
   }
 
-  int NeuralGPU_SetNeuronVectParams(char *param_name, int i_node,
+  int NeuralGPU_SetNeuronVectParam(char *param_name, int i_node,
 				    int n_neurons, float *params,
 				    int vect_size)
   {
     checkNeuralGPUInstance();
     std::string param_name_str = std::string(param_name);    
-    return NeuralGPU_instance->SetNeuronVectParams(param_name_str, i_node,
+    return NeuralGPU_instance->SetNeuronParam(param_name_str, i_node,
 						   n_neurons, params,
 						   vect_size);
   }

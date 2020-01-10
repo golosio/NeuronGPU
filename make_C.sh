@@ -17,9 +17,9 @@ if [ ! -d "$1" ]; then
     fi
 fi
 
-g++ -Wall -fPIC -shared -L ./lib -I ./src -o lib/libpyneuralgpu.so src/pyneuralgpu.cpp -lneuralgpu
+g++ -Wall -fPIC -shared -L ./lib -I ./src -o lib/libneuralgpu_C.so src/neuralgpu_C.cpp -lneuralgpu
 
-cp lib/libpyneuralgpu.so $1
+cp lib/libneuralgpu_C.so $1
 
 echo
 echo "Done"

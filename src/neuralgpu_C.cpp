@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extern "C" {
   static NeuralGPU *NeuralGPU_instance = NULL;
+  ConnSpec ConnSpec_instance;
+  SynSpec SynSpec_instance;
 
   void checkNeuralGPUInstance() {
     if (NeuralGPU_instance == NULL) {
@@ -28,6 +30,20 @@ extern "C" {
     }
   }
 
+  /*
+  void checkConnSpecInstance() {
+    if (ConnSpec_instance == NULL) {
+      ConnSpec_instance = new ConnSpec();
+    }
+  }
+  
+  void checkSynSpecInstance() {
+    if (SynSpec_instance == NULL) {
+      SynSpec_instance = new SynSpec();
+    }
+  }
+  */
+  
   int NeuralGPU_SetRandomSeed(unsigned long long seed)
   {
     checkNeuralGPUInstance();
@@ -352,6 +368,50 @@ extern "C" {
        i_source_host, i_source_neuron_0, n_source_neurons, i_target_host,
        i_target_neuron_0, n_target_neurons, i_port, weight, delay, indegree
        );
+  }
+
+  int NeuralGPU_ConnSpecInit()
+  {
+    return ConnSpec_instance.Init();
+  }
+
+  int NeuralGPU_SetConnSpecParam(std::string param_name, int value)
+  {
+    return ConnSpec_instance.SetParam(param_name, value);
+  }
+
+  int NeuralGPU_SynSpecInit()
+  {
+    return SynSpec_instance.Init();
+  }
+
+  int NeuralGPU_SetSynSpecIntParam(std::string param_name, int value)
+  {
+    return SynSpec_instance.SetParam(param_name, value);
+  }
+
+  int NeuralGPU_SetSynSpecFloatParam(std::string param_name, float value)
+  {
+    return SynSpec_instance.SetParam(param_name, value);
+  }
+
+  int NeuralGPU_SetSynSpecFloatPtParam(std::string param_name, float *array_pt)
+  {
+    return SynSpec_instance.SetParam(param_name, array_pt);
+  }
+
+  int NeuralGPU_ConnectSeq(int i_source, int n_source, int i_target,
+			   int n_target)
+  {
+    return NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
+				      ConnSpec_instance, SynSpec_instance); 
+  }
+
+  int NeuralGPU_ConnectGroup(int *i_source, int n_source, int *i_target,
+			   int n_target)
+  {
+    return NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
+				      ConnSpec_instance, SynSpec_instance);
   }
 
 }

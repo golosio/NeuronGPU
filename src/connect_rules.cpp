@@ -261,7 +261,6 @@ int NeuralGPU::Connect(int i_source, int n_source, int i_target, int n_target,
 {
   return _Connect<int>(i_source, n_source, i_target, n_target,
 		       conn_spec, syn_spec);
-
 }
 
 int NeuralGPU::Connect(NodeSeq source, NodeSeq target,
@@ -269,7 +268,6 @@ int NeuralGPU::Connect(NodeSeq source, NodeSeq target,
 {
   return _Connect<int>(source.i0, source.n, target.i0, target.n,
 		       conn_spec, syn_spec);
-
 }
 
 int NeuralGPU::Connect(std::vector<int> source, std::vector<int> target,
@@ -277,5 +275,13 @@ int NeuralGPU::Connect(std::vector<int> source, std::vector<int> target,
 {
   return _Connect<int*>(source.data(), source.size(), target.data(),
 			target.size(), conn_spec, syn_spec);
-
 }
+
+int NeuralGPU::Connect(int* source, int n_source, int* target, int n_target,
+		       ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  return _Connect<int*>(source, n_source, target, n_target,
+			conn_spec, syn_spec);
+}
+
+

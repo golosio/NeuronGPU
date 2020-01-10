@@ -305,6 +305,9 @@ class NeuralGPU
 
   int Connect(std::vector<int> source, std::vector<int> target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
+  
+  int Connect(int *i_source, int n_source, int *i_target, int n_target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec);
 
 };
 

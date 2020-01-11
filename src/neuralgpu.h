@@ -39,19 +39,35 @@ class SynSpec;
 class Sequence
 {
  public:
-    int i0;
-    int n;
+  int i0;
+  int n;
+  
+ Sequence(int i0=0, int n=0) : i0(i0), n(n) {}
+  
+  inline int operator[](int i) {
+    if (i<0) {
+      std::cerr << "Sequence index cannot be negative\n";
+      exit(0);
+    }
+    if (i>=n) {
+      std::cerr << "Sequence index out of range\n";
+      exit(0);
+    }
+    return i0 + i;
+  }
 
-    Sequence(int i0=0, int n=0) : i0(i0), n(n) {}
-    
-    inline int operator[](int i) {return i0 + i;} 
-    inline Sequence Subseq(int first, int last) {
-      if (first<0 || last>=n) {
+  inline Sequence Subseq(int first, int last) {
+    if (first<0 || last>first) {
+      std::cerr << "Sequence subset range error\n";
+      exit(0);
+    }
+    if (last>=n) {
       std::cerr << "Sequence subset out of range\n";
       exit(0);
     }
     return Sequence(i0 + first, last - first + 1);
   }
+
   // https://stackoverflow.com/questions/18625223
   inline std::vector<int> ToVector() {
     std::vector<int> v;
@@ -208,6 +224,10 @@ class NeuralGPU
 
   std::vector<int> GetNodeArrayWithOffset(int *i_node, int n_neurons,
 					  int &i_group);
+
+  int IsNeuronScalParam(std::string param_name, int i_node);
+
+  int IsNeuronVectParam(std::string param_name, int i_node);
 
   int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 			float *spike_height);

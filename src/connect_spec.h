@@ -56,6 +56,8 @@ public:
   int Init(int rule, int degree=0);
   int SetParam(std::string param_name, int value);
   int GetParam(std::string param_name);
+  static bool IsParam(std::string param_name);
+
   friend class NeuralGPU;
 };
 
@@ -91,6 +93,10 @@ class SynSpec
   int SetParam(std::string param_name, float value);
   int SetParam(std::string param_name, float *array_pt);
   float GetParam(std::string param_name);
+  static bool IsIntParam(std::string param_name);
+  static bool IsFloatParam(std::string param_name);
+  static bool IsFloatPtParam(std::string param_name);
+
   friend class NeuralGPU;
 };
 

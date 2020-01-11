@@ -18,17 +18,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuralgpu.h"
 #include "connect_rules.h"
 
-ConnSpec::ConnSpec()
+int ConnSpec::Init()
 {
   rule_ = ALL_TO_ALL;
   total_num_ = 0;
   indegree_ = 0;
   outdegree_ = 0;
+  return 0;
+}
+			    
+ConnSpec::ConnSpec()
+{
+  Init();
 }
 
-ConnSpec::ConnSpec(int rule, int degree /*=0*/)
+int ConnSpec::Init(int rule, int degree /*=0*/)
 {
-  ConnSpec();
+  Init();
   if (rule<0 || rule>N_CONN_RULE) {
     std::cerr << "Unknown connection rule\n";
     exit(0);
@@ -47,6 +53,13 @@ ConnSpec::ConnSpec(int rule, int degree /*=0*/)
   else if (rule==FIXED_OUTDEGREE) {
     outdegree_ = degree;
   }
+  
+  return 0;
+}
+
+ConnSpec::ConnSpec(int rule, int degree /*=0*/)
+{
+  Init(rule, degree);
 }
 
 int ConnSpec::SetParam(std::string param_name, int value)
@@ -81,6 +94,18 @@ int ConnSpec::SetParam(std::string param_name, int value)
   }
   return 0;
 }
+
+bool ConnSpec::IsParam(std::string param_name)
+{
+  if (param_name=="rule" || param_name=="indegree" || param_name=="outdegree"
+      || param_name=="total_num") {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 //int ConnSpec::GetParam(std::string param_name);
 
 SynSpec::SynSpec()
@@ -169,6 +194,16 @@ int SynSpec::SetParam(std::string param_name, int value)
   return 0;
 }
 
+bool SynSpec::IsIntParam(std::string param_name)
+{
+  if (param_name=="synapse_type" || param_name=="receptor") {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 int SynSpec::SetParam(std::string param_name, float value)
 {
   if (param_name=="weight") {
@@ -188,6 +223,15 @@ int SynSpec::SetParam(std::string param_name, float value)
   return 0;
 }
 
+bool SynSpec::IsFloatParam(std::string param_name)
+{
+  if (param_name=="weight" || param_name=="delay") {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
  
 int SynSpec::SetParam(std::string param_name, float *array_pt)
 {
@@ -204,6 +248,17 @@ int SynSpec::SetParam(std::string param_name, float *array_pt)
   
   return 0;
 }
+
+bool SynSpec::IsFloatPtParam(std::string param_name)
+{
+  if (param_name=="weight_array" || param_name=="delay_array") {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 //float SynSpec::GetParam(std::string param_name);
 
 template<>

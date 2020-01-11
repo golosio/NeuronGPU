@@ -2,9 +2,9 @@ import neuralgpu as ngpu
 
 neuron = ngpu.CreateNeuron("AEIF", 1, 1)
 
-ngpu.SetNeuronParam("I_e", neuron, 1, 1000.0)
+ngpu.SetNeuronParam("I_e", neuron, 1000.0)
 
-record = ngpu.CreateRecord("", ["V_m"], [neuron], [0])
+record = ngpu.CreateRecord("", ["V_m"], [neuron[0]], [0])
 
 ngpu.Simulate()
 

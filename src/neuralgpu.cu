@@ -674,6 +674,22 @@ int NeuralGPU::SetNeuronParam(std::string param_name, int *i_node,
 					      n_neurons, params, vect_size);
 }
 
+int NeuralGPU::IsNeuronScalParam(std::string param_name, int i_node)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  
+  return neuron_vect_[i_group]->IsScalParam(param_name);
+}
+
+int NeuralGPU::IsNeuronVectParam(std::string param_name, int i_node)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  
+  return neuron_vect_[i_group]->IsVectParam(param_name);
+}
+
 int NeuralGPU::ConnectMpiInit(int argc, char *argv[])
 {
   CheckUncalibrated("MPI connections cannot be initialized after calibration");

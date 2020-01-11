@@ -9,7 +9,29 @@ c_float_p = ctypes.POINTER(ctypes.c_float)
 c_int_p = ctypes.POINTER(ctypes.c_int)
 c_char_p = ctypes.POINTER(ctypes.c_char)
 
+class NodeSeq():
+    def __init__(self, i0, n):
+        self.i0 = i0
+        self.n = n
 
+    def Subseq(self, first, last):
+        if first<0 | last<first:
+            raise ValueError("Sequence subset range error")
+        if last>=self.n:
+            raise ValueError("Sequence subset out of range")
+        return NodeSeq(self.i0 + first, last - first + 1)
+    def __getitem__(self, i):
+        if i<0:
+            raise ValueError("Sequence index cannot be negative")
+        if i>=self.n:
+            raise ValueError("Sequence index out of range")
+        return self.i0 + i
+    def ToList(self):
+        return list(range(self.i0, self.i0 + self.n))
+
+conn_rule_name = ("one_to_one", "all_to_all", "fixed_total_number",
+                  "fixed_indegree", "fixed_outdegree")
+    
 NeuralGPU_SetRandomSeed = _neuralgpu.NeuralGPU_SetRandomSeed
 NeuralGPU_SetRandomSeed.argtypes = (ctypes.c_ulonglong,)
 NeuralGPU_SetRandomSeed.restype = ctypes.c_int
@@ -54,7 +76,8 @@ NeuralGPU_CreateNeuron.restype = ctypes.c_int
 def CreateNeuron(model_name, n_neurons, n_receptors):
     "Create a neuron group"
     c_model_name = ctypes.create_string_buffer(str.encode(model_name), len(model_name)+1)
-    return NeuralGPU_CreateNeuron(c_model_name, ctypes.c_int(n_neurons), ctypes.c_int(n_receptors)) 
+    i_node =NeuralGPU_CreateNeuron(c_model_name, ctypes.c_int(n_neurons), ctypes.c_int(n_receptors))
+    return NodeSeq(i_node, n_neurons)
 
 
 NeuralGPU_CreatePoissonGenerator = _neuralgpu.NeuralGPU_CreatePoissonGenerator
@@ -62,16 +85,16 @@ NeuralGPU_CreatePoissonGenerator.argtypes = (ctypes.c_int, ctypes.c_float)
 NeuralGPU_CreatePoissonGenerator.restype = ctypes.c_int
 def CreatePoissonGenerator(n_nodes, rate):
     "Create a poisson-distributed spike generator"
-    return NeuralGPU_CreatePoissonGenerator(ctypes.c_int(n_nodes), ctypes.c_float(rate)) 
-
+    i_node = NeuralGPU_CreatePoissonGenerator(ctypes.c_int(n_nodes), ctypes.c_float(rate)) 
+    return NodeSeq(i_node, n_nodes)
 
 NeuralGPU_CreateSpikeGenerator = _neuralgpu.NeuralGPU_CreateSpikeGenerator
 NeuralGPU_CreateSpikeGenerator.argtypes = (ctypes.c_int,)
 NeuralGPU_CreateSpikeGenerator.restype = ctypes.c_int
 def CreateSpikeGenerator(n_nodes):
     "Create a spike generator"
-    return NeuralGPU_CreateSpikeGenerator(ctypes.c_int(n_nodes)) 
-
+    i_node = NeuralGPU_CreateSpikeGenerator(ctypes.c_int(n_nodes)) 
+    return NodeSeq(i_node, n_nodes)
 
 NeuralGPU_CreateRecord = _neuralgpu.NeuralGPU_CreateRecord
 NeuralGPU_CreateRecord.argtypes = (c_char_p, ctypes.POINTER(c_char_p), c_int_p, c_int_p, ctypes.c_int); 
@@ -125,13 +148,13 @@ def GetRecordData(i_record):
     return data_list    
 
 
-NeuralGPU_SetNeuronParam = _neuralgpu.NeuralGPU_SetNeuronParam
-NeuralGPU_SetNeuronParam.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_float)
-NeuralGPU_SetNeuronParam.restype = ctypes.c_int
-def SetNeuronParam(param_name, i_node, n_neurons, val):
+NeuralGPU_SetNeuronScalParam = _neuralgpu.NeuralGPU_SetNeuronScalParam
+NeuralGPU_SetNeuronScalParam.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_float)
+NeuralGPU_SetNeuronScalParam.restype = ctypes.c_int
+def SetNeuronScalParam(param_name, i_node, n_neurons, val):
     "Set neuron scalar parameter value"
     c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
-    return NeuralGPU_SetNeuronParam(c_param_name, ctypes.c_int(i_node), ctypes.c_int(n_neurons), ctypes.c_float(val)) 
+    return NeuralGPU_SetNeuronScalParam(c_param_name, ctypes.c_int(i_node), ctypes.c_int(n_neurons), ctypes.c_float(val)) 
 
 
 NeuralGPU_SetNeuronVectParam = _neuralgpu.NeuralGPU_SetNeuronVectParam
@@ -146,6 +169,35 @@ def SetNeuronVectParam(param_name, i_node, n_neurons, params_list):
     return NeuralGPU_SetNeuronVectParam(c_param_name, ctypes.c_int(i_node), ctypes.c_int(n_neurons),
                                          array_float_type(*params_list), ctypes.c_int(vect_size))  
 
+
+NeuralGPU_IsNeuronScalParam = _neuralgpu.NeuralGPU_IsNeuronScalParam
+NeuralGPU_IsNeuronScalParam.argtypes = (c_char_p, ctypes.c_int)
+NeuralGPU_IsNeuronScalParam.restype = ctypes.c_int
+def IsNeuronScalParam(param_name, i_node):
+    "Check name of neuron scalar parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return (NeuralGPU_IsNeuronScalParam(c_param_name, ctypes.c_int(i_node)) != 0) 
+
+
+NeuralGPU_IsNeuronVectParam = _neuralgpu.NeuralGPU_IsNeuronVectParam
+NeuralGPU_IsNeuronVectParam.argtypes = (c_char_p, ctypes.c_int)
+NeuralGPU_IsNeuronVectParam.restype = ctypes.c_int
+def IsNeuronVectParam(param_name, i_node):
+    "Check name of neuron scalar parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return (NeuralGPU_IsNeuronVectParam(c_param_name, ctypes.c_int(i_node)) != 0) 
+
+
+def SetNeuronParam(param_name, node_seq, val):
+    "Set neuron scalar or vector parameter"
+    if IsNeuronScalParam(param_name, node_seq.i0):
+        SetNeuronScalParam(param_name, node_seq.i0, node_seq.n, val)
+    elif IsNeuronVectParam(param_name, node_seq.i0):
+        SetNeuronVectParam(param_name, node_seq.i0, node_seq.n, val)
+    else:
+        raise ValueError("Unknown neuron parameter")
+
+    
 NeuralGPU_SetSpikeGenerator = _neuralgpu.NeuralGPU_SetSpikeGenerator
 NeuralGPU_SetSpikeGenerator.argtypes = (ctypes.c_int, ctypes.c_int, c_float_p,
                                         c_float_p)
@@ -267,7 +319,7 @@ def ConnectMpiInit():
 NeuralGPU_Connect = _neuralgpu.NeuralGPU_Connect
 NeuralGPU_Connect.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_ubyte, ctypes.c_float, ctypes.c_float)
 NeuralGPU_Connect.restype = ctypes.c_int
-def Connect(i_source_neuron, i_target_neuron, i_port, weight, delay):
+def SingleConnect(i_source_neuron, i_target_neuron, i_port, weight, delay):
     "Connect two neurons"
     return NeuralGPU_Connect(ctypes.c_int(i_source_neuron), ctypes.c_int(i_target_neuron), ctypes.c_ubyte(i_port), ctypes.c_float(weight), ctypes.c_float(delay))
 
@@ -403,3 +455,122 @@ def RemoteConnectFixedIndegree(i_source_host, i_source_neuron_0, n_source_neuron
                                           ctypes.c_ubyte(i_port), ctypes.c_float(weight), ctypes.c_float(delay), ctypes.c_int(indegree))
 
 
+NeuralGPU_ConnSpecInit = _neuralgpu.NeuralGPU_ConnSpecInit
+NeuralGPU_ConnSpecInit.restype = ctypes.c_int
+def ConnSpecInit():
+    "Initialize connection rules specification"
+    return NeuralGPU_ConnSpecInit()
+
+
+NeuralGPU_SetConnSpecParam = _neuralgpu.NeuralGPU_SetConnSpecParam
+NeuralGPU_SetConnSpecParam.argtypes = (c_char_p, ctypes.c_int)
+NeuralGPU_SetConnSpecParam.restype = ctypes.c_int
+def SetConnSpecParam(param_name, val):
+    "Set connection parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return NeuralGPU_SetConnSpecParam(c_param_name, ctypes.c_int(val))
+
+
+NeuralGPU_ConnSpecIsParam = _neuralgpu.NeuralGPU_ConnSpecIsParam
+NeuralGPU_ConnSpecIsParam.argtypes = (c_char_p,)
+NeuralGPU_ConnSpecIsParam.restype = ctypes.c_int
+def ConnSpecIsParam(param_name):
+    "Check name of connection parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return (NeuralGPU_ConnSpecIsParam(c_param_name) != 0)
+
+
+NeuralGPU_SynSpecInit = _neuralgpu.NeuralGPU_SynSpecInit
+NeuralGPU_SynSpecInit.restype = ctypes.c_int
+def SynSpecInit():
+    "Initializa synapse specification"
+    return NeuralGPU_SynSpecInit()
+
+NeuralGPU_SetSynSpecIntParam = _neuralgpu.NeuralGPU_SetSynSpecIntParam
+NeuralGPU_SetSynSpecIntParam.argtypes = (c_char_p, ctypes.c_int)
+NeuralGPU_SetSynSpecIntParam.restype = ctypes.c_int
+def SetSynSpecIntParam(param_name, val):
+    "Set synapse int parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return NeuralGPU_SetSynSpecIntParam(c_param_name, ctypes.c_int(val))
+
+NeuralGPU_SetSynSpecFloatParam = _neuralgpu.NeuralGPU_SetSynSpecFloatParam
+NeuralGPU_SetSynSpecFloatParam.argtypes = (c_char_p, ctypes.c_float)
+NeuralGPU_SetSynSpecFloatParam.restype = ctypes.c_int
+def SetSynSpecFloatParam(param_name, val):
+    "Set synapse float parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return NeuralGPU_SetSynSpecFloatParam(c_param_name, ctypes.c_float(val))
+
+NeuralGPU_SetSynSpecFloatPtParam = _neuralgpu.NeuralGPU_SetSynSpecFloatPtParam
+NeuralGPU_SetSynSpecFloatPtParam.argtypes = (c_char_p, ctypes.c_void_p)
+NeuralGPU_SetSynSpecFloatPtParam.restype = ctypes.c_int
+def SetSynSpecFloatPtParam(param_name, arr):
+    "Set synapse pointer to float parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    if type(arr) is list:
+        arr = (ctypes.c_float * len(arr))(*arr) 
+    arr_pt = ctypes.cast(arr, ctypes.c_void_p)    
+    return NeuralGPU_SetSynSpecFloatPtParam(c_param_name, arr_pt)
+
+
+NeuralGPU_SynSpecIsIntParam = _neuralgpu.NeuralGPU_SynSpecIsIntParam
+NeuralGPU_SynSpecIsIntParam.argtypes = (c_char_p,)
+NeuralGPU_SynSpecIsIntParam.restype = ctypes.c_int
+def SynSpecIsIntParam(param_name):
+    "Check name of synapse int parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return (NeuralGPU_SynSpecIsIntParam(c_param_name) != 0)
+
+
+NeuralGPU_SynSpecIsFloatParam = _neuralgpu.NeuralGPU_SynSpecIsFloatParam
+NeuralGPU_SynSpecIsFloatParam.argtypes = (c_char_p,)
+NeuralGPU_SynSpecIsFloatParam.restype = ctypes.c_int
+def SynSpecIsFloatParam(param_name):
+    "Check name of synapse float parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return (NeuralGPU_SynSpecIsFloatParam(c_param_name) != 0)
+
+
+NeuralGPU_SynSpecIsFloatPtParam = _neuralgpu.NeuralGPU_SynSpecIsFloatPtParam
+NeuralGPU_SynSpecIsFloatPtParam.argtypes = (c_char_p,)
+NeuralGPU_SynSpecIsFloatPtParam.restype = ctypes.c_int
+def SynSpecIsFloatPtParam(param_name):
+    "Check name of synapse pointer to float parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return (NeuralGPU_SynSpecIsFloatPtParam(c_param_name) != 0)
+
+
+NeuralGPU_ConnectSeq = _neuralgpu.NeuralGPU_ConnectSeq
+NeuralGPU_ConnectSeq.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
+NeuralGPU_ConnectSeq.restype = ctypes.c_int
+def Connect(source, target, conn_dict, syn_dict): 
+    "Connect two neuron sequences"
+    ConnSpecInit()
+    SynSpecInit()
+    for param_name in conn_dict:
+        if param_name=="rule":
+            for i_rule in range(len(conn_rule_name)):
+                if conn_dict[param_name]==conn_rule_name[i_rule]:
+                    break
+            if i_rule < len(conn_rule_name):
+                SetConnSpecParam(param_name, i_rule)
+            else:
+                raise ValueError("Unknown connection rule")
+                
+        elif ConnSpecIsParam(param_name):
+            SetConnSpecParam(param_name, conn_dict[param_name])
+        else:
+            raise ValueError("Unknown connection parameter")
+
+    for param_name in syn_dict:
+        if SynSpecIsIntParam(param_name):
+            SetSynSpecIntParam(param_name, syn_dict[param_name])
+        elif SynSpecIsFloatParam(param_name):
+            SetSynSpecFloatParam(param_name, syn_dict[param_name])
+        elif SynSpecIsFloatPtParam(param_name):
+            SetSynSpecFloatPtParam(param_name, syn_dict[param_name])
+        else:
+            raise ValueError("Unknown synapse parameter")
+        
+    return NeuralGPU_ConnectSeq(source.i0, source.n, target.i0, target.n)

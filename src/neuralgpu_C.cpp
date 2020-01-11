@@ -144,7 +144,7 @@ extern "C" {
     return data_arr; 
   }
 
-  int NeuralGPU_SetNeuronParam(char *param_name, int i_node, int n_neurons,
+  int NeuralGPU_SetNeuronScalParam(char *param_name, int i_node, int n_neurons,
 				float val)
   {
     checkNeuralGPUInstance();
@@ -163,7 +163,23 @@ extern "C" {
 						   n_neurons, params,
 						   vect_size);
   }
-
+  
+  int NeuralGPU_IsNeuronScalParam(char *param_name, int i_node)
+  {
+    checkNeuralGPUInstance();
+    std::string param_name_str = std::string(param_name);
+    
+    return NeuralGPU_instance->IsNeuronScalParam(param_name_str, i_node);
+  }
+  
+  int NeuralGPU_IsNeuronVectParam(char *param_name, int i_node)
+  {
+    checkNeuralGPUInstance();
+    std::string param_name_str = std::string(param_name);
+    
+    return NeuralGPU_instance->IsNeuronVectParam(param_name_str, i_node);
+  }
+  
   int NeuralGPU_SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 			float *spike_height)
   {
@@ -243,6 +259,7 @@ extern "C" {
   int NeuralGPU_Connect(int i_source_neuron, int i_target_neuron,
 			unsigned char i_port, float weight, float delay)
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->Connect(i_source_neuron, i_target_neuron,
 				       i_port, weight, delay);
   }
@@ -253,6 +270,7 @@ extern "C" {
    unsigned char i_port, float weight, float delay
    )
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectOneToOne
       (i_source_neuron_0, i_target_neuron_0, n_neurons, i_port, weight, delay);
   }
@@ -264,6 +282,7 @@ extern "C" {
    unsigned char i_port, float weight, float delay
    )
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectAllToAll
       (
        i_source_neuron_0, n_source_neurons, i_target_neuron_0,
@@ -278,6 +297,7 @@ extern "C" {
    unsigned char i_port, float weight, float delay, int indegree
    )
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectFixedIndegree
       (
        i_source_neuron_0, n_source_neurons, i_target_neuron_0,
@@ -292,6 +312,7 @@ extern "C" {
    unsigned char i_port, float *weight_arr, float *delay_arr, int indegree
    )
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectFixedIndegreeArray
       (
        i_source_neuron_0, n_source_neurons, i_target_neuron_0,
@@ -307,6 +328,7 @@ extern "C" {
    float *delay_arr, int n_conn
    )
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectFixedTotalNumberArray
       (
        i_source_neuron_0, n_source_neurons, i_target_neuron_0,
@@ -321,6 +343,7 @@ extern "C" {
    unsigned char i_port, float weight, float delay
    )
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->RemoteConnect
       (
        i_source_host, i_source_neuron, i_target_host, i_target_neuron,
@@ -335,6 +358,7 @@ extern "C" {
    unsigned char i_port, float weight, float delay
    )
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->RemoteConnectOneToOne
       (
        i_source_host, i_source_neuron_0, i_target_host, i_target_neuron_0,
@@ -349,6 +373,7 @@ extern "C" {
    unsigned char i_port, float weight, float delay
    )
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->RemoteConnectAllToAll
   (
    i_source_host, i_source_neuron_0, n_source_neurons, i_target_host,
@@ -363,6 +388,7 @@ extern "C" {
    unsigned char i_port, float weight, float delay, int indegree
    )
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->RemoteConnectFixedIndegree
       (
        i_source_host, i_source_neuron_0, n_source_neurons, i_target_host,
@@ -375,9 +401,16 @@ extern "C" {
     return ConnSpec_instance.Init();
   }
 
-  int NeuralGPU_SetConnSpecParam(std::string param_name, int value)
+  int NeuralGPU_SetConnSpecParam(char *param_name, int value)
   {
-    return ConnSpec_instance.SetParam(param_name, value);
+    std::string param_name_str = std::string(param_name);
+    return ConnSpec_instance.SetParam(param_name_str, value);
+  }
+
+  int NeuralGPU_ConnSpecIsParam(char *param_name)
+  {
+    std::string param_name_str = std::string(param_name);
+    return ConnSpec::IsParam(param_name_str);
   }
 
   int NeuralGPU_SynSpecInit()
@@ -385,24 +418,46 @@ extern "C" {
     return SynSpec_instance.Init();
   }
 
-  int NeuralGPU_SetSynSpecIntParam(std::string param_name, int value)
+  int NeuralGPU_SetSynSpecIntParam(char *param_name, int value)
   {
-    return SynSpec_instance.SetParam(param_name, value);
+    std::string param_name_str = std::string(param_name);
+    return SynSpec_instance.SetParam(param_name_str, value);
   }
 
-  int NeuralGPU_SetSynSpecFloatParam(std::string param_name, float value)
+  int NeuralGPU_SetSynSpecFloatParam(char *param_name, float value)
   {
-    return SynSpec_instance.SetParam(param_name, value);
+    std::string param_name_str = std::string(param_name);
+    return SynSpec_instance.SetParam(param_name_str, value);
   }
 
-  int NeuralGPU_SetSynSpecFloatPtParam(std::string param_name, float *array_pt)
+  int NeuralGPU_SetSynSpecFloatPtParam(char *param_name, float *array_pt)
   {
-    return SynSpec_instance.SetParam(param_name, array_pt);
+    std::string param_name_str = std::string(param_name);
+    return SynSpec_instance.SetParam(param_name_str, array_pt);
+  }
+
+  int NeuralGPU_SynSpecIsIntParam(char *param_name)
+  {
+    std::string param_name_str = std::string(param_name);
+    return SynSpec_instance.IsIntParam(param_name_str);
+  }
+
+  int NeuralGPU_SynSpecIsFloatParam(char *param_name)
+  {
+    std::string param_name_str = std::string(param_name);
+    return SynSpec_instance.IsFloatParam(param_name_str);
+  }
+
+  int NeuralGPU_SynSpecIsFloatPtParam(char *param_name)
+  {
+    std::string param_name_str = std::string(param_name);
+    return SynSpec_instance.IsFloatPtParam(param_name_str);
   }
 
   int NeuralGPU_ConnectSeq(int i_source, int n_source, int i_target,
 			   int n_target)
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
 				      ConnSpec_instance, SynSpec_instance); 
   }
@@ -410,6 +465,7 @@ extern "C" {
   int NeuralGPU_ConnectGroup(int *i_source, int n_source, int *i_target,
 			   int n_target)
   {
+    checkNeuralGPUInstance();
     return NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
 				      ConnSpec_instance, SynSpec_instance);
   }

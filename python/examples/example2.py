@@ -3,8 +3,11 @@ import neuralgpu as ngpu
 neuron = ngpu.CreateNeuron("AEIF", 1, 1)
 poiss_gen = ngpu.CreatePoissonGenerator(1, 12000.0);
 
-ngpu.Connect(poiss_gen, neuron, 0, 0.05, 2.0)
-record = ngpu.CreateRecord("", ["V_m"], [neuron], [0])
+conn_dict={"rule": "one_to_one"}
+syn_dict={"weight": 0.05, "delay": 2.0, "receptor":0}
+
+ngpu.Connect(poiss_gen, neuron, conn_dict, syn_dict)
+record = ngpu.CreateRecord("", ["V_m"], [neuron[0]], [0])
 
 ngpu.Simulate()
 

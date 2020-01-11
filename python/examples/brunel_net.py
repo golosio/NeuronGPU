@@ -27,7 +27,7 @@ Win = 0.35
 
 # poisson generator parameters
 poiss_rate = 20000.0 # poisson signal rate in Hz
-poiss_weight = 0.369
+poiss_weight = 0.37
 poiss_delay = 0.2 # poisson signal delay in ms
 n_pg = n_neurons  # number of poisson generators
 # create poisson generator
@@ -35,17 +35,17 @@ pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
 
 # Create n_neurons neurons with n_receptor receptor ports
 neuron = ngpu.CreateNeuron("AEIF", n_neurons, n_receptors)
-exc_neuron = neuron      # excitatory neuron id
-inh_neuron = neuron + NE # inhibitory neuron id
+exc_neuron = neuron.Subseq(0, NE-1)      # excitatory neuron id
+inh_neuron = neuron.Subseq(NE, n_neurons-1) # + NE # inhibitory neuron id
   
 # receptor parameters
 E_rev = [0.0, -85.0]
 taus_decay = [1.0, 1.0]
 taus_rise = [1.0, 1.0]
 
-ngpu.SetNeuronVectParam("E_rev", neuron, n_neurons, E_rev)
-ngpu.SetNeuronVectParam("taus_decay", neuron, n_neurons, taus_decay)
-ngpu.SetNeuronVectParam("taus_rise", neuron, n_neurons, taus_rise)
+ngpu.SetNeuronParam("E_rev", neuron, E_rev)
+ngpu.SetNeuronParam("taus_decay", neuron, taus_decay)
+ngpu.SetNeuronParam("taus_rise", neuron, taus_rise)
 mean_delay = 0.5
 std_delay = 0.25
 min_delay = 0.1
@@ -58,8 +58,14 @@ exc_delays = ngpu.RandomNormalClipped(CE*n_neurons, mean_delay,
 
 # efficient way to build float array with equal elements
 exc_weights = (ctypes.c_float * (CE*n_neurons))(*([Wex] * (CE*n_neurons)))
-ngpu.ConnectFixedIndegreeArray(exc_neuron, NE, neuron, n_neurons,
-			       0, exc_weights, exc_delays, CE)
+
+exc_conn_dict={"rule": "fixed_indegree", "indegree": CE}
+exc_syn_dict={"weight_array": exc_weights, "delay_array": exc_delays,
+          "receptor":0}
+ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
+
+#ngpu.ConnectFixedIndegreeArray(exc_neuron, NE, neuron, n_neurons,
+#			       0, exc_weights, exc_delays, CE)
 
 # Inhibitory connections
 # connect inhibitory neurons to port 1 of all neurons
@@ -70,15 +76,27 @@ inh_delays = ngpu.RandomNormalClipped(CI*n_neurons, mean_delay,
 
 # efficient way to build float array with equal elements
 inh_weights = (ctypes.c_float * (CI*n_neurons))(*([Win] * (CI*n_neurons)))
-ngpu.ConnectFixedIndegreeArray(inh_neuron, NI, neuron, n_neurons,
-				  1, inh_weights, inh_delays, CI)
+
+inh_conn_dict={"rule": "fixed_indegree", "indegree": CI}
+inh_syn_dict={"weight_array": inh_weights, "delay_array": inh_delays,
+              "receptor":1}
+ngpu.Connect(inh_neuron, neuron, inh_conn_dict, inh_syn_dict)
+
+#ngpu.ConnectFixedIndegreeArray(inh_neuron, NI, neuron, n_neurons,
+#				  1, inh_weights, inh_delays, CI)
 
 #connect poisson generator to port 0 of all neurons
-ngpu.ConnectOneToOne(pg, neuron, n_neurons, 0, poiss_weight,
-			   poiss_delay)
+pg_conn_dict={"rule": "one_to_one"}
+pg_syn_dict={"weight": poiss_weight, "delay": poiss_delay,
+              "receptor":0}
+
+ngpu.Connect(pg, neuron, pg_conn_dict, pg_syn_dict)
+
+#ngpu.ConnectOneToOne(pg, neuron, n_neurons, 0, poiss_weight,
+#			   poiss_delay)
 
 filename = "test_brunel_net.dat"
-i_neuron_arr = [neuron, neuron+randrange(n_neurons), neuron+n_neurons-1]
+i_neuron_arr = [neuron[37], neuron[randrange(n_neurons)], neuron[n_neurons-1]]
 i_receptor_arr = [0, 0, 0]
 # any set of neuron indexes
 # create multimeter record of V_m
@@ -113,6 +131,6 @@ plt.figure(3)
 plt.plot(t, V3)
 
 plt.draw()
-plt.pause(1)
+plt.pause(0.5)
 raw_input("<Hit Enter To Close>")
 plt.close()

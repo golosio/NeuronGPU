@@ -57,7 +57,7 @@ class Sequence
   }
 
   inline Sequence Subseq(int first, int last) {
-    if (first<0 || last>first) {
+    if (first<0 || first>last) {
       std::cerr << "Sequence subset range error\n";
       exit(0);
     }

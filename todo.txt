@@ -1,26 +1,19 @@
-finish C interface
+vector connection/parameter-set for python
 
-Produce python examples
+change model name to aeif_cond_beta
 
-make test/python directory
-make example/python directory
-
-make test/c directory
-make example/c directory
-
-make test/c++ directory
-make example/c++ directory
-
-Produce python examples
-
-Fix c++ examples
-
-unify neuralgpu.h and neuralgpu-python.h
-neuralgpu-python.cu -> neuralgpu-interface.cu
-unify make
+implement fixed outdegree connection rule
 
 Check error handling
 How to prevent python to crash and exit in case of error in neuralgpu?
+
+Produce python tests/examples
+
+implement new remote connections
+
+test mpi
+
+finish C interface/header
 
 Produce build system and check it on different linux, mac (windows?)
 

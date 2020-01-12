@@ -329,6 +329,18 @@ class NeuralGPU
   int Connect(int *i_source, int n_source, int *i_target, int n_target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
 
+  int Connect(NodeSeq source, std::vector<int> target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec)
+  {
+    return Connect(source.ToVector(), target, conn_spec, syn_spec);
+  }
+
+  int Connect(std::vector<int> source, NodeSeq target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec)
+  {
+    return Connect(source, target.ToVector(), conn_spec, syn_spec);
+  }
+
 };
 
 

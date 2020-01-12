@@ -32,20 +32,24 @@ poiss_delay = 0.2 # poisson signal delay in ms
 n_pg = n_neurons  # number of poisson generators
 # create poisson generator
 pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
+pg_list = pg.ToList()
 
 # Create n_neurons neurons with n_receptor receptor ports
 neuron = ngpu.CreateNeuron("AEIF", n_neurons, n_receptors)
 exc_neuron = neuron[0:NE-1]      # excitatory neurons
 inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neurons
-  
+neuron_list = neuron.ToList()
+exc_neuron_list = exc_neuron.ToList()
+inh_neuron_list = exc_neuron.ToList()
+
 # receptor parameters
 E_rev = [0.0, -85.0]
 taus_decay = [1.0, 1.0]
 taus_rise = [1.0, 1.0]
 
-ngpu.SetNeuronParam("E_rev", neuron, E_rev)
-ngpu.SetNeuronParam("taus_decay", neuron, taus_decay)
-ngpu.SetNeuronParam("taus_rise", neuron, taus_rise)
+ngpu.SetNeuronParam("E_rev", neuron_list, E_rev)
+ngpu.SetNeuronParam("taus_decay", neuron_list, taus_decay)
+ngpu.SetNeuronParam("taus_rise", neuron_list, taus_rise)
 mean_delay = 0.5
 std_delay = 0.25
 min_delay = 0.1
@@ -62,8 +66,7 @@ exc_weights = (ctypes.c_float * (CE*n_neurons))(*([Wex] * (CE*n_neurons)))
 exc_conn_dict={"rule": "fixed_indegree", "indegree": CE}
 exc_syn_dict={"weight_array": exc_weights, "delay_array": exc_delays,
           "receptor":0}
-ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
-
+ngpu.Connect(exc_neuron, neuron_list, exc_conn_dict, exc_syn_dict)
 
 # Inhibitory connections
 # connect inhibitory neurons to port 1 of all neurons
@@ -78,18 +81,16 @@ inh_weights = (ctypes.c_float * (CI*n_neurons))(*([Win] * (CI*n_neurons)))
 inh_conn_dict={"rule": "fixed_indegree", "indegree": CI}
 inh_syn_dict={"weight_array": inh_weights, "delay_array": inh_delays,
               "receptor":1}
-ngpu.Connect(inh_neuron, neuron, inh_conn_dict, inh_syn_dict)
-
+ngpu.Connect(inh_neuron_list, neuron, inh_conn_dict, inh_syn_dict)
 
 #connect poisson generator to port 0 of all neurons
 pg_conn_dict={"rule": "one_to_one"}
 pg_syn_dict={"weight": poiss_weight, "delay": poiss_delay,
               "receptor":0}
 
-ngpu.Connect(pg, neuron, pg_conn_dict, pg_syn_dict)
+ngpu.Connect(pg_list, neuron_list, pg_conn_dict, pg_syn_dict)
 
-
-filename = "test_brunel_net.dat"
+filename = "test_brunel_list.dat"
 i_neuron_arr = [neuron[37], neuron[randrange(n_neurons)], neuron[n_neurons-1]]
 i_receptor_arr = [0, 0, 0]
 # any set of neuron indexes

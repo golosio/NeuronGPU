@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
   syn_spec1.SetParam("receptor", 0);
   syn_spec1.SetParam("weight_array", exc_weights);
   syn_spec1.SetParam("delay_array", exc_delays);
-  neural_gpu.Connect(exc_neuron_vect, neuron_vect, conn_spec1, syn_spec1);
+  neural_gpu.Connect(exc_neuron_vect, neuron, conn_spec1, syn_spec1);
   delete[] exc_delays;
   delete[] exc_weights;
 
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
   syn_spec2.SetParam("receptor", 1);
   syn_spec2.SetParam("weight_array", inh_weights);
   syn_spec2.SetParam("delay_array", inh_delays);
-  neural_gpu.Connect(inh_neuron_vect, neuron_vect, conn_spec2, syn_spec2);
+  neural_gpu.Connect(inh_neuron, neuron_vect, conn_spec2, syn_spec2);
 
   delete[] inh_delays;
   delete[] inh_weights;

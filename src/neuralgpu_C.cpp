@@ -29,20 +29,6 @@ extern "C" {
       NeuralGPU_instance = new NeuralGPU();
     }
   }
-
-  /*
-  void checkConnSpecInstance() {
-    if (ConnSpec_instance == NULL) {
-      ConnSpec_instance = new ConnSpec();
-    }
-  }
-  
-  void checkSynSpecInstance() {
-    if (SynSpec_instance == NULL) {
-      SynSpec_instance = new SynSpec();
-    }
-  }
-  */
   
   int NeuralGPU_SetRandomSeed(unsigned long long seed)
   {
@@ -154,6 +140,26 @@ extern "C" {
   }
 
   int NeuralGPU_SetNeuronVectParam(char *param_name, int i_node,
+				    int n_neurons, float *params,
+				    int vect_size)
+  {
+    checkNeuralGPUInstance();
+    std::string param_name_str = std::string(param_name);    
+    return NeuralGPU_instance->SetNeuronParam(param_name_str, i_node,
+						   n_neurons, params,
+						   vect_size);
+  }
+
+  int NeuralGPU_SetNeuronPtScalParam(char *param_name, int *i_node,
+				     int n_neurons, float val)
+  {
+    checkNeuralGPUInstance();
+    std::string param_name_str = std::string(param_name);
+    return NeuralGPU_instance->SetNeuronParam(param_name_str, i_node,
+					       n_neurons, val);
+  }
+
+  int NeuralGPU_SetNeuronPtVectParam(char *param_name, int *i_node,
 				    int n_neurons, float *params,
 				    int vect_size)
   {

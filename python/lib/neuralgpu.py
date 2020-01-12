@@ -9,7 +9,7 @@ c_float_p = ctypes.POINTER(ctypes.c_float)
 c_int_p = ctypes.POINTER(ctypes.c_int)
 c_char_p = ctypes.POINTER(ctypes.c_char)
 
-class NodeSeq():
+class NodeSeq(object):
     def __init__(self, i0, n):
         self.i0 = i0
         self.n = n
@@ -175,6 +175,35 @@ def SetNeuronVectParam(param_name, i_node, n_neurons, params_list):
                                          array_float_type(*params_list), ctypes.c_int(vect_size))  
 
 
+NeuralGPU_SetNeuronPtScalParam = _neuralgpu.NeuralGPU_SetNeuronPtScalParam
+NeuralGPU_SetNeuronPtScalParam.argtypes = (c_char_p, ctypes.c_void_p,
+                                           ctypes.c_int, ctypes.c_float)
+NeuralGPU_SetNeuronPtScalParam.restype = ctypes.c_int
+def SetNeuronPtScalParam(param_name, node_pt, n_neurons, val):
+    "Set neuron list scalar parameter value"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    return NeuralGPU_SetNeuronPtScalParam(c_param_name, c_void_p(node_pt),
+                                          ctypes.c_int(n_neurons),
+                                          ctypes.c_float(val)) 
+
+
+NeuralGPU_SetNeuronPtVectParam = _neuralgpu.NeuralGPU_SetNeuronPtVectParam
+NeuralGPU_SetNeuronPtVectParam.argtypes = (c_char_p, ctypes.c_void_p,
+                                           ctypes.c_int, c_float_p,
+                                           ctypes.c_int)
+NeuralGPU_SetNeuronPtVectParam.restype = ctypes.c_int
+def SetNeuronPtVectParam(param_name, node_pt, n_neurons, params_list):
+    "Set neuron list vector parameter value"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    vect_size = len(params_list)
+    array_float_type = ctypes.c_float * vect_size
+    return NeuralGPU_SetNeuronPtVectParam(c_param_name,
+                                          ctypes.c_void_p(node_pt),
+                                          ctypes.c_int(n_neurons),
+                                          array_float_type(*params_list),
+                                          ctypes.c_int(vect_size))  
+
+
 NeuralGPU_IsNeuronScalParam = _neuralgpu.NeuralGPU_IsNeuronScalParam
 NeuralGPU_IsNeuronScalParam.argtypes = (c_char_p, ctypes.c_int)
 NeuralGPU_IsNeuronScalParam.restype = ctypes.c_int
@@ -193,14 +222,37 @@ def IsNeuronVectParam(param_name, i_node):
     return (NeuralGPU_IsNeuronVectParam(c_param_name, ctypes.c_int(i_node)) != 0) 
 
 
-def SetNeuronParam(param_name, node_seq, val):
-    "Set neuron scalar or vector parameter"
-    if IsNeuronScalParam(param_name, node_seq.i0):
-        SetNeuronScalParam(param_name, node_seq.i0, node_seq.n, val)
-    elif IsNeuronVectParam(param_name, node_seq.i0):
-        SetNeuronVectParam(param_name, node_seq.i0, node_seq.n, val)
+def SetNeuronParam(param_name, nodes, val):
+    "Set neuron group scalar or vector parameter"
+    if (type(nodes)!=list) & (type(nodes)!=tuple) & (type(nodes)!=NodeSeq):
+        raise ValueError("Unknown node type")
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name),
+                                               len(param_name)+1)
+
+    if type(nodes)==NodeSeq:
+        if IsNeuronScalParam(param_name, nodes.i0):
+            SetNeuronScalParam(param_name, nodes.i0, nodes.n, val)
+        elif IsNeuronVectParam(param_name, nodes.i0):
+            SetNeuronVectParam(param_name, nodes.i0, nodes.n, val)
+        else:
+            raise ValueError("Unknown neuron parameter")
     else:
-        raise ValueError("Unknown neuron parameter")
+        node_arr = (ctypes.c_int * len(nodes))(*nodes) 
+        node_arr_pt = ctypes.cast(node_arr, ctypes.c_void_p)    
+
+        if IsNeuronScalParam(param_name, nodes[0]):
+            NeuralGPU_SetNeuronPtScalParam(c_param_name, node_arr_pt,
+                                           len(nodes), val)
+        elif IsNeuronVectParam(param_name, nodes[0]):
+            vect_size = len(val)
+            array_float_type = ctypes.c_float * vect_size
+            NeuralGPU_SetNeuronPtVectParam(c_param_name,
+                                           node_arr_pt,
+                                           len(nodes),
+                                           array_float_type(*val),
+                                           ctypes.c_int(vect_size))
+        else:
+            raise ValueError("Unknown neuron parameter")
 
     
 NeuralGPU_SetSpikeGenerator = _neuralgpu.NeuralGPU_SetSpikeGenerator
@@ -549,8 +601,19 @@ def SynSpecIsFloatPtParam(param_name):
 NeuralGPU_ConnectSeq = _neuralgpu.NeuralGPU_ConnectSeq
 NeuralGPU_ConnectSeq.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
 NeuralGPU_ConnectSeq.restype = ctypes.c_int
+
+NeuralGPU_ConnectGroup = _neuralgpu.NeuralGPU_ConnectGroup
+NeuralGPU_ConnectGroup.argtypes = (ctypes.c_void_p, ctypes.c_int,
+                                   ctypes.c_void_p, ctypes.c_int)
+NeuralGPU_ConnectGroup.restype = ctypes.c_int
+
 def Connect(source, target, conn_dict, syn_dict): 
-    "Connect two neuron sequences"
+    "Connect two neuron groups"
+    if (type(source)!=list) & (type(source)!=tuple) & (type(source)!=NodeSeq):
+        raise ValueError("Unknown source type")
+    if (type(target)!=list) & (type(target)!=tuple) & (type(target)!=NodeSeq):
+        raise ValueError("Unknown target type")
+        
     ConnSpecInit()
     SynSpecInit()
     for param_name in conn_dict:
@@ -577,5 +640,23 @@ def Connect(source, target, conn_dict, syn_dict):
             SetSynSpecFloatPtParam(param_name, syn_dict[param_name])
         else:
             raise ValueError("Unknown synapse parameter")
-        
-    return NeuralGPU_ConnectSeq(source.i0, source.n, target.i0, target.n)
+    if (type(source)==NodeSeq) & (type(target)==NodeSeq) :
+        return NeuralGPU_ConnectSeq(source.i0, source.n, target.i0, target.n)
+    else:
+        if type(source)==NodeSeq:
+            source_list = source.ToList()
+        else:
+            source_list = source
+            
+        if type(target)==NodeSeq:
+            target_list = target.ToList()
+        else:
+            target_list = target
+
+        source_arr = (ctypes.c_int * len(source_list))(*source_list) 
+        source_arr_pt = ctypes.cast(source_arr, ctypes.c_void_p)    
+        target_arr = (ctypes.c_int * len(target_list))(*target_list) 
+        target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
+
+        return NeuralGPU_ConnectGroup(source_arr_pt, len(source_list),
+                                      target_arr_pt, len(target_list))

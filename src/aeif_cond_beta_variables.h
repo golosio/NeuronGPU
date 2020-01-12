@@ -12,8 +12,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef AEIFVARIABLESH
-#define AEIFVARIABLESH
+#ifndef AEIFCONDBETAVARIABLESH
+#define AEIFCONDBETAVARIABLESH
 
 #include <string>
 
@@ -54,17 +54,17 @@ enum VectParamIndexes {
   N_VECT_PARAMS
 };
 
-const std::string aeif_scal_var_name[N_SCAL_VAR] = {
+const std::string aeif_cond_beta_scal_var_name[N_SCAL_VAR] = {
   "V_m",
   "w"
 };
 
-const std::string aeif_vect_var_name[N_VECT_VAR] = {
+const std::string aeif_cond_beta_vect_var_name[N_VECT_VAR] = {
   "g",
   "g1"
 };
 
-const std::string aeif_scal_param_name[N_SCAL_PARAMS] = {
+const std::string aeif_cond_beta_scal_param_name[N_SCAL_PARAMS] = {
   "V_th",
   "Delta_T",
   "g_L",
@@ -80,7 +80,7 @@ const std::string aeif_scal_param_name[N_SCAL_PARAMS] = {
   "refractory_step"
 };
 
-const std::string aeif_vect_param_name[N_VECT_PARAMS] = {
+const std::string aeif_cond_beta_vect_param_name[N_VECT_PARAMS] = {
   "E_rev",
   "taus_rise",
   "taus_decay",

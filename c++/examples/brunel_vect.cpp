@@ -56,7 +56,8 @@ int main(int argc, char *argv[])
   std::vector<int> pg_vect = pg.ToVector();
 
   // each host has n_neurons neurons with n_receptor receptor ports
-  NodeSeq neuron = neural_gpu.CreateNeuron("AEIF", n_neurons, n_receptors);
+  NodeSeq neuron = neural_gpu.CreateNeuron("aeif_cond_beta", n_neurons,
+					   n_receptors);
   std::vector<int> neuron_vect = neuron.ToVector();
   NodeSeq exc_neuron = neuron.Subseq(0,NE-1); // excitatory neuron group
   std::vector<int> exc_neuron_vect = exc_neuron.ToVector();

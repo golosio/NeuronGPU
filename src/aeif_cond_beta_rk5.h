@@ -12,21 +12,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef AEIFRK5H
-#define AEIFRK5H
+#ifndef AEIFCONDBETARK5H
+#define AEIFCONDBETARK5H
 
 #include <string>
 #include <stdio.h>
 #include <math.h>
 #include "spike_buffer.h"
 #include "neuron_group.h"
-#include "aeif_variables.h"
+#include "aeif_cond_beta_variables.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
 template<int NVAR, int NPARAMS, class DataStruct>
 __device__
-    void AEIF_Derivatives(float x, float *y, float *dydx, float *params,
+    void aeif_cond_beta_Derivatives(float x, float *y, float *dydx, float *params,
 		     DataStruct data_struct)
 {
   enum { n_receptors = (NVAR-N_SCAL_VAR)/N_VECT_VAR };
@@ -51,7 +51,7 @@ __device__
 
 template<int NVAR, int NPARAMS, class DataStruct>
 __device__
-    void AEIF_ExternalUpdate
+    void aeif_cond_beta_ExternalUpdate
     (float x, float *y, float *params, bool end_time_step,
 			RK5DataStruct data_struct)
 {
@@ -86,7 +86,7 @@ __device__
 
 template<class DataStruct>
 __device__
-void AEIF_NodeInit(int n_var, int n_params, float x, float *y, float *params,
+void aeif_cond_beta_NodeInit(int n_var, int n_params, float x, float *y, float *params,
 		  DataStruct data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -119,7 +119,7 @@ void AEIF_NodeInit(int n_var, int n_params, float x, float *y, float *params,
 
 template<class DataStruct>
 __device__
-void AEIF_NodeCalibrate(int n_var, int n_params, float x, float *y,
+void aeif_cond_beta_NodeCalibrate(int n_var, int n_params, float x, float *y,
 		       float *params, DataStruct data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;

@@ -1,7 +1,3 @@
-vector connection/parameter-set for python
-
-change model name to aeif_cond_beta
-
 implement fixed outdegree connection rule
 
 Check error handling

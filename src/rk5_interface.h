@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 
 #include "neuron_models.h"
-#include "aeif_rk5.h"
+#include "aeif_cond_beta_rk5.h"
 
 template<int NVAR, int NPARAMS, class DataStruct>
 __device__
@@ -27,8 +27,8 @@ __device__
 		     RK5DataStruct data_struct)
 {
   switch (data_struct.neuron_type_) {
-  case i_AEIF_model:
-    AEIF_Derivatives<NVAR, NPARAMS, DataStruct>(x, y, dydx, params,
+  case i_aeif_cond_beta_model:
+    aeif_cond_beta_Derivatives<NVAR, NPARAMS, DataStruct>(x, y, dydx, params,
 						data_struct);
     break;
   }
@@ -41,9 +41,10 @@ __device__
 			RK5DataStruct data_struct)
 {
   switch (data_struct.neuron_type_) {
-  case i_AEIF_model:
-    AEIF_ExternalUpdate<NVAR, NPARAMS, DataStruct>(x, y, params, end_time_step,
-						 data_struct);
+  case i_aeif_cond_beta_model:
+    aeif_cond_beta_ExternalUpdate<NVAR, NPARAMS, DataStruct>(x, y, params,
+							     end_time_step,
+							     data_struct);
     break;
   }    
 }
@@ -55,8 +56,9 @@ void NodeInit(int n_var, int n_params, float x, float *y,
 	     float *params, DataStruct data_struct)
 {
   switch (data_struct.neuron_type_) {
-  case i_AEIF_model:
-    AEIF_NodeInit<DataStruct>(n_var, n_params, x, y, params, data_struct);
+  case i_aeif_cond_beta_model:
+    aeif_cond_beta_NodeInit<DataStruct>(n_var, n_params, x, y, params,
+					data_struct);
     break;
   }
 }
@@ -68,8 +70,8 @@ void NodeCalibrate(int n_var, int n_params, float x, float *y,
 
 {
   switch (data_struct.neuron_type_) {
-  case i_AEIF_model:
-    AEIF_NodeCalibrate<DataStruct>(n_var, n_params, x, y, params, data_struct);
+  case i_aeif_cond_beta_model:
+    aeif_cond_beta_NodeCalibrate<DataStruct>(n_var, n_params, x, y, params, data_struct);
     break;
   }
 }

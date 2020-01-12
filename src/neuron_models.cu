@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cuda_error.h"
 #include "neuron_models.h"
 #include "neuralgpu.h"
-#include "aeif.h"
+#include "aeif_cond_beta.h"
 
 NodeSeq NeuralGPU::CreateNeuron(std::string model_name, int n_neurons, int n_receptors)
 {
@@ -31,9 +31,9 @@ NodeSeq NeuralGPU::CreateNeuron(std::string model_name, int n_neurons, int n_rec
     std::cerr << "Number of receptors must be greater than zero.\n";
     exit(0);
   }
-  if (model_name == neuron_model_name[i_AEIF_model]) {
-    AEIF *aeif_neuron = new AEIF;
-    neuron_vect_.push_back(aeif_neuron);
+  if (model_name == neuron_model_name[i_aeif_cond_beta_model]) {
+    aeif_cond_beta *aeif_cond_beta_neuron = new aeif_cond_beta;
+    neuron_vect_.push_back(aeif_cond_beta_neuron);
   }
   else {
     std::cerr << "Unknown neuron model name: " << model_name << std::endl;

@@ -16,12 +16,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NEURONMODELSH
 
 enum NeuronModels {
-  i_AEIF_model = 0,
+  i_aeif_cond_beta_model = 0,
   N_NEURON_MODELS
 };
 
 const std::string neuron_model_name[N_NEURON_MODELS] = {
-  "AEIF"
+  "aeif_cond_beta"
 };
 
 #endif

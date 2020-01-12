@@ -55,7 +55,8 @@ int main(int argc, char *argv[])
   NodeSeq pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
 
   // each host has n_neurons neurons with n_receptor receptor ports
-  NodeSeq neuron = neural_gpu.CreateNeuron("AEIF", n_neurons, n_receptors);
+  NodeSeq neuron = neural_gpu.CreateNeuron("aeif_cond_beta", n_neurons,
+					   n_receptors);
   NodeSeq exc_neuron = neuron.Subseq(0,NE-1); // excitatory neuron group
   NodeSeq inh_neuron = neuron.Subseq(NE, n_neurons-1); //inhibitory neuron group
 

@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   int n_neurons = 10000;
   
   // each host has n_neurons neurons with 3 receptor ports
-  NodeSeq neuron = ngpu.CreateNeuron("AEIF", n_neurons, 3);
+  NodeSeq neuron = ngpu.CreateNeuron("aeif_cond_beta", n_neurons, 3);
 
   // the following parameters are set to the same values on all hosts
   float E_rev[] = {20.0, 0.0, -85.0};
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     ngpu.Connect(sg, neuron, conn_spec, syn_spec);
   }
 
-  string filename = "test_aeif.dat";
+  string filename = "test_aeif_cond_beta.dat";
   int i_neuron[] = {neuron[rand()%n_neurons]}; // any set of neuron indexes
   string var_name[] = {"V_m"};
   // create multimeter record of V_m

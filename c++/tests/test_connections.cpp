@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
   int n_neur3 = 50;
   int n_neurons = n_neur1 + n_neur2 + n_neur3;
   
-  NodeSeq neur_group = ngpu.CreateNeuron("AEIF", n_neurons, n_recept);
+  NodeSeq neur_group = ngpu.CreateNeuron("aeif_cond_beta", n_neurons, n_recept);
   NodeSeq neur_group1 = neur_group.Subseq(0, n_neur1 - 1);
   NodeSeq neur_group2 = neur_group.Subseq(n_neur1, n_neur1 + n_neur2 - 1);
   NodeSeq neur_group3 = neur_group.Subseq(n_neur1 + n_neur2, n_neurons - 1);

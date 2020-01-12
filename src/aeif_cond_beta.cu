@@ -15,10 +15,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <iostream>
 #include "rk5.h"
-#include "aeif.h"
-#include "aeif_variables.h"
+#include "aeif_cond_beta.h"
+#include "aeif_cond_beta_variables.h"
 
-int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
+int aeif_cond_beta::Init(int i_node_0, int n_neurons, int n_receptors,
 	       int i_neuron_group) {
   i_node_0_ = i_node_0;
   n_neurons_ = n_neurons;
@@ -34,11 +34,11 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
   n_var_ = n_scal_var_ + n_vect_var_*n_receptors;
   n_params_ = n_scal_params_ + n_vect_params_*n_receptors;
 
-  scal_var_name_ = aeif_scal_var_name;
-  vect_var_name_= aeif_vect_var_name;
-  scal_param_name_ = aeif_scal_param_name;
-  vect_param_name_ = aeif_vect_param_name;
-  rk5_data_struct_.neuron_type_ = i_AEIF_model;
+  scal_var_name_ = aeif_cond_beta_scal_var_name;
+  vect_var_name_= aeif_cond_beta_vect_var_name;
+  scal_param_name_ = aeif_cond_beta_scal_param_name;
+  vect_param_name_ = aeif_cond_beta_vect_param_name;
+  rk5_data_struct_.neuron_type_ = i_aeif_cond_beta_model;
   rk5_data_struct_.i_neuron_0_ = i_node_0_;
 
   rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_, rk5_data_struct_);
@@ -59,19 +59,19 @@ int AEIF::Init(int i_node_0, int n_neurons, int n_receptors,
   return 0;
 }
 
-int AEIF::Calibrate(float t_min) {
+int aeif_cond_beta::Calibrate(float t_min) {
   rk5_.Calibrate(t_min, h_, rk5_data_struct_);
   
   return 0;
 }
 
 template <>
-int AEIF::UpdateNR<0>(int it, float t1)
+int aeif_cond_beta::UpdateNR<0>(int it, float t1)
 {
   return 0;
 }
 
-int AEIF::Update(int it, float t1) {
+int aeif_cond_beta::Update(int it, float t1) {
   UpdateNR<MAX_RECEPTOR_NUM>(it, t1);
 
   return 0;

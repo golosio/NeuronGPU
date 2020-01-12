@@ -35,7 +35,7 @@ pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
 pg_list = pg.ToList()
 
 # Create n_neurons neurons with n_receptor receptor ports
-neuron = ngpu.CreateNeuron("AEIF", n_neurons, n_receptors)
+neuron = ngpu.CreateNeuron("aeif_cond_beta", n_neurons, n_receptors)
 exc_neuron = neuron[0:NE-1]      # excitatory neurons
 inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neurons
 neuron_list = neuron.ToList()

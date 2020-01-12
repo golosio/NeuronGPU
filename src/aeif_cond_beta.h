@@ -12,8 +12,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef AEIFH
-#define AEIFH
+#ifndef AEIFCONDBETAH
+#define AEIFCONDBETAH
 
 #include <iostream>
 #include <string>
@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_RECEPTOR_NUM 20
 
-class AEIF : public BaseNeuron
+class aeif_cond_beta : public BaseNeuron
 {
  public:
   RungeKutta5<RK5DataStruct> rk5_;
@@ -53,10 +53,10 @@ class AEIF : public BaseNeuron
 };
 
 template <>
-int AEIF::UpdateNR<0>(int it, float t1);
+int aeif_cond_beta::UpdateNR<0>(int it, float t1);
 
 template<int N_RECEPTORS>
-int AEIF::UpdateNR(int it, float t1)
+int aeif_cond_beta::UpdateNR(int it, float t1)
 {
   if (N_RECEPTORS == n_receptors_) {
     const int NVAR = N_SCAL_VAR + N_VECT_VAR*N_RECEPTORS;

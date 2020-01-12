@@ -21,6 +21,11 @@ class NodeSeq():
             raise ValueError("Sequence subset out of range")
         return NodeSeq(self.i0 + first, last - first + 1)
     def __getitem__(self, i):
+        if type(i)==slice:
+            if i.step != None:
+                raise ValueError("Subsequence cannot have a step")
+            return self.Subseq(i.start, i.stop)
+ 
         if i<0:
             raise ValueError("Sequence index cannot be negative")
         if i>=self.n:

@@ -13,9 +13,6 @@ finish C interface/header
 
 Produce build system and check it on different linux, mac (windows?)
 
-check redundancy and possible inconsistencies between neuron_group and base_neuron
-check and prevent possible inconsistencies in i_node_0 in spike_buffer and in neuron_group[]
-
 Make rk5 dynamic
 
 make user_neuron1, 2, ...

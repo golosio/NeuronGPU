@@ -115,7 +115,6 @@ class NeuralGPU
   
   int CreateNodeGroup(int n_neurons, int n_ports);
   int CheckUncalibrated(std::string message);
-  //int InsertNodeGroup(int n_nodes, int n_ports);
   double *InitGetSpikeArray(int n_nodes, int n_ports);
   int NodeGroupArrayInit();
   int ClearGetSpikeArrays();
@@ -123,32 +122,33 @@ class NeuralGPU
   int FreeNodeGroupMap();
 
 
-  template <class T>
-  int _Connect(T source, int n_source, T target, int n_target,
+  template <class T1, class T2>
+  int _Connect(T1 source, int n_source, T2 target, int n_target,
 	       ConnSpec &conn_spec, SynSpec &syn_spec);
   
-  template<class T>
-  int _SingleConnect(T source, int i_source, T target, int i_target,
+  template<class T1, class T2>
+  int _SingleConnect(T1 source, int i_source, T2 target, int i_target,
 		     int i_array, SynSpec &syn_spec);
-  template<class T>
-  int _SingleConnect(T source, int i_source, T target, int i_target,
+  template<class T1, class T2>
+  int _SingleConnect(T1 source, int i_source, T2 target, int i_target,
 		     float weight, float delay, int i_array, SynSpec &syn_spec);
 
-  template <class T>
-  int _ConnectOneToOne(T source, T target, int n_nodes, SynSpec &syn_spec);
-  template <class T>
-  int _ConnectAllToAll
-  (T source, int n_source, T target, int n_target, SynSpec &syn_spec);
+  template <class T1, class T2>
+  int _ConnectOneToOne(T1 source, T2 target, int n_nodes, SynSpec &syn_spec);
 
-  template <class T>
+  template <class T1, class T2>
+  int _ConnectAllToAll
+  (T1 source, int n_source, T2 target, int n_target, SynSpec &syn_spec);
+
+  template <class T1, class T2>
   int _ConnectFixedTotalNumber
-  (T source, int n_source, T target, int n_target, int n_conn,
+  (T1 source, int n_source, T2 target, int n_target, int n_conn,
    SynSpec &syn_spec);
 
-  template <class T>
+  template <class T1, class T2>
   int _ConnectFixedIndegree
   (
-   T source, int n_source, T target, int n_target, int indegree,
+   T1 source, int n_source, T2 target, int n_target, int indegree,
    SynSpec &syn_spec
    );
 
@@ -316,30 +316,30 @@ class NeuralGPU
      int i_target_host, int i_target_node_0, int n_target_nodes,
      unsigned char i_port, float weight, float delay, int indegree
      );
-  
+
   int Connect(int i_source, int n_source, int i_target, int n_target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
-  
+
+  int Connect(int i_source, int n_source, int* target, int n_target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int Connect(int* source, int n_source, int i_target, int n_target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int Connect(int* source, int n_source, int* target, int n_target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec);
+
   int Connect(NodeSeq source, NodeSeq target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int Connect(NodeSeq source, std::vector<int> target,
+	      ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int Connect(std::vector<int> source, NodeSeq target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
 
   int Connect(std::vector<int> source, std::vector<int> target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
-  
-  int Connect(int *i_source, int n_source, int *i_target, int n_target,
-	      ConnSpec &conn_spec, SynSpec &syn_spec);
-
-  int Connect(NodeSeq source, std::vector<int> target,
-	      ConnSpec &conn_spec, SynSpec &syn_spec)
-  {
-    return Connect(source.ToVector(), target, conn_spec, syn_spec);
-  }
-
-  int Connect(std::vector<int> source, NodeSeq target,
-	      ConnSpec &conn_spec, SynSpec &syn_spec)
-  {
-    return Connect(source, target.ToVector(), conn_spec, syn_spec);
-  }
 
 };
 

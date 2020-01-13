@@ -262,9 +262,10 @@ bool SynSpec::IsFloatPtParam(std::string param_name)
 //float SynSpec::GetParam(std::string param_name);
 
 template<>
-int NeuralGPU::_SingleConnect<int>(int i_source0, int i_source, int i_target0,
-				   int i_target, float weight, float delay,
-				   int i_array, SynSpec &syn_spec)
+int NeuralGPU::_SingleConnect<int, int>
+(int i_source0, int i_source, int i_target0,
+ int i_target, float weight, float delay,
+ int i_array, SynSpec &syn_spec)
 {
   //return SingleConnect(i_source0 + i_source, i_target0 + i_target,
   // weight, delay, i_array, syn_spec);
@@ -273,10 +274,39 @@ int NeuralGPU::_SingleConnect<int>(int i_source0, int i_source, int i_target0,
 }
 
 template<>
-int NeuralGPU::_SingleConnect<int*>(int *i_source0, int i_source,
-				    int *i_target0, int i_target,
-				    float weight, float delay,
-				    int i_array, SynSpec &syn_spec)
+int NeuralGPU::_SingleConnect<int, int*>
+(int i_source0, int i_source,
+ int *i_target0, int i_target,
+ float weight, float delay,
+ int i_array, SynSpec &syn_spec)
+{
+  //return SingleConnect(*(i_source0 + i_source), *(i_target0 + i_target),
+  //		       weight, delay, i_array, syn_spec);
+  return net_connection_->Connect(i_source0 + i_source,
+				  *(i_target0 + i_target),
+				  syn_spec.port_, weight, delay);
+}
+
+template<>
+int NeuralGPU::_SingleConnect<int*, int>
+(int *i_source0, int i_source,
+ int i_target0, int i_target,
+ float weight, float delay,
+ int i_array, SynSpec &syn_spec)
+{
+  //return SingleConnect(*(i_source0 + i_source), *(i_target0 + i_target),
+  //		       weight, delay, i_array, syn_spec);
+  return net_connection_->Connect(*(i_source0 + i_source),
+				  i_target0 + i_target,
+				  syn_spec.port_, weight, delay);
+}
+
+template<>
+int NeuralGPU::_SingleConnect<int*, int*>
+(int *i_source0, int i_source,
+ int *i_target0, int i_target,
+ float weight, float delay,
+ int i_array, SynSpec &syn_spec)
 {
   //return SingleConnect(*(i_source0 + i_source), *(i_target0 + i_target),
   //		       weight, delay, i_array, syn_spec);
@@ -314,15 +344,48 @@ int NeuralGPU::_SingleConnect<RemoteNodePt>(RemoteNodePt source,
 int NeuralGPU::Connect(int i_source, int n_source, int i_target, int n_target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
-  return _Connect<int>(i_source, n_source, i_target, n_target,
-		       conn_spec, syn_spec);
+  return _Connect<int, int>(i_source, n_source, i_target, n_target,
+			    conn_spec, syn_spec);
+}
+
+int NeuralGPU::Connect(int i_source, int n_source, int* target, int n_target,
+		       ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  return _Connect<int, int*>(i_source, n_source, target, n_target,
+			     conn_spec, syn_spec);
+}
+int NeuralGPU::Connect(int* source, int n_source, int i_target, int n_target,
+		       ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  return _Connect<int*, int>(source, n_source, i_target, n_target,
+			     conn_spec, syn_spec);
+}
+int NeuralGPU::Connect(int* source, int n_source, int* target, int n_target,
+		       ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  return _Connect<int*, int*>(source, n_source, target, n_target,
+			conn_spec, syn_spec);
 }
 
 int NeuralGPU::Connect(NodeSeq source, NodeSeq target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
-  return _Connect<int>(source.i0, source.n, target.i0, target.n,
-		       conn_spec, syn_spec);
+  return _Connect<int, int>(source.i0, source.n, target.i0, target.n,
+			    conn_spec, syn_spec);
+}
+
+int NeuralGPU::Connect(NodeSeq source, std::vector<int> target,
+		       ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  return _Connect<int, int*>(source.i0, source.n, target.data(),
+			     target.size(), conn_spec, syn_spec);
+}
+
+int NeuralGPU::Connect(std::vector<int> source, NodeSeq target,
+		       ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  return _Connect<int*>(source.data(), source.size(), target.i0,
+			target.n, conn_spec, syn_spec);
 }
 
 int NeuralGPU::Connect(std::vector<int> source, std::vector<int> target,
@@ -332,11 +395,5 @@ int NeuralGPU::Connect(std::vector<int> source, std::vector<int> target,
 			target.size(), conn_spec, syn_spec);
 }
 
-int NeuralGPU::Connect(int* source, int n_source, int* target, int n_target,
-		       ConnSpec &conn_spec, SynSpec &syn_spec)
-{
-  return _Connect<int*>(source, n_source, target, n_target,
-			conn_spec, syn_spec);
-}
 
 

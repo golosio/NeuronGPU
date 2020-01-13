@@ -27,8 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define THREAD_IDX 0
 #endif
   
-template <class T>
-int NeuralGPU::_Connect(T source, int n_source, T target, int n_target,
+template <class T1, class T2>
+int NeuralGPU::_Connect(T1 source, int n_source, T2 target, int n_target,
 			ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   ////////////////////////
@@ -47,21 +47,22 @@ int NeuralGPU::_Connect(T source, int n_source, T target, int n_target,
 	"for the one-to-one connection rule\n";
       exit(0);
     }
-    return _ConnectOneToOne<T>(source, target, n_source, syn_spec);
+    return _ConnectOneToOne<T1, T2>(source, target, n_source, syn_spec);
     break;
   case ALL_TO_ALL:
-    return _ConnectAllToAll<T>(source, n_source, target, n_target, syn_spec);
+    return _ConnectAllToAll<T1, T2>(source, n_source, target, n_target,
+				    syn_spec);
     break;
   case FIXED_TOTAL_NUMBER:
-    return _ConnectFixedTotalNumber<T>(source, n_source, target, n_target,
+    return _ConnectFixedTotalNumber<T1, T2>(source, n_source, target, n_target,
 				       conn_spec.total_num_, syn_spec);
     break;
   case FIXED_INDEGREE:
-    return _ConnectFixedIndegree<T>(source, n_source, target, n_target,
+    return _ConnectFixedIndegree<T1, T2>(source, n_source, target, n_target,
 				    conn_spec.indegree_, syn_spec);
     break;
   case FIXED_OUTDEGREE:
-    //_ConnectFixedOutdegree<T>(source, n_source, target, n_target,
+    //_ConnectFixedOutdegree<T1, T2>(source, n_source, target, n_target,
     //conn_spec.outdegree_, syn_spec);
     //break;
   default:
@@ -71,8 +72,8 @@ int NeuralGPU::_Connect(T source, int n_source, T target, int n_target,
   return 0;
 }
 
-template<class T>
-int NeuralGPU::_SingleConnect(T source, int i_source, T target, int i_target,
+template<class T1, class T2>
+int NeuralGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
 			      int i_array, SynSpec &syn_spec)
 {
   float weight;
@@ -89,12 +90,12 @@ int NeuralGPU::_SingleConnect(T source, int i_source, T target, int i_target,
   else {
     delay = syn_spec.delay_;
   }
-  return _SingleConnect<T>(source, i_source, target, i_target,
-			   weight, delay, i_array, syn_spec);
+  return _SingleConnect<T1, T2>(source, i_source, target, i_target,
+				weight, delay, i_array, syn_spec);
 }
 
-template<class T>
-int NeuralGPU::_SingleConnect(T source, int i_source, T target, int i_target,
+template<class T1, class T2>
+int NeuralGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
 			      float weight, float delay, int i_array,
 			      SynSpec &syn_spec)
 {
@@ -105,20 +106,20 @@ int NeuralGPU::_SingleConnect(T source, int i_source, T target, int i_target,
 }
 
 
-template <class T>
-int NeuralGPU::_ConnectOneToOne(T source, T target, int n_nodes,
+template <class T1, class T2>
+int NeuralGPU::_ConnectOneToOne(T1 source, T2 target, int n_nodes,
 				SynSpec &syn_spec)	       
 {
   for (int in=0; in<n_nodes; in++) {
-    _SingleConnect<T>(source, in, target, in, in, syn_spec);
+    _SingleConnect<T1, T2>(source, in, target, in, in, syn_spec);
   }
 
   return 0;
 }
 
-template <class T>
+template <class T1, class T2>
 int NeuralGPU::_ConnectAllToAll
-(T source, int n_source, T target, int n_target, SynSpec &syn_spec)
+(T1 source, int n_source, T2 target, int n_target, SynSpec &syn_spec)
 {
 #ifdef _OPENMP
   omp_lock_t *lock = new omp_lock_t[n_source];
@@ -133,7 +134,7 @@ int NeuralGPU::_ConnectAllToAll
       omp_set_lock(&(lock[isn]));
 #endif
       size_t i_array = (size_t)itn*n_source + isn;
-      _SingleConnect<T>(source, isn, target, itn, i_array, syn_spec);
+      _SingleConnect<T1, T2>(source, isn, target, itn, i_array, syn_spec);
 #ifdef _OPENMP
       omp_unset_lock(&(lock[isn]));
 #endif
@@ -146,9 +147,10 @@ int NeuralGPU::_ConnectAllToAll
   return 0;
 }
 
-template <class T>
+template <class T1, class T2>
 int NeuralGPU::_ConnectFixedTotalNumber
-(T source, int n_source, T target, int n_target, int n_conn, SynSpec &syn_spec)
+(T1 source, int n_source, T2 target, int n_target, int n_conn,
+ SynSpec &syn_spec)
 {
   unsigned int *rnd = RandomInt(2*n_conn);
 #ifdef _OPENMP
@@ -164,7 +166,7 @@ int NeuralGPU::_ConnectFixedTotalNumber
 #ifdef _OPENMP
     omp_set_lock(&(lock[isn]));
 #endif
-    _SingleConnect<T>(source, isn, target, itn, i_conn, syn_spec);
+    _SingleConnect<T1, T2>(source, isn, target, itn, i_conn, syn_spec);
 #ifdef _OPENMP
       omp_unset_lock(&(lock[isn]));
 #endif
@@ -180,10 +182,11 @@ int NeuralGPU::_ConnectFixedTotalNumber
 
 
 
-template <class T>
+template <class T1, class T2>
 int NeuralGPU::_ConnectFixedIndegree
 (
- T source, int n_source, T target, int n_target, int indegree, SynSpec &syn_spec
+ T1 source, int n_source, T2 target, int n_target, int indegree,
+ SynSpec &syn_spec
  )
 {
   if (indegree>n_source) {
@@ -220,7 +223,7 @@ int NeuralGPU::_ConnectFixedIndegree
       int itn = k;
       int isn = input_array[i];
       size_t i_array = (size_t)k*indegree + i;
-      _SingleConnect<T>(source, isn, target, itn, i_array, syn_spec);
+      _SingleConnect<T1, T2>(source, isn, target, itn, i_array, syn_spec);
 #ifdef _OPENMP
       omp_unset_lock(&(lock[i]));
 #endif

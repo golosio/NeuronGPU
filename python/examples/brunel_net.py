@@ -61,7 +61,7 @@ exc_weights = (ctypes.c_float * (CE*n_neurons))(*([Wex] * (CE*n_neurons)))
 
 exc_conn_dict={"rule": "fixed_indegree", "indegree": CE}
 exc_syn_dict={"weight_array": exc_weights, "delay_array": exc_delays,
-          "receptor":0}
+              "receptor":0}
 ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
 
 

@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef __cplusplus
 extern "C" {
 #endif
-  int CreateNeuron(char *model_name, int n_neurons, int n_receptors);
+  int CreateNeuron(char *model_name, int n_neurons, int n_ports);
 
 #ifdef __cplusplus
 }

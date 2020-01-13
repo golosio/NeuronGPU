@@ -23,8 +23,8 @@ extern __device__ int MaxSpikePerHost;
 extern int *d_ExternalSpikeNum;
 extern __device__ int *ExternalSpikeNum;
 
-extern int *d_ExternalSpikeSourceNeuron; // [MaxSpikeNum];
-extern __device__ int *ExternalSpikeSourceNeuron;
+extern int *d_ExternalSpikeSourceNode; // [MaxSpikeNum];
+extern __device__ int *ExternalSpikeSourceNode;
 
 extern float *d_ExternalSpikeHeight; // [MaxSpikeNum];
 extern __device__ float *ExternalSpikeHeight;
@@ -32,26 +32,26 @@ extern __device__ float *ExternalSpikeHeight;
 extern int *d_ExternalTargetSpikeNum;
 extern __device__ int *ExternalTargetSpikeNum;
 
-extern int *d_ExternalTargetSpikeNeuronId;
-extern __device__ int *ExternalTargetSpikeNeuronId;
+extern int *d_ExternalTargetSpikeNodeId;
+extern __device__ int *ExternalTargetSpikeNodeId;
 
 extern float *d_ExternalTargetSpikeHeight;
 extern __device__ float *ExternalTargetSpikeHeight;
 
-extern int *d_NExternalNeuronTargetHost;
-extern __device__ int *NExternalNeuronTargetHost;
+extern int *d_NExternalNodeTargetHost;
+extern __device__ int *NExternalNodeTargetHost;
 
-extern int **d_ExternalNeuronTargetHostId;
-extern __device__ int **ExternalNeuronTargetHostId;
+extern int **d_ExternalNodeTargetHostId;
+extern __device__ int **ExternalNodeTargetHostId;
 
-extern int **d_ExternalNeuronId;
-extern __device__ int **ExternalNeuronId;
+extern int **d_ExternalNodeId;
+extern __device__ int **ExternalNodeId;
 
 //extern int *d_ExternalSourceSpikeNum;
 //extern __device__ int *ExternalSourceSpikeNum;
 
-extern int *d_ExternalSourceSpikeNeuronId;
-extern __device__ int *ExternalSourceSpikeNeuronId;
+extern int *d_ExternalSourceSpikeNodeId;
+extern __device__ int *ExternalSourceSpikeNodeId;
 
 extern float *d_ExternalSourceSpikeHeight;
 extern __device__ float *ExternalSourceSpikeHeight;
@@ -65,14 +65,14 @@ __global__ void ExternalSpikeReset();
 __global__ void DeviceExternalSpikeInit(int n_hosts,
 					int max_spike_per_host,
 		      			int *ext_spike_num,
-					int *ext_spike_source_neuron,
+					int *ext_spike_source_node,
                                         float *ext_spike_height,
 					int *ext_target_spike_num,
-					int *ext_target_spike_neuron_id,
+					int *ext_target_spike_node_id,
                                         float *ext_target_spike_height,
-					int *n_ext_neuron_target_host,
-					int **ext_neuron_target_host_id,
-					int **ext_neuron_id
+					int *n_ext_node_target_host,
+					int **ext_node_target_host_id,
+					int **ext_node_id
 					);
 
 __global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,

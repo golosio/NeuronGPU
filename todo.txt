@@ -1,13 +1,13 @@
+implement new remote connections
+
+test mpi
+
 implement fixed outdegree connection rule
 
 Check error handling
 How to prevent python to crash and exit in case of error in neuralgpu?
 
 Produce python tests/examples
-
-implement new remote connections
-
-test mpi
 
 finish C interface/header
 

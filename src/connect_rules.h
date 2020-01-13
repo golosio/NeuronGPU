@@ -106,10 +106,10 @@ int NeuralGPU::_SingleConnect(T source, int i_source, T target, int i_target,
 
 
 template <class T>
-int NeuralGPU::_ConnectOneToOne(T source, T target, int n_neurons,
+int NeuralGPU::_ConnectOneToOne(T source, T target, int n_nodes,
 				SynSpec &syn_spec)	       
 {
-  for (int in=0; in<n_neurons; in++) {
+  for (int in=0; in<n_nodes; in++) {
     _SingleConnect<T>(source, in, target, in, in, syn_spec);
   }
 
@@ -187,7 +187,7 @@ int NeuralGPU::_ConnectFixedIndegree
  )
 {
   if (indegree>n_source) {
-    std::cerr << "Indegree larger than number of source neurons\n";
+    std::cerr << "Indegree larger than number of source nodes\n";
     exit(0);
   }
   unsigned int *rnd = RandomInt(n_target*indegree);

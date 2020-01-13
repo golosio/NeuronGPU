@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -20,12 +20,12 @@ extern float TimeResolution;
 
 struct TargetSyn
 {
-  int neuron;
+  int node;
   unsigned char port;
   float weight;
 };
   
-struct ConnGroup // connections from the same source neuron with same delay
+struct ConnGroup // connections from the same source node with same delay
 {
   int delay;
   std::vector<TargetSyn> target_vect;

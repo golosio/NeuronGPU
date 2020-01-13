@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -63,7 +63,7 @@ int NetConnection::Insert(int d_int, int i_source, TargetSyn tg)
 int NetConnection::Print()
 {
   for (unsigned int i_source=0; i_source<connection_.size(); i_source++) {
-    cout << "Source neuron: " << i_source << endl;
+    cout << "Source node: " << i_source << endl;
     ConnGroupPrint(i_source);
     cout << endl;
   }
@@ -78,7 +78,7 @@ int NetConnection::ConnGroupPrint(int i_source)
     std::vector<TargetSyn> tv = conn[id].target_vect;
     cout << "\tTargets: " << endl;
     for (unsigned int i=0; i<tv.size(); i++) {
-      cout << "(" << tv[i].neuron << "," << (int)tv[i].port
+      cout << "(" << tv[i].node << "," << (int)tv[i].port
 	   << "," << tv[i].weight << ")  ";
     }
     cout << endl;

@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 struct ExternalConnectionNode
 {
   int target_host_id;
-  int remote_neuron_id;
+  int remote_node_id;
 };
 
 class ConnectMpi
@@ -46,15 +46,15 @@ class ConnectMpi
 
   int MPI_Send_uchar(unsigned char *uchar_val, int n, int target_id);
 
-  int RemoteConnect(int i_source_host, int i_source_neuron,
-		    int i_target_host, int i_target_neuron,
+  int RemoteConnect(int i_source_host, int i_source_node,
+		    int i_target_host, int i_target_node,
 		    unsigned char i_port, float weight, float delay);
     
   int MpiInit(int argc, char *argv[]);
   
   bool ProcMaster();
   
-  int ExternalSpikeInit(int n_neurons, int max_spike_num, int n_hosts,
+  int ExternalSpikeInit(int n_nodes, int max_spike_num, int n_hosts,
 			int max_spike_per_host);
 
   int SendSpikeToRemote(int n_hosts, int max_spike_per_host);

@@ -18,12 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "aeif_cond_beta.h"
 #include "aeif_cond_beta_variables.h"
 
-int aeif_cond_beta::Init(int i_node_0, int n_neurons, int n_receptors,
-	       int i_neuron_group) {
+int aeif_cond_beta::Init(int i_node_0, int n_nodes, int n_ports,
+	       int i_group) {
+  node_type_ = i_aeif_cond_beta_model;
   i_node_0_ = i_node_0;
-  n_neurons_ = n_neurons;
-  n_receptors_ = n_receptors;
-  i_neuron_group_ = i_neuron_group;
+  n_nodes_ = n_nodes;
+  n_ports_ = n_ports;
+  i_group_ = i_group;
   h_min_=1.0e-4;
   h_ = 1.0e-2;
   n_scal_var_ = N_SCAL_VAR;
@@ -31,29 +32,29 @@ int aeif_cond_beta::Init(int i_node_0, int n_neurons, int n_receptors,
   n_scal_params_ = N_SCAL_PARAMS;
   n_vect_params_ = N_VECT_PARAMS;
 
-  n_var_ = n_scal_var_ + n_vect_var_*n_receptors;
-  n_params_ = n_scal_params_ + n_vect_params_*n_receptors;
+  n_var_ = n_scal_var_ + n_vect_var_*n_ports;
+  n_params_ = n_scal_params_ + n_vect_params_*n_ports;
 
   scal_var_name_ = aeif_cond_beta_scal_var_name;
   vect_var_name_= aeif_cond_beta_vect_var_name;
   scal_param_name_ = aeif_cond_beta_scal_param_name;
   vect_param_name_ = aeif_cond_beta_vect_param_name;
-  rk5_data_struct_.neuron_type_ = i_aeif_cond_beta_model;
-  rk5_data_struct_.i_neuron_0_ = i_node_0_;
+  rk5_data_struct_.node_type_ = i_aeif_cond_beta_model;
+  rk5_data_struct_.i_node_0_ = i_node_0_;
 
-  rk5_.Init(n_neurons_, n_var_, n_params_, 0.0, h_, rk5_data_struct_);
+  rk5_.Init(n_nodes, n_var_, n_params_, 0.0, h_, rk5_data_struct_);
   var_arr_ = rk5_.GetYArr();
   params_arr_ = rk5_.GetParamArr();
 
-  receptor_weight_arr_ = GetParamArr() + n_scal_params_
+  port_weight_arr_ = GetParamArr() + n_scal_params_
     + GetVectParamIdx("g0");
-  receptor_weight_arr_step_ = n_params_;
-  receptor_weight_port_step_ = n_vect_params_;
+  port_weight_arr_step_ = n_params_;
+  port_weight_port_step_ = n_vect_params_;
 
-  receptor_input_arr_ = GetVarArr() + n_scal_var_
+  port_input_arr_ = GetVarArr() + n_scal_var_
     + GetVectVarIdx("g1");
-  receptor_input_arr_step_ = n_var_;
-  receptor_input_port_step_ = n_vect_var_;
+  port_input_arr_step_ = n_var_;
+  port_input_port_step_ = n_vect_var_;
 
 
   return 0;
@@ -72,7 +73,7 @@ int aeif_cond_beta::UpdateNR<0>(int it, float t1)
 }
 
 int aeif_cond_beta::Update(int it, float t1) {
-  UpdateNR<MAX_RECEPTOR_NUM>(it, t1);
+  UpdateNR<MAX_PORT_NUM>(it, t1);
 
   return 0;
 }

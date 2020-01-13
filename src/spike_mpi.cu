@@ -30,8 +30,8 @@ __device__ int MaxSpikePerHost;
 int *d_ExternalSpikeNum;
 __device__ int *ExternalSpikeNum;
 
-int *d_ExternalSpikeSourceNeuron; // [MaxSpikeNum];
-__device__ int *ExternalSpikeSourceNeuron;
+int *d_ExternalSpikeSourceNode; // [MaxSpikeNum];
+__device__ int *ExternalSpikeSourceNode;
 
 float *d_ExternalSpikeHeight; // [MaxSpikeNum];
 __device__ float *ExternalSpikeHeight;
@@ -39,38 +39,38 @@ __device__ float *ExternalSpikeHeight;
 int *d_ExternalTargetSpikeNum;
 __device__ int *ExternalTargetSpikeNum;
 
-int *d_ExternalTargetSpikeNeuronId;
-__device__ int *ExternalTargetSpikeNeuronId;
+int *d_ExternalTargetSpikeNodeId;
+__device__ int *ExternalTargetSpikeNodeId;
 
 float *d_ExternalTargetSpikeHeight;
 __device__ float *ExternalTargetSpikeHeight;
 
-int *d_NExternalNeuronTargetHost;
-__device__ int *NExternalNeuronTargetHost;
+int *d_NExternalNodeTargetHost;
+__device__ int *NExternalNodeTargetHost;
 
-int **d_ExternalNeuronTargetHostId;
-__device__ int **ExternalNeuronTargetHostId;
+int **d_ExternalNodeTargetHostId;
+__device__ int **ExternalNodeTargetHostId;
 
-int **d_ExternalNeuronId;
-__device__ int **ExternalNeuronId;
+int **d_ExternalNodeId;
+__device__ int **ExternalNodeId;
 
 //int *d_ExternalSourceSpikeNum;
 //__device__ int *ExternalSourceSpikeNum;
 
-int *d_ExternalSourceSpikeNeuronId;
-__device__ int *ExternalSourceSpikeNeuronId;
+int *d_ExternalSourceSpikeNodeId;
+__device__ int *ExternalSourceSpikeNodeId;
 
 float *d_ExternalSourceSpikeHeight;
 __device__ float *ExternalSourceSpikeHeight;
 
-int *h_ExternalSpikeNeuronId;
+int *h_ExternalSpikeNodeId;
 
 float *h_ExternalSpikeHeight;
 
 __device__ void PushExternalSpike(int i_source, float height)
 {
   int pos = atomicAdd(ExternalSpikeNum, 1);
-  ExternalSpikeSourceNeuron[pos] = i_source;
+  ExternalSpikeSourceNode[pos] = i_source;
   ExternalSpikeHeight[pos] = height;
 }
 
@@ -78,16 +78,16 @@ __global__ void SendExternalSpike()
 {
   int i_spike = threadIdx.x + blockIdx.x * blockDim.x;
   if (i_spike < *ExternalSpikeNum) {
-    int i_source = ExternalSpikeSourceNeuron[i_spike];
+    int i_source = ExternalSpikeSourceNode[i_spike];
     float height = ExternalSpikeHeight[i_spike];
-    int Nth = NExternalNeuronTargetHost[i_source];
+    int Nth = NExternalNodeTargetHost[i_source];
       
     for (int ith=0; ith<Nth; ith++) {
-      int target_host_id = ExternalNeuronTargetHostId[i_source][ith];
-      int remote_neuron_id = ExternalNeuronId[i_source][ith];
+      int target_host_id = ExternalNodeTargetHostId[i_source][ith];
+      int remote_node_id = ExternalNodeId[i_source][ith];
       int pos = atomicAdd(&ExternalTargetSpikeNum[target_host_id], 1);
-      ExternalTargetSpikeNeuronId[target_host_id*MaxSpikePerHost + pos]
-	= remote_neuron_id;
+      ExternalTargetSpikeNodeId[target_host_id*MaxSpikePerHost + pos]
+	= remote_node_id;
       ExternalTargetSpikeHeight[target_host_id*MaxSpikePerHost + pos]
 	= height;
     }
@@ -102,79 +102,79 @@ __global__ void ExternalSpikeReset()
   }
 }
 
-int ConnectMpi::ExternalSpikeInit(int n_neurons, int max_spike_num, int n_hosts,
+int ConnectMpi::ExternalSpikeInit(int n_nodes, int max_spike_num, int n_hosts,
 				  int max_spike_per_host)
 {
-  int *h_NExternalNeuronTargetHost = new int[n_neurons];
-  int **h_ExternalNeuronTargetHostId = new int*[n_neurons];
-  int **h_ExternalNeuronId = new int*[n_neurons];
+  int *h_NExternalNodeTargetHost = new int[n_nodes];
+  int **h_ExternalNodeTargetHostId = new int*[n_nodes];
+  int **h_ExternalNodeId = new int*[n_nodes];
   
-  h_ExternalSpikeNeuronId = new int[max_spike_num];
+  h_ExternalSpikeNodeId = new int[max_spike_num];
 
   h_ExternalSpikeHeight = new float[max_spike_num];
   
   gpuErrchk(cudaMalloc(&d_ExternalSpikeNum, sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_ExternalSpikeSourceNeuron,
+  gpuErrchk(cudaMalloc(&d_ExternalSpikeSourceNode,
 		       max_spike_num*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_ExternalSpikeHeight, max_spike_num*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_ExternalTargetSpikeNum, n_hosts*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_ExternalTargetSpikeNeuronId,
+  gpuErrchk(cudaMalloc(&d_ExternalTargetSpikeNodeId,
 		       n_hosts*max_spike_per_host*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_ExternalTargetSpikeHeight,
 		       n_hosts*max_spike_per_host*sizeof(float)));
   //gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeNum, n_hosts*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeNeuronId, //n_hosts*
+  gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeNodeId, //n_hosts*
 		       max_spike_per_host*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeHeight, //n_hosts*
 		       max_spike_per_host*sizeof(float)));
 	    
-  gpuErrchk(cudaMalloc(&d_NExternalNeuronTargetHost, n_neurons*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_ExternalNeuronTargetHostId, n_neurons*sizeof(int*)));
-  gpuErrchk(cudaMalloc(&d_ExternalNeuronId, n_neurons*sizeof(int*)));
+  gpuErrchk(cudaMalloc(&d_NExternalNodeTargetHost, n_nodes*sizeof(int)));
+  gpuErrchk(cudaMalloc(&d_ExternalNodeTargetHostId, n_nodes*sizeof(int*)));
+  gpuErrchk(cudaMalloc(&d_ExternalNodeId, n_nodes*sizeof(int*)));
  
-  for (int i_source=0; i_source<n_neurons; i_source++) {
+  for (int i_source=0; i_source<n_nodes; i_source++) {
     vector< ExternalConnectionNode > *conn = &extern_connection_[i_source];
     int Nth = conn->size();
-    h_NExternalNeuronTargetHost[i_source] = Nth;
+    h_NExternalNodeTargetHost[i_source] = Nth;
     if (Nth>0) {
-       gpuErrchk(cudaMalloc(&h_ExternalNeuronTargetHostId[i_source],
+       gpuErrchk(cudaMalloc(&h_ExternalNodeTargetHostId[i_source],
    			 Nth*sizeof(int)));
-       gpuErrchk(cudaMalloc(&h_ExternalNeuronId[i_source], Nth*sizeof(int)));
+       gpuErrchk(cudaMalloc(&h_ExternalNodeId[i_source], Nth*sizeof(int)));
        int *target_host_arr = new int[Nth];
-       int *neuron_id_arr = new int[Nth];
+       int *node_id_arr = new int[Nth];
        for (int ith=0; ith<Nth; ith++) {
          target_host_arr[ith] = conn->at(ith).target_host_id;
-         neuron_id_arr[ith] = conn->at(ith).remote_neuron_id;
+         node_id_arr[ith] = conn->at(ith).remote_node_id;
        }
-       cudaMemcpy(h_ExternalNeuronTargetHostId[i_source], target_host_arr,
+       cudaMemcpy(h_ExternalNodeTargetHostId[i_source], target_host_arr,
    	       Nth*sizeof(int), cudaMemcpyHostToDevice);
-       cudaMemcpy(h_ExternalNeuronId[i_source], neuron_id_arr,
+       cudaMemcpy(h_ExternalNodeId[i_source], node_id_arr,
    	       Nth*sizeof(int), cudaMemcpyHostToDevice);
        delete[] target_host_arr;
-       delete[] neuron_id_arr;
+       delete[] node_id_arr;
      }
   }
-  cudaMemcpy(d_NExternalNeuronTargetHost, h_NExternalNeuronTargetHost,
-	     n_neurons*sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_ExternalNeuronTargetHostId, h_ExternalNeuronTargetHostId,
-	     n_neurons*sizeof(int*), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_ExternalNeuronId, h_ExternalNeuronId,
-	     n_neurons*sizeof(int*), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_NExternalNodeTargetHost, h_NExternalNodeTargetHost,
+	     n_nodes*sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_ExternalNodeTargetHostId, h_ExternalNodeTargetHostId,
+	     n_nodes*sizeof(int*), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_ExternalNodeId, h_ExternalNodeId,
+	     n_nodes*sizeof(int*), cudaMemcpyHostToDevice);
 
   DeviceExternalSpikeInit<<<1,1>>>(n_hosts, max_spike_per_host,
 				   d_ExternalSpikeNum,
-				   d_ExternalSpikeSourceNeuron,
+				   d_ExternalSpikeSourceNode,
 				   d_ExternalSpikeHeight,
 				   d_ExternalTargetSpikeNum,
-				   d_ExternalTargetSpikeNeuronId,
+				   d_ExternalTargetSpikeNodeId,
 				   d_ExternalTargetSpikeHeight,
-				   d_NExternalNeuronTargetHost,
-				   d_ExternalNeuronTargetHostId,
-				   d_ExternalNeuronId
+				   d_NExternalNodeTargetHost,
+				   d_ExternalNodeTargetHostId,
+				   d_ExternalNodeId
 				   );
-  delete[] h_NExternalNeuronTargetHost;
-  delete[] h_ExternalNeuronTargetHostId;
-  delete[] h_ExternalNeuronId;
+  delete[] h_NExternalNodeTargetHost;
+  delete[] h_ExternalNodeTargetHostId;
+  delete[] h_ExternalNodeId;
 
   return 0;
 }
@@ -182,28 +182,28 @@ int ConnectMpi::ExternalSpikeInit(int n_neurons, int max_spike_num, int n_hosts,
 __global__ void DeviceExternalSpikeInit(int n_hosts,
 					int max_spike_per_host,
 					int *ext_spike_num,
-					int *ext_spike_source_neuron,
+					int *ext_spike_source_node,
 					float *ext_spike_height,
 					int *ext_target_spike_num,
-					int *ext_target_spike_neuron_id,
+					int *ext_target_spike_node_id,
 					float *ext_target_spike_height,
-					int *n_ext_neuron_target_host,
-					int **ext_neuron_target_host_id,
-					int **ext_neuron_id
+					int *n_ext_node_target_host,
+					int **ext_node_target_host_id,
+					int **ext_node_id
 					)
   
 {
   NExternalTargetHost = n_hosts;
   MaxSpikePerHost =  max_spike_per_host;
   ExternalSpikeNum = ext_spike_num;
-  ExternalSpikeSourceNeuron = ext_spike_source_neuron;
+  ExternalSpikeSourceNode = ext_spike_source_node;
   ExternalSpikeHeight = ext_spike_height;
   ExternalTargetSpikeNum = ext_target_spike_num;
-  ExternalTargetSpikeNeuronId = ext_target_spike_neuron_id;
+  ExternalTargetSpikeNodeId = ext_target_spike_node_id;
   ExternalTargetSpikeHeight = ext_target_spike_height;
-  NExternalNeuronTargetHost = n_ext_neuron_target_host;
-  ExternalNeuronTargetHostId = ext_neuron_target_host_id;
-  ExternalNeuronId = ext_neuron_id;
+  NExternalNodeTargetHost = n_ext_node_target_host;
+  ExternalNodeTargetHostId = ext_node_target_host_id;
+  ExternalNodeId = ext_node_id;
   *ExternalSpikeNum = 0;
   for (int ith=0; ith<NExternalTargetHost; ith++) {
     ExternalTargetSpikeNum[ith] = 0;
@@ -225,15 +225,15 @@ int ConnectMpi::SendSpikeToRemote(int n_hosts, int max_spike_per_host)
     if (n_spike>0) {
       //cout << "nspike send: " << n_spike << endl;
 #ifdef GPUDIRECT
-      MPI_Send(&d_ExternalTargetSpikeNeuronId[ih*max_spike_per_host],
+      MPI_Send(&d_ExternalTargetSpikeNodeId[ih*max_spike_per_host],
 	       n_spike, MPI_INT, ih, tag, MPI_COMM_WORLD);
       MPI_Send(&d_ExternalTargetSpikeHeight[ih*max_spike_per_host],
 	       n_spike, MPI_FLOAT, ih, tag, MPI_COMM_WORLD);
 #else
-      gpuErrchk(cudaMemcpy(h_ExternalSpikeNeuronId,
-			  &d_ExternalTargetSpikeNeuronId[ih*max_spike_per_host],
+      gpuErrchk(cudaMemcpy(h_ExternalSpikeNodeId,
+			  &d_ExternalTargetSpikeNodeId[ih*max_spike_per_host],
 			   n_spike*sizeof(int), cudaMemcpyDeviceToHost));
-      MPI_Send(h_ExternalSpikeNeuronId,
+      MPI_Send(h_ExternalSpikeNodeId,
                n_spike, MPI_INT, ih, tag, MPI_COMM_WORLD);
       gpuErrchk(cudaMemcpy(h_ExternalSpikeHeight,
 			  &d_ExternalTargetSpikeHeight[ih*max_spike_per_host],
@@ -260,14 +260,14 @@ int ConnectMpi::RecvSpikeFromRemote(int i_host, int max_spike_per_host)
   if (n_spike>0) {
     //cout << "nspike recv: " << n_spike << endl;
 #ifdef GPUDIRECT
-    MPI_Recv(d_ExternalSourceSpikeNeuronId, // [ih*max_spike_per_host],
+    MPI_Recv(d_ExternalSourceSpikeNodeId, // [ih*max_spike_per_host],
 	     n_spike, MPI_INT, i_host, tag, MPI_COMM_WORLD, &Stat);
     MPI_Recv(d_ExternalSourceSpikeHeight, // [ih*max_spike_per_host],
 	     n_spike, MPI_FLOAT, i_host, tag, MPI_COMM_WORLD, &Stat);
 #else
-    MPI_Recv(h_ExternalSpikeNeuronId,
+    MPI_Recv(h_ExternalSpikeNodeId,
 	     n_spike, MPI_INT, i_host, tag, MPI_COMM_WORLD, &Stat);
-    cudaMemcpy(d_ExternalSourceSpikeNeuronId, h_ExternalSpikeNeuronId,
+    cudaMemcpy(d_ExternalSourceSpikeNodeId, h_ExternalSpikeNodeId,
 	       n_spike*sizeof(int), cudaMemcpyHostToDevice);
     MPI_Recv(h_ExternalSpikeHeight,
 	     n_spike, MPI_FLOAT, i_host, tag, MPI_COMM_WORLD, &Stat);
@@ -275,7 +275,7 @@ int ConnectMpi::RecvSpikeFromRemote(int i_host, int max_spike_per_host)
 	       n_spike*sizeof(float), cudaMemcpyHostToDevice);
 #endif
     PushSpikeFromRemote<<<(n_spike+1023)/1024, 1024>>>
-      (n_spike, d_ExternalSourceSpikeNeuronId,
+      (n_spike, d_ExternalSourceSpikeNodeId,
       d_ExternalSourceSpikeHeight); //[ih*max_spike_per_host])
     gpuErrchk( cudaPeekAtLastError() );
     cudaDeviceSynchronize();

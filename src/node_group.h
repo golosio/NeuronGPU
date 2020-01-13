@@ -12,24 +12,24 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURONGROUPH
-#define NEURONGROUPH
+#ifndef NODEGROUPH
+#define NODEGROUPH
 
-#define MAX_N_NEURON_GROUPS 128
+#define MAX_N_NODE_GROUPS 128
 
-struct NeuronGroup
+struct NodeGroupStruct
 {
-  int neuron_type_;
-  int i_neuron_0_;
-  int n_neurons_;
-  int n_receptors_;
+  int node_type_;
+  int i_node_0_;
+  int n_nodes_;
+  int n_ports_;
   double *get_spike_array_;
 };
 
 struct RK5DataStruct
 {
-  int neuron_type_;
-  int i_neuron_0_;
+  int node_type_;
+  int i_node_0_;
 };
 
 #endif

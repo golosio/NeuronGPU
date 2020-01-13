@@ -22,7 +22,7 @@ extern __device__ int MaxDelayNum;
 
 extern int *d_ConnectionGroupSize;
 extern __device__ int *ConnectionGroupSize;
-// Output connections from the source neuron are organized in groups
+// Output connections from the source node are organized in groups
 // All connection of a group have the same delay
 
 extern int *d_ConnectionGroupDelay;
@@ -33,10 +33,10 @@ extern int *d_ConnectionGroupTargetSize;
 extern __device__ int *ConnectionGroupTargetSize;
 // number of output connections in the group i_delay
 
-extern int **d_ConnectionGroupTargetNeuron;
-extern __device__ int **ConnectionGroupTargetNeuron;
+extern int **d_ConnectionGroupTargetNode;
+extern __device__ int **ConnectionGroupTargetNode;
 // is a pointer to an integer array of size ConnectionGroupTargetSize
-// that contains the indexes of the target neurons
+// that contains the indexes of the target nodes
 
 extern unsigned char **d_ConnectionGroupTargetPort;
 extern __device__ unsigned char **ConnectionGroupTargetPort;
@@ -72,7 +72,7 @@ __global__ void DeviceSpikeBufferInit(int n_spike_buffer, int max_delay_num,
 				int max_spike_buffer_size,
 				int *conn_group_size, int *conn_group_delay,
 				int *conn_group_target_size,
-				int **conn_group_target_neuron,
+				int **conn_group_target_node,
 				unsigned char **conn_group_target_port,
 				float **conn_group_target_weight,
 				int *spike_buffer_size, int *spike_buffer_time,

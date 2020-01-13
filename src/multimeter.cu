@@ -23,11 +23,11 @@ const   std::string SpikeVarName = "spike";
 
 Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
 	       std::vector<std::string> var_name_vect,
-	       std::vector<int> i_neur_vect, std::vector<int> i_receptor_vect):
+	       std::vector<int> i_neur_vect, std::vector<int> i_port_vect):
   neuron_vect_(neur_vect), file_name_(file_name),
   var_name_vect_(var_name_vect),
   i_neuron_vect_(i_neur_vect),
-  i_receptor_vect_(i_receptor_vect)
+  i_port_vect_(i_port_vect)
 {
   data_vect_flag_ = true;
   if (file_name=="") {
@@ -39,7 +39,7 @@ Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
   for (unsigned int i=0; i<var_name_vect.size(); i++) {
     if (var_name_vect[i]!=SpikeVarName) {
       float *var_pt = neur_vect[i]->GetVarPt(var_name_vect[i], i_neur_vect[i],
-					     i_receptor_vect[i]);
+					     i_port_vect[i]);
       var_pt_vect_.push_back(var_pt);
     }
   }
@@ -99,10 +99,10 @@ int Multimeter::CreateRecord(std::vector<BaseNeuron*> neur_vect,
 			     std::string file_name,
 			     std::vector<std::string> var_name_vect,
 			     std::vector<int> i_neur_vect,
-			     std::vector<int> i_receptor_vect)
+			     std::vector<int> i_port_vect)
 {
   Record record(neur_vect, file_name, var_name_vect, i_neur_vect,
-		i_receptor_vect);
+		i_port_vect);
   record_vect_.push_back(record);
 
   return (record_vect_.size() - 1);

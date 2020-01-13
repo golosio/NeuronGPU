@@ -60,12 +60,12 @@ extern "C" {
     return NeuralGPU_instance->GetMaxSpikeBufferSize();
   }
 
-  int NeuralGPU_CreateNeuron(char *model_name, int n_neurons, int n_receptors)
+  int NeuralGPU_CreateNeuron(char *model_name, int n_neurons, int n_ports)
   {
     checkNeuralGPUInstance();
     std::string model_name_str = std::string(model_name);
     NodeSeq neur = NeuralGPU_instance->CreateNeuron(model_name_str, n_neurons,
-						    n_receptors);
+						    n_ports);
     return neur[0];
   }
 
@@ -86,19 +86,19 @@ extern "C" {
   }
   
   int NeuralGPU_CreateRecord(char *file_name, char *var_name_arr[],
-			     int *i_neuron_arr, int *i_receptor_arr,
-			     int n_neurons)
+			     int *i_node_arr, int *i_port_arr,
+			     int n_nodes)
   {
     checkNeuralGPUInstance();
     std::string file_name_str = std::string(file_name);
     std::vector<std::string> var_name_vect;
-    for (int i=0; i<n_neurons; i++) {
+    for (int i=0; i<n_nodes; i++) {
       std::string var_name = std::string(var_name_arr[i]);
       var_name_vect.push_back(var_name);
     }
     return NeuralGPU_instance->CreateRecord
-      (file_name_str, var_name_vect.data(), i_neuron_arr, i_receptor_arr,
-       n_neurons);		       
+      (file_name_str, var_name_vect.data(), i_node_arr, i_port_arr,
+       n_nodes);		       
   }
   
   int NeuralGPU_GetRecordDataRows(int i_record)
@@ -262,74 +262,74 @@ extern "C" {
     return arr;
   }
   
-  int NeuralGPU_Connect(int i_source_neuron, int i_target_neuron,
+  int NeuralGPU_Connect(int i_source_node, int i_target_node,
 			unsigned char i_port, float weight, float delay)
   {
     checkNeuralGPUInstance();
-    return NeuralGPU_instance->Connect(i_source_neuron, i_target_neuron,
+    return NeuralGPU_instance->Connect(i_source_node, i_target_node,
 				       i_port, weight, delay);
   }
 
   int NeuralGPU_ConnectOneToOne
   (
-   int i_source_neuron_0, int i_target_neuron_0, int n_neurons,
+   int i_source_node_0, int i_target_node_0, int n_nodes,
    unsigned char i_port, float weight, float delay
    )
   {
     checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectOneToOne
-      (i_source_neuron_0, i_target_neuron_0, n_neurons, i_port, weight, delay);
+      (i_source_node_0, i_target_node_0, n_nodes, i_port, weight, delay);
   }
 
   int NeuralGPU_ConnectAllToAll
   (
-   int i_source_neuron_0, int n_source_neurons,
-   int i_target_neuron_0, int n_target_neurons,
+   int i_source_node_0, int n_source_nodes,
+   int i_target_node_0, int n_target_nodes,
    unsigned char i_port, float weight, float delay
    )
   {
     checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectAllToAll
       (
-       i_source_neuron_0, n_source_neurons, i_target_neuron_0,
-       n_target_neurons, i_port, weight, delay
+       i_source_node_0, n_source_nodes, i_target_node_0,
+       n_target_nodes, i_port, weight, delay
        );
   }
   
   int NeuralGPU_ConnectFixedIndegree
   (
-   int i_source_neuron_0, int n_source_neurons,
-   int i_target_neuron_0, int n_target_neurons,
+   int i_source_node_0, int n_source_nodes,
+   int i_target_node_0, int n_target_nodes,
    unsigned char i_port, float weight, float delay, int indegree
    )
   {
     checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectFixedIndegree
       (
-       i_source_neuron_0, n_source_neurons, i_target_neuron_0,
-       n_target_neurons, i_port, weight, delay, indegree
+       i_source_node_0, n_source_nodes, i_target_node_0,
+       n_target_nodes, i_port, weight, delay, indegree
      );
   }
 
   int NeuralGPU_ConnectFixedIndegreeArray
   (
-   int i_source_neuron_0, int n_source_neurons,
-   int i_target_neuron_0, int n_target_neurons,
+   int i_source_node_0, int n_source_nodes,
+   int i_target_node_0, int n_target_nodes,
    unsigned char i_port, float *weight_arr, float *delay_arr, int indegree
    )
   {
     checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectFixedIndegreeArray
       (
-       i_source_neuron_0, n_source_neurons, i_target_neuron_0,
-       n_target_neurons, i_port, weight_arr, delay_arr, indegree
+       i_source_node_0, n_source_nodes, i_target_node_0,
+       n_target_nodes, i_port, weight_arr, delay_arr, indegree
        );
   }
   
   int NeuralGPU_ConnectFixedTotalNumberArray
   (
-   int i_source_neuron_0, int n_source_neurons,
-   int i_target_neuron_0, int n_target_neurons,
+   int i_source_node_0, int n_source_nodes,
+   int i_target_node_0, int n_target_nodes,
    unsigned char i_port, float *weight_arr,
    float *delay_arr, int n_conn
    )
@@ -337,71 +337,71 @@ extern "C" {
     checkNeuralGPUInstance();
     return NeuralGPU_instance->ConnectFixedTotalNumberArray
       (
-       i_source_neuron_0, n_source_neurons, i_target_neuron_0,
-       n_target_neurons, i_port, weight_arr, delay_arr, n_conn
+       i_source_node_0, n_source_nodes, i_target_node_0,
+       n_target_nodes, i_port, weight_arr, delay_arr, n_conn
        );
   }
-
+  /*
   int NeuralGPU_RemoteConnect
   (
-   int i_source_host, int i_source_neuron,
-   int i_target_host, int i_target_neuron,
+   int i_source_host, int i_source_node,
+   int i_target_host, int i_target_node,
    unsigned char i_port, float weight, float delay
    )
   {
     checkNeuralGPUInstance();
     return NeuralGPU_instance->RemoteConnect
       (
-       i_source_host, i_source_neuron, i_target_host, i_target_neuron,
+       i_source_host, i_source_node, i_target_host, i_target_node,
        i_port, weight, delay
        );
   }
   
   int NeuralGPU_RemoteConnectOneToOne
   (
-   int i_source_host, int i_source_neuron_0,
-   int i_target_host, int i_target_neuron_0, int n_neurons,
+   int i_source_host, int i_source_node_0,
+   int i_target_host, int i_target_node_0, int n_nodes,
    unsigned char i_port, float weight, float delay
    )
   {
     checkNeuralGPUInstance();
     return NeuralGPU_instance->RemoteConnectOneToOne
       (
-       i_source_host, i_source_neuron_0, i_target_host, i_target_neuron_0,
-       n_neurons, i_port, weight, delay
+       i_source_host, i_source_node_0, i_target_host, i_target_node_0,
+       n_nodes, i_port, weight, delay
        );
   }
 
   int NeuralGPU_RemoteConnectAllToAll
   (
-   int i_source_host, int i_source_neuron_0, int n_source_neurons,
-   int i_target_host, int i_target_neuron_0, int n_target_neurons,
+   int i_source_host, int i_source_node_0, int n_source_nodes,
+   int i_target_host, int i_target_node_0, int n_target_nodes,
    unsigned char i_port, float weight, float delay
    )
   {
     checkNeuralGPUInstance();
     return NeuralGPU_instance->RemoteConnectAllToAll
   (
-   i_source_host, i_source_neuron_0, n_source_neurons, i_target_host,
-   i_target_neuron_0, n_target_neurons, i_port, weight, delay
+   i_source_host, i_source_node_0, n_source_nodes, i_target_host,
+   i_target_node_0, n_target_nodes, i_port, weight, delay
    );
   }
   
   int NeuralGPU_RemoteConnectFixedIndegree
   (
-   int i_source_host, int i_source_neuron_0, int n_source_neurons,
-   int i_target_host, int i_target_neuron_0, int n_target_neurons,
+   int i_source_host, int i_source_node_0, int n_source_nodes,
+   int i_target_host, int i_target_node_0, int n_target_nodes,
    unsigned char i_port, float weight, float delay, int indegree
    )
   {
     checkNeuralGPUInstance();
     return NeuralGPU_instance->RemoteConnectFixedIndegree
       (
-       i_source_host, i_source_neuron_0, n_source_neurons, i_target_host,
-       i_target_neuron_0, n_target_neurons, i_port, weight, delay, indegree
+       i_source_host, i_source_node_0, n_source_nodes, i_target_host,
+       i_target_node_0, n_target_nodes, i_port, weight, delay, indegree
        );
   }
-
+  */
   int NeuralGPU_ConnSpecInit()
   {
     return ConnSpec_instance.Init();

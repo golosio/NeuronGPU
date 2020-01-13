@@ -19,11 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include "cuda_error.h"
 #include "rk5.h"
-#include "neuron_group.h"
+#include "node_group.h"
 #include "base_neuron.h"
 #include "neuron_models.h"
 
-#define MAX_RECEPTOR_NUM 20
+#define MAX_PORT_NUM 20
 
 class aeif_cond_beta : public BaseNeuron
 {
@@ -33,21 +33,21 @@ class aeif_cond_beta : public BaseNeuron
   float h_;
   RK5DataStruct rk5_data_struct_;
     
-  int Init(int i_node_0, int n_neurons, int n_receptors, int i_neuron_group);
+  int Init(int i_node_0, int n_neurons, int n_ports, int i_group);
 
   int Calibrate(float t_min);
 		
   int Update(int it, float t1);
   
-  int GetX(int i_neuron, int n_neurons, float *x) {
-    return rk5_.GetX(i_neuron, n_neurons, x);
+  int GetX(int i_neuron, int n_nodes, float *x) {
+    return rk5_.GetX(i_neuron, n_nodes, x);
   }
   
-  int GetY(int i_var, int i_neuron, int n_neurons, float *y) {
-    return rk5_.GetY(i_var, i_neuron, n_neurons, y);
+  int GetY(int i_var, int i_neuron, int n_nodes, float *y) {
+    return rk5_.GetY(i_var, i_neuron, n_nodes, y);
   }
   
-  template<int N_RECEPTORS>
+  template<int N_PORTS>
     int UpdateNR(int it, float t1);
 
 };
@@ -55,17 +55,17 @@ class aeif_cond_beta : public BaseNeuron
 template <>
 int aeif_cond_beta::UpdateNR<0>(int it, float t1);
 
-template<int N_RECEPTORS>
+template<int N_PORTS>
 int aeif_cond_beta::UpdateNR(int it, float t1)
 {
-  if (N_RECEPTORS == n_receptors_) {
-    const int NVAR = N_SCAL_VAR + N_VECT_VAR*N_RECEPTORS;
-    const int NPARAMS = N_SCAL_PARAMS + N_VECT_PARAMS*N_RECEPTORS;
+  if (N_PORTS == n_ports_) {
+    const int NVAR = N_SCAL_VAR + N_VECT_VAR*N_PORTS;
+    const int NPARAMS = N_SCAL_PARAMS + N_VECT_PARAMS*N_PORTS;
 
     rk5_.Update<NVAR, NPARAMS>(t1, h_min_, rk5_data_struct_);
   }
   else {
-    UpdateNR<N_RECEPTORS - 1>(it, t1);
+    UpdateNR<N_PORTS - 1>(it, t1);
   }
 
   return 0;

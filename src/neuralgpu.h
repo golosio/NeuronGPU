@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <algorithm>
 
-#include "neuron_group.h"
+#include "node_group.h"
 #include "base_neuron.h"
 #include "connect_spec.h"
 
@@ -31,8 +31,8 @@ class NetConnection;
 class ConnectMpi;
 struct curandGenerator_st;
 typedef struct curandGenerator_st* curandGenerator_t;
-struct RemoteNeuron;
-struct RemoteNeuronPt;
+struct RemoteNode;
+struct RemoteNodePt;
 class ConnSpec;
 class SynSpec;
 
@@ -89,14 +89,14 @@ class NeuralGPU
   PoissonGenerator *poiss_generator_;
   SpikeGenerator *spike_generator_;
   Multimeter *multimeter_;
-  std::vector<BaseNeuron*> neuron_vect_;
+  std::vector<BaseNeuron*> node_vect_; // -> node_group_vect
   
   NetConnection *net_connection_;
   ConnectMpi *connect_mpi_;
 
-  std::vector<NeuronGroup> neuron_group_vect_;
-  std::vector<signed char> neuron_group_map_;
-  signed char *d_neuron_group_map_;
+  //std::vector<NodeGroup> node_group_vect_; RIMOSSO
+  std::vector<signed char> node_group_map_;
+  signed char *d_node_group_map_;
 
 
   int max_spike_buffer_size_;
@@ -106,7 +106,6 @@ class NeuralGPU
   float t_min_;
   float neural_time_; // Neural activity time
   float sim_time_; // Simulation time in ms
-  int n_neurons_;
   int n_poiss_nodes_;
   int n_spike_gen_nodes_;
 
@@ -114,13 +113,14 @@ class NeuralGPU
   double build_real_time_;
   double end_real_time_;
   
-  int CreateNeuron(int n_neurons, int n_receptors);
+  int CreateNodeGroup(int n_neurons, int n_ports);
   int CheckUncalibrated(std::string message);
-  int InsertNeuronGroup(int n_neurons, int n_receptors);
-  int NeuronGroupArrayInit();
+  //int InsertNodeGroup(int n_nodes, int n_ports);
+  double *InitGetSpikeArray(int n_nodes, int n_ports);
+  int NodeGroupArrayInit();
   int ClearGetSpikeArrays();
   int FreeGetSpikeArrays();
-  int FreeNeuronGroupMap();
+  int FreeNodeGroupMap();
 
 
   template <class T>
@@ -135,7 +135,7 @@ class NeuralGPU
 		     float weight, float delay, int i_array, SynSpec &syn_spec);
 
   template <class T>
-  int _ConnectOneToOne(T source, T target, int n_neurons, SynSpec &syn_spec);
+  int _ConnectOneToOne(T source, T target, int n_nodes, SynSpec &syn_spec);
   template <class T>
   int _ConnectAllToAll
   (T source, int n_source, T target, int n_target, SynSpec &syn_spec);
@@ -179,13 +179,13 @@ class NeuralGPU
 
   int SetMaxSpikeBufferSize(int max_size);
   int GetMaxSpikeBufferSize();
-  NodeSeq CreateNeuron(std::string model_name, int n_neurons, int n_receptors);
+  NodeSeq CreateNeuron(std::string model_name, int n_neurons, int n_ports);
   NodeSeq CreatePoissonGenerator(int n_nodes, float rate);
   NodeSeq CreateSpikeGenerator(int n_nodes);
   int CreateRecord(std::string file_name, std::string *var_name_arr,
-		   int *i_neuron_arr, int n_neurons);  
+		   int *i_node_arr, int n_nodes);  
   int CreateRecord(std::string file_name, std::string *var_name_arr,
-		   int *i_neuron_arr, int *i_receptor_arr, int n_neurons);
+		   int *i_node_arr, int *i_port_arr, int n_nodes);
   std::vector<std::vector<float>> *GetRecordData(int i_record);
 
   int SetNeuronParam(std::string param_name, int i_node, int n_neurons,
@@ -220,9 +220,9 @@ class NeuralGPU
 			  vect_size);
   }
 
-  int GetNodeSequenceOffset(int i_node, int n_neurons, int &i_group);
+  int GetNodeSequenceOffset(int i_node, int n_nodes, int &i_group);
 
-  std::vector<int> GetNodeArrayWithOffset(int *i_node, int n_neurons,
+  std::vector<int> GetNodeArrayWithOffset(int *i_node, int n_nodes,
 					  int &i_group);
 
   int IsNeuronScalParam(std::string param_name, int i_node);
@@ -256,64 +256,64 @@ class NeuralGPU
 
   int Connect
     (
-     int i_source_neuron, int i_target_neuron, unsigned char i_port,
+     int i_source_node, int i_target_node, unsigned char i_port,
      float weight, float delay
      );
 
   int ConnectOneToOne
     (
-     int i_source_neuron_0, int i_target_neuron_0, int n_neurons,
+     int i_source_node_0, int i_target_node_0, int n_nodes,
      unsigned char i_port, float weight, float delay
      );
 
   int ConnectAllToAll
     (
-     int i_source_neuron_0, int n_source_neurons,
-     int i_target_neuron_0, int n_target_neurons,
+     int i_source_node_0, int n_source_nodes,
+     int i_target_node_0, int n_target_nodes,
      unsigned char i_port, float weight, float delay
      );
   
   int ConnectFixedIndegree
     (
-     int i_source_neuron_0, int n_source_neurons,
-     int i_target_neuron_0, int n_target_neurons,
+     int i_source_node_0, int n_source_nodes,
+     int i_target_node_0, int n_target_nodes,
      unsigned char i_port, float weight, float delay, int indegree
      );
 
   int ConnectFixedIndegreeArray
     (
-     int i_source_neuron_0, int n_source_neurons,
-     int i_target_neuron_0, int n_target_neurons,
+     int i_source_node_0, int n_source_nodes,
+     int i_target_node_0, int n_target_nodes,
      unsigned char i_port, float *weight_arr, float *delay_arr, int indegree
      );
   
-  int ConnectFixedTotalNumberArray(int i_source_neuron_0, int n_source_neurons,
-				   int i_target_neuron_0, int n_target_neurons,
+  int ConnectFixedTotalNumberArray(int i_source_node_0, int n_source_nodes,
+				   int i_target_node_0, int n_target_nodes,
 				   unsigned char i_port, float *weight_arr,
 				   float *delay_arr, int n_conn);
 
-  int RemoteConnect(int i_source_host, int i_source_neuron,
-		    int i_target_host, int i_target_neuron,
+  int RemoteConnect(int i_source_host, int i_source_node,
+		    int i_target_host, int i_target_node,
 		    unsigned char i_port, float weight, float delay);
   
   int RemoteConnectOneToOne
     (
-     int i_source_host, int i_source_neuron_0,
-     int i_target_host, int i_target_neuron_0, int n_neurons,
+     int i_source_host, int i_source_node_0,
+     int i_target_host, int i_target_node_0, int n_nodes,
      unsigned char i_port, float weight, float delay
      );
 
   int RemoteConnectAllToAll
     (
-     int i_source_host, int i_source_neuron_0, int n_source_neurons,
-     int i_target_host, int i_target_neuron_0, int n_target_neurons,
+     int i_source_host, int i_source_node_0, int n_source_nodes,
+     int i_target_host, int i_target_node_0, int n_target_nodes,
      unsigned char i_port, float weight, float delay
      );
   
   int RemoteConnectFixedIndegree
     (
-     int i_source_host, int i_source_neuron_0, int n_source_neurons,
-     int i_target_host, int i_target_neuron_0, int n_target_neurons,
+     int i_source_host, int i_source_node_0, int n_source_nodes,
+     int i_target_host, int i_target_node_0, int n_target_nodes,
      unsigned char i_port, float weight, float delay, int indegree
      );
   

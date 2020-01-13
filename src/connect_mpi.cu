@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -98,41 +98,41 @@ bool ConnectMpi::ProcMaster()
   else return false;
 }
 
-int ConnectMpi::RemoteConnect(int i_source_host, int i_source_neuron,
-			      int i_target_host, int i_target_neuron,
+int ConnectMpi::RemoteConnect(int i_source_host, int i_source_node,
+			      int i_target_host, int i_target_node,
 			      unsigned char i_port, float weight, float delay)
 {
-  int i_remote_neuron;
+  int i_remote_node;
   
   if (mpi_id_==i_source_host && i_source_host==i_target_host) {
-    return net_connection_->Connect(i_source_neuron, i_target_neuron, i_port, weight, delay);
+    return net_connection_->Connect(i_source_node, i_target_node, i_port, weight, delay);
   }
   else if (mpi_id_ == i_target_host) {
-    MPI_Recv_int(&i_remote_neuron, 1, i_source_host);
-    if (i_remote_neuron == -1) {
+    MPI_Recv_int(&i_remote_node, 1, i_source_host);
+    if (i_remote_node == -1) {
       // Create remote connection node....
-      i_remote_neuron = net_connection_->connection_.size();
+      i_remote_node = net_connection_->connection_.size();
       vector<ConnGroup> conn;
       net_connection_->connection_.push_back(conn);
-      MPI_Send_int(&i_remote_neuron, 1, i_source_host);
+      MPI_Send_int(&i_remote_node, 1, i_source_host);
     }
-    net_connection_->Connect(i_remote_neuron, i_target_neuron, i_port, weight, delay);
+    net_connection_->Connect(i_remote_node, i_target_node, i_port, weight, delay);
   }
   else if (mpi_id_ == i_source_host) {
-    i_remote_neuron = -1;
+    i_remote_node = -1;
     for (vector<ExternalConnectionNode >::iterator it =
-	   extern_connection_[i_source_neuron].begin();
-	 it <  extern_connection_[i_source_neuron].end(); it++) {
+	   extern_connection_[i_source_node].begin();
+	 it <  extern_connection_[i_source_node].end(); it++) {
       if ((*it).target_host_id == i_target_host) {
-	i_remote_neuron = (*it).remote_neuron_id;
+	i_remote_node = (*it).remote_node_id;
 	break;
       }
     }
-    MPI_Send_int(&i_remote_neuron, 1, i_target_host);
-    if (i_remote_neuron == -1) {
-      MPI_Recv_int(&i_remote_neuron, 1, i_target_host);
-      ExternalConnectionNode conn_node = {i_target_host, i_remote_neuron};
-      extern_connection_[i_source_neuron].push_back(conn_node);
+    MPI_Send_int(&i_remote_node, 1, i_target_host);
+    if (i_remote_node == -1) {
+      MPI_Recv_int(&i_remote_node, 1, i_target_host);
+      ExternalConnectionNode conn_node = {i_target_host, i_remote_node};
+      extern_connection_[i_source_node].push_back(conn_node);
     }
   }
   MPI_Barrier( MPI_COMM_WORLD );

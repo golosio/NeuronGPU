@@ -20,10 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class BaseNeuron
 {
  public:
+  int node_type_;
   int i_node_0_;
-  int n_neurons_;
-  int n_receptors_;
-  int i_neuron_group_;
+  int n_nodes_;
+  int n_ports_;
+  int i_group_;
   int n_var_;
   int n_params_;
   int n_scal_var_;
@@ -31,12 +32,13 @@ class BaseNeuron
   int n_scal_params_;
   int n_vect_params_;
 
-  float *receptor_weight_arr_;
-  int receptor_weight_arr_step_;
-  int receptor_weight_port_step_;
-  float *receptor_input_arr_;
-  int receptor_input_arr_step_;
-  int receptor_input_port_step_;
+  double *get_spike_array_;
+  float *port_weight_arr_;
+  int port_weight_arr_step_;
+  int port_weight_port_step_;
+  float *port_input_arr_;
+  int port_input_arr_step_;
+  int port_input_port_step_;
   float *var_arr_;
   float *params_arr_;
   const std::string *scal_var_name_;
@@ -46,7 +48,7 @@ class BaseNeuron
 
   virtual ~BaseNeuron() {}
   
-  virtual int Init(int i_node_0, int n_neurons, int n_receptors,
+  virtual int Init(int i_node_0, int n_neurons, int n_ports,
 		   int i_neuron_group);
 
   virtual int Calibrate(float t_min) {return 0;}
@@ -91,12 +93,12 @@ class BaseNeuron
 
   int CheckNeuronIdx(int i_neuron);
 
-  int CheckReceptorIdx(int i_receptor);
+  int CheckPortIdx(int i_port);
 
-  virtual float *GetVarPt(std::string var_name, int i_neuron, int i_receptor=0);
+  virtual float *GetVarPt(std::string var_name, int i_neuron, int i_port=0);
 
   virtual float *GetParamPt(std::string param_name, int i_neuron,
-		    int i_receptor=0);
+		    int i_port=0);
   virtual float GetSpikeActivity(int i_neuron);
 
 };

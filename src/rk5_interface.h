@@ -26,7 +26,7 @@ __device__
     void Derivatives(float x, float *y, float *dydx, float *params,
 		     RK5DataStruct data_struct)
 {
-  switch (data_struct.neuron_type_) {
+  switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
     aeif_cond_beta_Derivatives<NVAR, NPARAMS, DataStruct>(x, y, dydx, params,
 						data_struct);
@@ -40,7 +40,7 @@ __device__
     (float x, float *y, float *params, bool end_time_step,
 			RK5DataStruct data_struct)
 {
-  switch (data_struct.neuron_type_) {
+  switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
     aeif_cond_beta_ExternalUpdate<NVAR, NPARAMS, DataStruct>(x, y, params,
 							     end_time_step,
@@ -55,7 +55,7 @@ __device__
 void NodeInit(int n_var, int n_params, float x, float *y,
 	     float *params, DataStruct data_struct)
 {
-  switch (data_struct.neuron_type_) {
+  switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
     aeif_cond_beta_NodeInit<DataStruct>(n_var, n_params, x, y, params,
 					data_struct);
@@ -69,7 +69,7 @@ void NodeCalibrate(int n_var, int n_params, float x, float *y,
 		  float *params, DataStruct data_struct)
 
 {
-  switch (data_struct.neuron_type_) {
+  switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
     aeif_cond_beta_NodeCalibrate<DataStruct>(n_var, n_params, x, y, params, data_struct);
     break;

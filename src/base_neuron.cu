@@ -34,13 +34,15 @@ __global__ void BaseNeuronSetFloatPtArray(float *arr, int *pos, int n_elems,
   }
 }
 
-int BaseNeuron::Init(int i_node_0, int n_neurons, int n_receptors,
-		   int i_neuron_group)
+int BaseNeuron::Init(int i_node_0, int n_nodes, int n_ports,
+		   int i_group)
 {
+  node_type_= 0; // NULL MODEL
   i_node_0_ = i_node_0;
-  n_neurons_ = n_neurons;
-  n_receptors_ = n_receptors;
-  i_neuron_group_ = i_neuron_group;
+  n_nodes_ = n_nodes;
+  n_ports_ = n_ports;
+  i_group_ = i_group;
+  get_spike_array_ = NULL;
 
   return 0;
 }			    
@@ -90,9 +92,9 @@ int BaseNeuron::SetVectParam(std::string param_name, int i_neuron,
   }
   CheckNeuronIdx(i_neuron);
   CheckNeuronIdx(i_neuron + n_neurons - 1);
-  if (vect_size != n_receptors_) {
+  if (vect_size != n_ports_) {
     std::cerr << "Parameter vector size must be equal to the number "
-      "of receptor ports.\n";
+      "of ports.\n";
     exit(-1);
   }
   float *param_pt;
@@ -113,9 +115,9 @@ int BaseNeuron::SetVectParam(std::string param_name, int *i_neuron,
     std::cerr << "Unrecognized vector parameter " << param_name << " \n";
     exit(-1);
   }
-  if (vect_size != n_receptors_) {
+  if (vect_size != n_ports_) {
     std::cerr << "Parameter vector size must be equal to the number "
-      "of receptor ports.\n";
+      "of ports.\n";
     exit(-1);
   }
   int *d_i_neuron;
@@ -238,7 +240,7 @@ bool BaseNeuron::IsVectParam(std::string param_name)
 
 int BaseNeuron::CheckNeuronIdx(int i_neuron)
 {
-  if (i_neuron>=n_neurons_) {
+  if (i_neuron>=n_nodes_) {
     std::cerr << "Neuron index must be lower then n. of neurons\n";
     exit(-1);
   }
@@ -249,24 +251,24 @@ int BaseNeuron::CheckNeuronIdx(int i_neuron)
   return 0;
 }
 
-int BaseNeuron::CheckReceptorIdx(int i_receptor)
+int BaseNeuron::CheckPortIdx(int i_port)
 {
-  if (i_receptor>=n_receptors_) {
-    std::cerr << "Receptor index must be lower then n. of receptors\n";
+  if (i_port>=n_ports_) {
+    std::cerr << "Port index must be lower then n. of ports\n";
     exit(-1);
   }
-  else if (i_receptor<0) {
-    std::cerr << "Receptor index must be >= 0\n";
+  else if (i_port<0) {
+    std::cerr << "Port index must be >= 0\n";
     exit(-1);
   }
   return 0;
 }
 
 float *BaseNeuron::GetVarPt(std::string var_name, int i_neuron,
-			    int i_receptor /*=0*/)
+			    int i_port /*=0*/)
 {
   CheckNeuronIdx(i_neuron);
-  CheckReceptorIdx(i_receptor);
+  CheckPortIdx(i_port);
     
   if (IsScalVar(var_name)) {
     int i_var =  GetScalVarIdx(var_name);
@@ -275,7 +277,7 @@ float *BaseNeuron::GetVarPt(std::string var_name, int i_neuron,
   else if (IsVectVar(var_name)) {
     int i_vvar =  GetVectVarIdx(var_name);
     return GetVarArr() + i_neuron*n_var_ + n_scal_var_
-      + i_receptor*n_vect_var_ + i_vvar;
+      + i_port*n_vect_var_ + i_vvar;
   }
   else {
     std::cerr << "Unrecognized variable " << var_name << " .\n";
@@ -285,10 +287,10 @@ float *BaseNeuron::GetVarPt(std::string var_name, int i_neuron,
 }
 
 float *BaseNeuron::GetParamPt(std::string param_name, int i_neuron,
-			      int i_receptor /*=0*/)
+			      int i_port /*=0*/)
 {
   CheckNeuronIdx(i_neuron);
-  CheckReceptorIdx(i_receptor);
+  CheckPortIdx(i_port);
     
   if (IsScalParam(param_name)) {
     int i_param =  GetScalParamIdx(param_name);
@@ -297,7 +299,7 @@ float *BaseNeuron::GetParamPt(std::string param_name, int i_neuron,
   else if (IsVectParam(param_name)) {
     int i_vparam =  GetVectParamIdx(param_name);
     return GetParamArr() + i_neuron*n_params_ + n_scal_params_
-      + i_receptor*n_vect_params_ + i_vparam;
+      + i_port*n_vect_params_ + i_vparam;
   }
   else {
     std::cerr << "Unrecognized parameter " << param_name << " .\n";

@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
   
   int mpi_id = neural_gpu.MpiId();
   cout << "Building on host " << mpi_id << " ..." <<endl;
-  
-  neural_gpu.max_spike_buffer_num_=50; //reduce it to save GPU memory
+
+  neural_gpu.SetMaxSpikeBufferSize(10); // max spike buffer size per neuron
   
   //////////////////////////////////////////////////////////////////////
   // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
@@ -50,53 +50,66 @@ int main(int argc, char *argv[])
   int CE = 800;  // number of excitatory synapses per neuron
   int CI = CE/4;  // number of inhibitory synapses per neuron
 
-  float Wex = 0.04995;
+  float Wex = 0.05;
   float Win = 0.35;
 
+  // each host has a poisson generator
+  float poiss_rate = 20000.0; // poisson signal rate in Hz
+  float poiss_weight = 0.37;
+  float poiss_delay = 0.2; // poisson signal delay in ms
+  int n_pg = n_neurons; // number of poisson generators
+  // create poisson generator
+  NodeSeq pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
+
   // each host has n_neurons neurons with n_receptor receptor ports
-  int neuron = neural_gpu.CreateNeuron(n_neurons, n_receptors);
-  int exc_neuron = neuron;      // excitatory neuron id
-  int inh_neuron = neuron + NE; // inhibitory neuron id
+  NodeSeq neuron = neural_gpu.CreateNeuron("aeif_cond_beta", n_neurons,
+					   n_receptors);
+  NodeSeq exc_neuron = neuron.Subseq(0,NE-1); // excitatory neuron group
+  NodeSeq inh_neuron = neuron.Subseq(NE, n_neurons-1); //inhibitory neuron group
   
   // the following parameters are set to the same values on all hosts
   float E_rev[] = {0.0, -85.0};
   float taus_decay[] = {1.0, 1.0};
   float taus_rise[] = {1.0, 1.0};
-  neural_gpu.SetNeuronVectParams("E_rev", neuron, n_neurons, E_rev, 2);
-  neural_gpu.SetNeuronVectParams("taus_decay", neuron, n_neurons,
-				 taus_decay, 2);
-  neural_gpu.SetNeuronVectParams("taus_rise", neuron, n_neurons, taus_rise, 2);
-
-  // each host has a poisson generator
-  float poiss_rate = 20000.0; // poisson signal rate in Hz
-  float poiss_weight = 0.369;
-  float poiss_delay = 0.2; // poisson signal delay in ms
-  int n_pg = 1; // number of poisson generators
-  // create poisson generator
-  int pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
+  neural_gpu.SetNeuronParam("E_rev", neuron, E_rev, 2);
+  neural_gpu.SetNeuronParam("taus_decay", neuron, taus_decay, 2);
+  neural_gpu.SetNeuronParam("taus_rise", neuron, taus_rise, 2);
 
   // Excitatory local connections, defined on all hosts
   // connect excitatory neurons to port 0 of all neurons
   // weight Wex and fixed indegree CE*3/4
-  neural_gpu.ConnectFixedIndegree(exc_neuron, NE, neuron, n_neurons,
-				  0, Wex, delay, CE*3/4);
+  ConnSpec conn_spec1(FIXED_INDEGREE, CE*3/4);
+  SynSpec syn_spec1;
+  syn_spec1.SetParam("receptor", 0);
+  syn_spec1.SetParam("weight", Wex);
+  syn_spec1.SetParam("delay", delay);
+  neural_gpu.Connect(exc_neuron, neuron, conn_spec1, syn_spec1);
 
   // Inhibitory local connections, defined on all hosts
   // connect inhibitory neurons to port 1 of all neurons
   // weight Win and fixed indegree CI*3/4
-  neural_gpu.ConnectFixedIndegree(inh_neuron, NI, neuron, n_neurons,
-				  1, Win, delay, CI*3/4);
+  ConnSpec conn_spec2(FIXED_INDEGREE, CI*3/4);
+  SynSpec syn_spec2;
+  syn_spec2.SetParam("receptor", 1);
+  syn_spec2.SetParam("weight", Win);
+  syn_spec2.SetParam("delay", delay);
+  neural_gpu.Connect(inh_neuron, neuron, conn_spec2, syn_spec2);
 
+  ConnSpec conn_spec3(ONE_TO_ONE);
+  SynSpec syn_spec3(STANDARD_SYNAPSE, poiss_weight, poiss_delay, 0);
   // connect poisson generator to port 0 of all neurons
-  neural_gpu.ConnectAllToAll(pg, n_pg, neuron, n_neurons, 0, poiss_weight,
-			     poiss_delay);
-  
+  neural_gpu.Connect(pg, neuron, conn_spec3, syn_spec3);
+
+
   char filename[100];
   sprintf(filename, "test_brunel_mpi_%d.dat", mpi_id);
-  int i_neurons[] = {2000, 8000, 9999}; // any set of neuron indexes
+
+  int i_neuron_arr[] = {neuron[0], neuron[rand()%n_neurons],
+		     neuron[n_neurons-1]}; // any set of neuron indexes
   // create multimeter record of V_m
-  neural_gpu.CreateRecord(string(filename), "V_m", i_neurons, 3);
-  
+  std::string var_name_arr[] = {"V_m", "V_m", "V_m"};
+  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 3);
+
   //////////////////////////////////////////////////////////////////////
   // WRITE HERE REMOTE CONNECTIONS
   //////////////////////////////////////////////////////////////////////
@@ -105,28 +118,34 @@ int main(int argc, char *argv[])
   // connect excitatory neurons to port 0 of all neurons
   // weight Wex and fixed indegree CE-CE*3/4
   // host 0 to host 1
-  neural_gpu.RemoteConnectFixedIndegree(0, exc_neuron, NE,
-					1, neuron, n_neurons,
-					0, Wex, delay, CE-CE*3/4);
+  ConnSpec conn_spec4(FIXED_INDEGREE, CE-CE*3/4);
+  SynSpec syn_spec4;
+  syn_spec4.SetParam("receptor", 0);
+  syn_spec4.SetParam("weight", Wex);
+  syn_spec4.SetParam("delay", delay);
+  neural_gpu.RemoteConnect(0, exc_neuron, 1, neuron, conn_spec4, syn_spec4);
 
   // host 1 to host 0
-  neural_gpu.RemoteConnectFixedIndegree(1, exc_neuron, NE,
-					0, neuron, n_neurons,
-					0, Wex, delay, CE-CE*3/4);
+  neural_gpu.RemoteConnect(1, exc_neuron, 0, neuron, conn_spec4, syn_spec4);
 
   // Inhibitory remote connections
   // connect inhibitory neurons to port 1 of all neurons
   // weight Win and fixed indegree CI-CI*3/4
   // host 0 to host 1
-  neural_gpu.RemoteConnectFixedIndegree(0, inh_neuron, NI,
-					1, neuron, n_neurons,
-					1, Win, delay, CI-CI*3/4);
-  // host 1 to host 0
-  neural_gpu.RemoteConnectFixedIndegree(1, inh_neuron, NI,
-					0, neuron, n_neurons,
-					1, Win, delay, CI-CI*3/4);
 
-  neural_gpu.SetRandomSeed(1234ULL); // just to have same results in different simulations
+  
+  ConnSpec conn_spec5(FIXED_INDEGREE, CI-CI*3/4);
+  SynSpec syn_spec5;
+  syn_spec5.SetParam("receptor", 1);
+  syn_spec5.SetParam("weight", Win);
+  syn_spec5.SetParam("delay", delay);
+  neural_gpu.RemoteConnect(0, inh_neuron, 1, neuron, conn_spec5, syn_spec5);
+
+  // host 1 to host 0
+  neural_gpu.RemoteConnect(1, inh_neuron, 0, neuron, conn_spec5, syn_spec5);
+
+  // just to have same results in different simulations
+  neural_gpu.SetRandomSeed(1234ULL);
   neural_gpu.Simulate();
 
   neural_gpu.MpiFinalize();

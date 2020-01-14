@@ -19,16 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class NeuralGPU;
 
-struct RemoteNode
+template <class T>
+class RemoteNode
 {
+ public:
   int i_host_;
-  int i_node_;
-};
-
-struct RemoteNodePt
-{
-  int i_host_;
-  int *i_node_;
+  T i_node_;
+ RemoteNode(int i_host, T node): i_host_(i_host), i_node_(node) {}
+  int GetINode(int in);
 };
 
 enum ConnectionRules

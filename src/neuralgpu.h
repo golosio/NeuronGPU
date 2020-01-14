@@ -31,8 +31,8 @@ class NetConnection;
 class ConnectMpi;
 struct curandGenerator_st;
 typedef struct curandGenerator_st* curandGenerator_t;
-struct RemoteNode;
-struct RemoteNodePt;
+//struct RemoteNode;
+//struct RemoteNodePt;
 class ConnSpec;
 class SynSpec;
 
@@ -123,38 +123,49 @@ class NeuralGPU
 
 
   template <class T1, class T2>
-  int _Connect(T1 source, int n_source, T2 target, int n_target,
-	       ConnSpec &conn_spec, SynSpec &syn_spec);
+    int _Connect(T1 source, int n_source, T2 target, int n_target,
+		 ConnSpec &conn_spec, SynSpec &syn_spec);
   
   template<class T1, class T2>
-  int _SingleConnect(T1 source, int i_source, T2 target, int i_target,
-		     int i_array, SynSpec &syn_spec);
+    int _SingleConnect(T1 source, int i_source, T2 target, int i_target,
+		       int i_array, SynSpec &syn_spec);
   template<class T1, class T2>
-  int _SingleConnect(T1 source, int i_source, T2 target, int i_target,
-		     float weight, float delay, int i_array, SynSpec &syn_spec);
+    int _SingleConnect(T1 source, int i_source, T2 target, int i_target,
+		       float weight, float delay, int i_array, SynSpec &syn_spec);
 
   template <class T1, class T2>
-  int _ConnectOneToOne(T1 source, T2 target, int n_nodes, SynSpec &syn_spec);
+    int _ConnectOneToOne(T1 source, T2 target, int n_nodes, SynSpec &syn_spec);
 
   template <class T1, class T2>
-  int _ConnectAllToAll
-  (T1 source, int n_source, T2 target, int n_target, SynSpec &syn_spec);
+    int _ConnectAllToAll
+    (T1 source, int n_source, T2 target, int n_target, SynSpec &syn_spec);
 
   template <class T1, class T2>
-  int _ConnectFixedTotalNumber
-  (T1 source, int n_source, T2 target, int n_target, int n_conn,
-   SynSpec &syn_spec);
+    int _ConnectFixedTotalNumber
+    (T1 source, int n_source, T2 target, int n_target, int n_conn,
+     SynSpec &syn_spec);
 
   template <class T1, class T2>
-  int _ConnectFixedIndegree
-  (
-   T1 source, int n_source, T2 target, int n_target, int indegree,
-   SynSpec &syn_spec
-   );
+    int _ConnectFixedIndegree
+    (
+     T1 source, int n_source, T2 target, int n_target, int indegree,
+     SynSpec &syn_spec
+     );
 
-
-
+  /*
+  template <class T1, class T2>
+    int _RemoteConnect
+    (T1 source, int n_source, T2 target, int n_target,
+     ConnSpec &conn_spec, SynSpec &syn_spec);
   
+  template <class T1, class T2>
+    int _RemoteConnectOneToOne
+    (
+     RemoteNode<T1> source, RemoteNode<T2> target, int n_nodes,
+     SynSpec &syn_spec);
+  */
+
+    
  public:
   NeuralGPU();
 
@@ -340,6 +351,65 @@ class NeuralGPU
 
   int Connect(std::vector<int> source, std::vector<int> target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
+
+
+  template <class T1, class T2>
+    int _RemoteConnect(RemoteNode<T1> source, int n_source,
+		       RemoteNode<T2> target, int n_target,
+		       ConnSpec &conn_spec, SynSpec &syn_spec);
+  
+  template <class T1, class T2>
+    int _RemoteConnectOneToOne
+    (RemoteNode<T1> source, RemoteNode<T2> target, int n_nodes,
+     SynSpec &syn_spec);
+  
+  template <class T1, class T2>
+    int _RemoteConnectAllToAll
+    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
+     SynSpec &syn_spec) {return 0;}
+
+  template <class T1, class T2>
+    int _RemoteConnectFixedTotalNumber
+    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
+     int n_conn, SynSpec &syn_spec) {return 0;}
+  
+  template <class T1, class T2>
+    int _RemoteConnectFixedIndegree
+    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
+     int indegree, SynSpec &syn_spec);
+
+  int RemoteConnect(int i_source_host, int i_source, int n_source,
+		    int i_target_host, int i_target, int n_target,
+		    ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int RemoteConnect(int i_source_host, int i_source, int n_source,
+		    int i_target_host, int* target, int n_target,
+		    ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int RemoteConnect(int i_source_host, int* source, int n_source,
+		    int i_target_host, int i_target, int n_target,
+		    ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int RemoteConnect(int i_source_host, int* source, int n_source,
+		    int i_target_host, int* target, int n_target,
+		    ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int RemoteConnect(int i_source_host, NodeSeq source,
+		    int i_target_host, NodeSeq target,
+		    ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int RemoteConnect(int i_source_host, NodeSeq source,
+		    int i_target_host, std::vector<int> target,
+		    ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int RemoteConnect(int i_source_host, std::vector<int> source,
+		    int i_target_host, NodeSeq target,
+		    ConnSpec &conn_spec, SynSpec &syn_spec);
+
+  int RemoteConnect(int i_source_host, std::vector<int> source,
+		    int i_target_host, std::vector<int> target,
+		    ConnSpec &conn_spec, SynSpec &syn_spec);
+
 
 };
 

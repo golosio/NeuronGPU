@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
   NodeSeq exc_neuron = neuron.Subseq(0,NE-1); // excitatory neuron group
   NodeSeq inh_neuron = neuron.Subseq(NE, n_neurons-1); //inhibitory neuron group
 
-  // the following parameters are set to the same values on all hosts
+  // neuron parameters
   float E_rev[] = {0.0, -85.0};
   float taus_decay[] = {1.0, 1.0};
   float taus_rise[] = {1.0, 1.0};
@@ -112,8 +112,8 @@ int main(int argc, char *argv[])
   SynSpec syn_spec3(STANDARD_SYNAPSE, poiss_weight, poiss_delay, 0);
   // connect poisson generator to port 0 of all neurons
   neural_gpu.Connect(pg, neuron, conn_spec3, syn_spec3);
+
   char filename[] = "test_brunel_net.dat";
-  
   int i_neuron_arr[] = {neuron[0], neuron[rand()%n_neurons],
 		     neuron[n_neurons-1]}; // any set of neuron indexes
   // create multimeter record of V_m
@@ -122,8 +122,6 @@ int main(int argc, char *argv[])
   // just to have same results in different simulations:
   neural_gpu.SetRandomSeed(1234ULL);
   neural_gpu.Simulate();
-
-  neural_gpu.MpiFinalize();
 
   return 0;
 }

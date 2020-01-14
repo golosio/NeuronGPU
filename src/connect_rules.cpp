@@ -384,15 +384,96 @@ int NeuralGPU::Connect(NodeSeq source, std::vector<int> target,
 int NeuralGPU::Connect(std::vector<int> source, NodeSeq target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
-  return _Connect<int*>(source.data(), source.size(), target.i0,
-			target.n, conn_spec, syn_spec);
+  return _Connect<int*, int>(source.data(), source.size(), target.i0,
+			     target.n, conn_spec, syn_spec);
 }
 
 int NeuralGPU::Connect(std::vector<int> source, std::vector<int> target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
-  return _Connect<int*>(source.data(), source.size(), target.data(),
+  return _Connect<int*, int*>(source.data(), source.size(), target.data(),
 			target.size(), conn_spec, syn_spec);
+}
+
+int NeuralGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
+			     int i_target_host, int i_target, int n_target,
+			     ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  RemoteNode<int> rsource(i_source_host, i_source);
+  RemoteNode<int> rtarget(i_target_host, i_target);
+  return _RemoteConnect<int, int>(rsource, n_source, rtarget, n_target,
+				  conn_spec, syn_spec);
+}
+
+int NeuralGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
+			     int i_target_host, int* target, int n_target,
+			     ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  RemoteNode<int> rsource(i_source_host, i_source);
+  RemoteNode<int*> rtarget(i_target_host, target);  
+  return _RemoteConnect<int, int*>(rsource, n_source, rtarget, n_target,
+				   conn_spec, syn_spec);
+}
+int NeuralGPU::RemoteConnect(int i_source_host, int* source, int n_source,
+			     int i_target_host, int i_target, int n_target,
+			     ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  RemoteNode<int*> rsource(i_source_host, source);
+  RemoteNode<int> rtarget(i_target_host, i_target);
+
+  return _RemoteConnect<int*, int>(rsource, n_source, rtarget, n_target,
+				   conn_spec, syn_spec);
+}
+int NeuralGPU::RemoteConnect(int i_source_host, int* source, int n_source,
+			     int i_target_host, int* target, int n_target,
+			     ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  RemoteNode<int*> rsource(i_source_host, source);
+  RemoteNode<int*> rtarget(i_target_host, target);
+
+  return _RemoteConnect<int*, int*>(rsource, n_source, rtarget, n_target,
+				    conn_spec, syn_spec);
+}
+
+int NeuralGPU::RemoteConnect(int i_source_host, NodeSeq source,
+			     int i_target_host, NodeSeq target,
+			     ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  RemoteNode<int> rsource(i_source_host, source.i0);
+  RemoteNode<int> rtarget(i_target_host, target.i0);
+  
+  return _RemoteConnect<int, int>(rsource, source.n, rtarget, target.n,
+				  conn_spec, syn_spec);
+}
+
+int NeuralGPU::RemoteConnect(int i_source_host, NodeSeq source,
+			     int i_target_host, std::vector<int> target,
+			     ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  RemoteNode<int> rsource(i_source_host, source.i0);
+  RemoteNode<int*> rtarget(i_target_host, target.data());
+  return _RemoteConnect<int, int*>(rsource, source.n, rtarget,
+				   target.size(), conn_spec, syn_spec);
+}
+
+int NeuralGPU::RemoteConnect(int i_source_host, std::vector<int> source,
+			     int i_target_host, NodeSeq target,
+			     ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  RemoteNode<int*> rsource(i_source_host, source.data());
+  RemoteNode<int> rtarget(i_target_host, target.i0);
+  return _RemoteConnect<int*, int>(rsource, source.size(), rtarget, target.n,
+				   conn_spec, syn_spec);
+}
+
+int NeuralGPU::RemoteConnect(int i_source_host, std::vector<int> source,
+			     int i_target_host, std::vector<int> target,
+			     ConnSpec &conn_spec, SynSpec &syn_spec)
+{
+  RemoteNode<int*> rsource(i_source_host, source.data());
+  RemoteNode<int*> rtarget(i_target_host, target.data());
+  return _RemoteConnect<int*, int*>(rsource, source.size(), rtarget,
+				    target.size(), conn_spec, syn_spec);
 }
 
 

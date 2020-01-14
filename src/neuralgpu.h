@@ -366,12 +366,12 @@ class NeuralGPU
   template <class T1, class T2>
     int _RemoteConnectAllToAll
     (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
-     SynSpec &syn_spec) {return 0;}
+     SynSpec &syn_spec); // {return 0;}
 
   template <class T1, class T2>
     int _RemoteConnectFixedTotalNumber
     (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
-     int n_conn, SynSpec &syn_spec) {return 0;}
+     int n_conn, SynSpec &syn_spec); // {return 0;}
   
   template <class T1, class T2>
     int _RemoteConnectFixedIndegree

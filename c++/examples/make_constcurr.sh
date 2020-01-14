@@ -1,2 +1,2 @@
-g++ -Wall -L ../../lib -I ../../src -o bin/test_constcurr test_constcurr.cpp -lm -lstdc++ -lneuralgpu
+g++ -Wall -L ../../lib -I ../../src -o bin/test_constcurr test_constcurr.cpp -lm -lneuralgpu
 

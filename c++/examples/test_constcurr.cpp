@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
   ngpu.SetNeuronParam("a", neuron,  4.0);
   ngpu.SetNeuronParam("b", neuron,  80.5);
   ngpu.SetNeuronParam("E_L", neuron,  -70.6);
-  ngpu.SetNeuronParam("I_e", neuron,  700.0);
+  ngpu.SetNeuronParam("I_e", neuron,  800.0);
 
   string filename = "test_constcurr.dat";
   int i_neurons[] = {neuron[rand()%n_neurons]}; // any set of neuron indexes

@@ -144,8 +144,8 @@ int SpikeGenerator::Set(int i_node, int n_spikes, float *spike_time,
       float *spike_height)
 {
   if (n_spikes <=0) {
-    cerr << "Array size must be greater than 0\n";
-    exit(-1);
+    throw ngpu_exception("Number of spikes must be greater than 0 "
+			 "in spike generator setting");
   }
   
   cudaMemcpy(&d_n_spikes_[i_node], &n_spikes, sizeof(int),
@@ -167,9 +167,9 @@ int SpikeGenerator::Set(int i_node, int n_spikes, float *spike_time,
     spike_time_idx[i] = (int)round((spike_time[i] - time_min_)
 				   /time_resolution_);
     if (i>0 && spike_time_idx[i]<=spike_time_idx[i-1]) {
-      cerr << "Spike times must be ordered, and the difference between"
-	"\nconsecutive spikes must be >= the time resolution\n";
-      exit(-1);
+      throw ngpu_exception("Spike times must be ordered, and the difference "
+			   "between\nconsecutive spikes must be >= the "
+			   "time resolution");
     }
     //cout << "ti " << spike_time_idx[i] << endl;
     //cout << spike_time[i] << " " << time_min_ << endl;

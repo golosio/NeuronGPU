@@ -14,6 +14,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include <iostream>
+#include "ngpu_exception.h"
 #include "connect.h"
 #include "neuralgpu.h"
 #include "connect_rules.h"
@@ -36,12 +37,11 @@ int ConnSpec::Init(int rule, int degree /*=0*/)
 {
   Init();
   if (rule<0 || rule>N_CONN_RULE) {
-    std::cerr << "Unknown connection rule\n";
-    exit(0);
+    throw ngpu_exception("Unknown connection rule");
   }
   if ((rule==ALL_TO_ALL || rule==ONE_TO_ONE) && (degree != 0)) {
-    std::cerr << "Connection rule " << conn_rule_name[rule]
-	      << " does not have a degree\n";
+    throw ngpu_exception(std::string("Connection rule ") + conn_rule_name[rule]
+			 + " does not have a degree");
   }
   rule_ = rule;
   if (rule==FIXED_TOTAL_NUMBER) {
@@ -66,31 +66,27 @@ int ConnSpec::SetParam(std::string param_name, int value)
 {
   if (param_name=="rule") {
     if (value<0 || value>N_CONN_RULE) {
-      std::cerr << "Unknown connection rule\n";
-      exit(0);
+      throw ngpu_exception("Unknown connection rule");
     }
     rule_ = value;
     return 0;
   }
   else if (param_name=="indegree") {
     if (value<0) {
-      std::cerr << "Indegree must be >=0\n";
-      exit(0);
+      throw ngpu_exception("Indegree must be >=0");
     }
     indegree_ = value;
     return 0;
   }
   else if (param_name=="outdegree") {
     if (value<0) {
-      std::cerr << "Outdegree must be >=0\n";
-      exit(0);
+      throw ngpu_exception("Outdegree must be >=0");
     }
     outdegree_ = value;
     return 0;
   }
   else {
-    std::cerr << "Unknown connection int parameter\n";
-    exit(0);
+    throw ngpu_exception("Unknown connection int parameter");
   }
   return 0;
 }
@@ -135,8 +131,7 @@ SynSpec::SynSpec(float weight, float delay)
 int SynSpec::Init(float weight, float delay)
 {
   if (delay<0) {
-    std::cerr << "Delay must be >=0\n";
-    exit(0);
+    throw ngpu_exception("Delay must be >=0");
   }
   Init();
   weight_ = weight;
@@ -153,12 +148,10 @@ SynSpec::SynSpec(int syn_type, float weight, float delay, int port /*=0*/)
 int SynSpec::Init(int syn_type, float weight, float delay, int port /*=0*/)
 {
   if (syn_type<0 || syn_type>N_SYNAPSE_TYPE) {
-    std::cerr << "Unknown synapse type\n";
-    exit(0);
+    throw ngpu_exception("Unknown synapse type");
   }
   if (port<0) {
-    std::cerr << "Port index must be >=0\n";
-    exit(0);
+    throw ngpu_exception("Port index must be >=0");
   }
   Init(weight, delay);
   synapse_type_ = syn_type;
@@ -171,23 +164,20 @@ int SynSpec::SetParam(std::string param_name, int value)
 {
   if (param_name=="synapse_type") {
     if (value<0 || value>N_SYNAPSE_TYPE) {
-      std::cerr << "Unknown synapse type\n";
-      exit(0);
+      throw ngpu_exception("Unknown synapse type");
     }
     synapse_type_ = value;
     return 0;
   }
   else if (param_name=="receptor") {
     if (value<0) {
-      std::cerr << "Port index must be >=0\n";
-      exit(0);
+      throw ngpu_exception("Port index must be >=0");
     }
     port_ = value;
     return 0;
   }
   else {
-    std::cerr << "Unknown synapse int parameter\n";
-    exit(0);
+    throw ngpu_exception("Unknown synapse int parameter");
   }
   return 0;
 }
@@ -209,14 +199,12 @@ int SynSpec::SetParam(std::string param_name, float value)
   }
   else if (param_name=="delay") {
     if (value<0) {
-      std::cerr << "Delay must be >=0\n";
-      exit(0);
+      throw ngpu_exception("Delay must be >=0");
     }
     delay_ = value;
   }
   else {
-    std::cerr << "Unknown synapse float parameter\n";
-    exit(0);
+    throw ngpu_exception("Unknown synapse float parameter");
   }
   return 0;
 }
@@ -240,8 +228,7 @@ int SynSpec::SetParam(std::string param_name, float *array_pt)
     delay_array_ = array_pt;
   }
   else {
-    std::cerr << "Unknown synapse array parameter\n";
-    exit(0);
+    throw ngpu_exception("Unknown synapse array parameter");
   }
   
   return 0;

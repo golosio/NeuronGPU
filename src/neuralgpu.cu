@@ -67,14 +67,12 @@ NeuralGPU::NeuralGPU()
   n_poiss_nodes_ = 0;
   n_spike_gen_nodes_ = 0;
   SetTimeResolution(0.1);  // time resolution in ms
-  /////ConnectMpiInit(&argc, &argv, time_resolution_);
   connect_mpi_->net_connection_ = net_connection_;
   NestedLoop::Init();
 }
 
 NeuralGPU::~NeuralGPU()
 {
-  CURAND_CALL(curandDestroyGenerator(*random_generator_));
   delete poiss_generator_;
   delete spike_generator_;
   delete multimeter_;
@@ -85,6 +83,7 @@ NeuralGPU::~NeuralGPU()
   delete connect_mpi_;
   FreeNodeGroupMap();
   FreeGetSpikeArrays();
+  curandDestroyGenerator(*random_generator_);
 }
 
 int NeuralGPU::SetRandomSeed(unsigned long long seed)
@@ -153,12 +152,10 @@ NodeSeq NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
 {
   CheckUncalibrated("Poisson generator cannot be created after calibration");
   if (n_poiss_nodes_ != 0) {
-    std::cerr << "Number of poisson generators cannot be modified.\n";
-    exit(0);
+    throw ngpu_exception("Number of poisson generators cannot be modified.");
   }
   else if (n_nodes <= 0) {
-    std::cerr << "Number of nodes must be greater than zero.\n";
-    exit(0);
+    throw ngpu_exception("Number of nodes must be greater than zero.");
   }
   
   n_poiss_nodes_ = n_nodes;               
@@ -177,12 +174,10 @@ NodeSeq NeuralGPU::CreateSpikeGenerator(int n_nodes)
 {
   CheckUncalibrated("Spike generator cannot be created after calibration");
   if (n_spike_gen_nodes_ != 0) {
-    std::cerr << "Number of spike generators cannot be modified.\n";
-    exit(0);
+    throw ngpu_exception("Number of spike generators cannot be modified.");
   }
   else if (n_nodes <= 0) {
-    std::cerr << "Number of nodes must be greater than zero.\n";
-    exit(0);
+    throw ngpu_exception("Number of nodes must be greater than zero.");
   }
 
   n_spike_gen_nodes_ = n_nodes;               
@@ -199,8 +194,7 @@ NodeSeq NeuralGPU::CreateSpikeGenerator(int n_nodes)
 int NeuralGPU::CheckUncalibrated(std::string message)
 {
   if (calibrate_flag_ == true) {
-    std::cerr << message << "\n";
-    exit(0);
+    throw ngpu_exception(message);
   }
   
   return 0;
@@ -456,14 +450,12 @@ std::vector<std::vector<float>> *NeuralGPU::GetRecordData(int i_record)
 int NeuralGPU::GetNodeSequenceOffset(int i_node, int n_nodes, int &i_group)
 {
   if (i_node<0 || (i_node+n_nodes > (int)node_group_map_.size())) {
-    std::cerr << "Unrecognized node in getting node sequence offset\n";
-    exit(0);
+    throw ngpu_exception("Unrecognized node in getting node sequence offset");
   }
   i_group = node_group_map_[i_node];  
   if (node_group_map_[i_node+n_nodes-1] != i_group) {
-    std::cerr << "Nodes belong to different node groups "
-      "in setting parameter\n";
-    exit(0);
+    throw ngpu_exception("Nodes belong to different node groups "
+			 "in setting parameter");
   }
   return node_vect_[i_group]->i_node_0_;
 }
@@ -473,8 +465,7 @@ std::vector<int> NeuralGPU::GetNodeArrayWithOffset(int *i_node, int n_nodes,
 {
   int in0 = i_node[0];
   if (in0<0 || in0>(int)node_group_map_.size()) {
-    std::cerr << "Unrecognized node in setting parameter\n";
-    exit(0);
+    throw ngpu_exception("Unrecognized node in setting parameter");
   }
   i_group = node_group_map_[in0];
   int i0 = node_vect_[i_group]->i_node_0_;
@@ -483,13 +474,11 @@ std::vector<int> NeuralGPU::GetNodeArrayWithOffset(int *i_node, int n_nodes,
   for(int i=0; i<n_nodes; i++) {
     int in = node_vect[i];
     if (in<0 || in>=(int)node_group_map_.size()) {
-      std::cerr << "Unrecognized node in setting parameter\n";
-      exit(0);
+      throw ngpu_exception("Unrecognized node in setting parameter");
     }
     if (node_group_map_[in] != i_group) {
-      std::cerr << "Nodes belong to different node groups "
-	"in setting parameter\n";
-      exit(0);
+      throw ngpu_exception("Nodes belong to different node groups "
+			   "in setting parameter");
     }
     node_vect[i] -= i0;
   }

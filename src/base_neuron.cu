@@ -13,6 +13,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <iostream>
+#include "ngpu_exception.h"
 #include "cuda_error.h"
 #include "base_neuron.h"
 #include "spike_buffer.h"
@@ -50,8 +51,8 @@ int BaseNeuron::Init(int i_node_0, int n_nodes, int n_ports,
 int BaseNeuron::SetScalParam(std::string param_name, int i_neuron,
 		    int n_neurons, float val) {
   if (!IsScalParam(param_name)) {
-    std::cerr << "Unrecognized scalar parameter " << param_name << " \n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized scalar parameter ")
+			 + param_name);
   }
   CheckNeuronIdx(i_neuron);
   CheckNeuronIdx(i_neuron + n_neurons - 1);
@@ -67,8 +68,8 @@ int BaseNeuron::SetScalParam(std::string param_name, int i_neuron,
 int BaseNeuron::SetScalParam(std::string param_name, int *i_neuron,
 		    int n_neurons, float val) {
   if (!IsScalParam(param_name)) {
-    std::cerr << "Unrecognized scalar parameter " << param_name << " \n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized scalar parameter ")
+				     + param_name);
   }
   int *d_i_neuron;
   gpuErrchk(cudaMalloc(&d_i_neuron, n_neurons*sizeof(int)));
@@ -87,15 +88,14 @@ int BaseNeuron::SetScalParam(std::string param_name, int *i_neuron,
 int BaseNeuron::SetVectParam(std::string param_name, int i_neuron,
 			      int n_neurons, float *params, int vect_size) {
   if (!IsVectParam(param_name)) {
-    std::cerr << "Unrecognized vector parameter " << param_name << " \n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized vector parameter ")
+			 + param_name);
   }
   CheckNeuronIdx(i_neuron);
   CheckNeuronIdx(i_neuron + n_neurons - 1);
   if (vect_size != n_ports_) {
-    std::cerr << "Parameter vector size must be equal to the number "
-      "of ports.\n";
-    exit(-1);
+    throw ngpu_exception("Parameter vector size must be equal "
+			 "to the number of ports.");
   }
   float *param_pt;
     
@@ -112,13 +112,12 @@ int BaseNeuron::SetVectParam(std::string param_name, int i_neuron,
 int BaseNeuron::SetVectParam(std::string param_name, int *i_neuron,
 			      int n_neurons, float *params, int vect_size) {
   if (!IsVectParam(param_name)) {
-    std::cerr << "Unrecognized vector parameter " << param_name << " \n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized vector parameter ")
+			 + param_name);
   }
   if (vect_size != n_ports_) {
-    std::cerr << "Parameter vector size must be equal to the number "
-      "of ports.\n";
-    exit(-1);
+    throw ngpu_exception("Parameter vector size must be equal "
+			 "to the number of ports.");
   }
   int *d_i_neuron;
   gpuErrchk(cudaMalloc(&d_i_neuron, n_neurons*sizeof(int)));
@@ -143,8 +142,8 @@ int BaseNeuron::GetScalVarIdx(std::string var_name)
     if (var_name == scal_var_name_[i_var]) break;
   }
   if (i_var == n_scal_var_) {
-    std::cerr << "Unrecognized scalar variable " << var_name << " .\n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized scalar variable ")
+			 + var_name);
   }
   
   return i_var;
@@ -157,8 +156,8 @@ int BaseNeuron::GetVectVarIdx(std::string var_name)
     if (var_name == vect_var_name_[i_var]) break;
   }
   if (i_var == n_vect_var_) {
-    std::cerr << "Unrecognized vector variable " << var_name << " .\n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized vector variable ")
+				     + var_name);
   }
   
   return i_var;
@@ -171,8 +170,8 @@ int BaseNeuron::GetScalParamIdx(std::string param_name)
     if (param_name == scal_param_name_[i_param]) break;
   }
   if (i_param == n_scal_params_) {
-    std::cerr << "Unrecognized parameter " << param_name << " .\n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized parameter ")
+			 + param_name);
   }
   
   return i_param;
@@ -185,8 +184,8 @@ int BaseNeuron::GetVectParamIdx(std::string param_name)
     if (param_name == vect_param_name_[i_param]) break;
   }
   if (i_param == n_vect_params_) {
-    std::cerr << "Unrecognized vector parameter " << param_name << " .\n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized vector parameter ")
+			 + param_name);
   }
   
   return i_param;
@@ -241,12 +240,10 @@ bool BaseNeuron::IsVectParam(std::string param_name)
 int BaseNeuron::CheckNeuronIdx(int i_neuron)
 {
   if (i_neuron>=n_nodes_) {
-    std::cerr << "Neuron index must be lower then n. of neurons\n";
-    exit(-1);
+    throw ngpu_exception("Neuron index must be lower then n. of neurons");
   }
   else if (i_neuron<0) {
-    std::cerr << "Neuron index must be >= 0\n";
-    exit(-1);
+    throw ngpu_exception("Neuron index must be >= 0");
   }
   return 0;
 }
@@ -254,12 +251,10 @@ int BaseNeuron::CheckNeuronIdx(int i_neuron)
 int BaseNeuron::CheckPortIdx(int i_port)
 {
   if (i_port>=n_ports_) {
-    std::cerr << "Port index must be lower then n. of ports\n";
-    exit(-1);
+    throw ngpu_exception("Port index must be lower then n. of ports");
   }
   else if (i_port<0) {
-    std::cerr << "Port index must be >= 0\n";
-    exit(-1);
+    throw ngpu_exception("Port index must be >= 0");
   }
   return 0;
 }
@@ -280,10 +275,9 @@ float *BaseNeuron::GetVarPt(std::string var_name, int i_neuron,
       + i_port*n_vect_var_ + i_vvar;
   }
   else {
-    std::cerr << "Unrecognized variable " << var_name << " .\n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized variable ")
+			 + var_name);
   }
-  return NULL;
 }
 
 float *BaseNeuron::GetParamPt(std::string param_name, int i_neuron,
@@ -302,10 +296,9 @@ float *BaseNeuron::GetParamPt(std::string param_name, int i_neuron,
       + i_port*n_vect_params_ + i_vparam;
   }
   else {
-    std::cerr << "Unrecognized parameter " << param_name << " .\n";
-    exit(-1);
+    throw ngpu_exception(std::string("Unrecognized parameter ")
+			 + param_name);
   }
-  return NULL;
 }
 
 float BaseNeuron::GetSpikeActivity(int i_neuron)

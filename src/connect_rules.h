@@ -57,9 +57,8 @@ int NeuralGPU::_Connect(T1 source, int n_source, T2 target, int n_target,
   switch (conn_spec.rule_) {
   case ONE_TO_ONE:
     if (n_source != n_target) {
-      std::cerr << "Number of source and target nodes must be equal "
-	"for the one-to-one connection rule\n";
-      exit(0);
+      throw ngpu_exception("Number of source and target nodes must be equal "
+			   "for the one-to-one connection rule");
     }
     return _ConnectOneToOne<T1, T2>(source, target, n_source, syn_spec);
     break;
@@ -80,8 +79,7 @@ int NeuralGPU::_Connect(T1 source, int n_source, T2 target, int n_target,
 					  conn_spec.outdegree_, syn_spec);
     break;
   default:
-    std::cerr << "Unknown connection rule\n";
-    exit(0);
+    throw ngpu_exception("Unknown connection rule");
   }
   return 0;
 }
@@ -113,10 +111,7 @@ int NeuralGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
 			      float weight, float delay, int i_array,
 			      SynSpec &syn_spec)
 {
-  std::cerr << "Unknown type for _SingleConnect template\n";
-  exit(0);
-  
-  return 0;
+  throw ngpu_exception("Unknown type for _SingleConnect template");
 }
 
 
@@ -202,8 +197,7 @@ int NeuralGPU::_ConnectFixedIndegree
  )
 {
   if (indegree>n_source) {
-    std::cerr << "Indegree larger than number of source nodes\n";
-    exit(0);
+    throw ngpu_exception("Indegree larger than number of source nodes");
   }
   unsigned int *rnd = RandomInt(n_target*indegree);
   std::vector<int> input_array;
@@ -258,8 +252,7 @@ int NeuralGPU::_ConnectFixedOutdegree
  )
 {
   if (outdegree>n_target) {
-    std::cerr << "Outdegree larger than number of target nodes\n";
-    exit(0);
+    throw ngpu_exception("Outdegree larger than number of target nodes");
   }
   unsigned int *rnd = RandomInt(n_source*outdegree);
   std::vector<int> output_array;
@@ -296,9 +289,8 @@ int NeuralGPU::_RemoteConnect(RemoteNode<T1> source, int n_source,
   switch (conn_spec.rule_) {
   case ONE_TO_ONE:
     if (n_source != n_target) {
-      std::cerr << "Number of source and target nodes must be equal "
-	"for the one-to-one connection rule\n";
-      exit(0);
+      throw ngpu_exception("Number of source and target nodes must be equal "
+			   "for the one-to-one connection rule");
     }
     return _RemoteConnectOneToOne<T1, T2>(source, target, n_source, syn_spec);
     break;
@@ -323,8 +315,7 @@ int NeuralGPU::_RemoteConnect(RemoteNode<T1> source, int n_source,
 						syn_spec);
     break;
   default:
-    std::cerr << "Unknown connection rule\n";
-    exit(0);
+    throw ngpu_exception("Unknown connection rule");
   }
   return 0;
 }

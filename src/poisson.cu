@@ -127,9 +127,8 @@ int PoissonGenerator::Update(int max_n_steps)
   }
 
   if (i_step_ == more_steps_) {
-    fprintf(stderr, "Step index larger than maximum number of steps in poisson"
-	    " generator\n");
-    exit(0);
+    throw ngpu_exception("Step index larger than maximum number of steps "
+			 "in poisson generator");
   }
   
   PoissonUpdate<<<1, 1>>>(&dev_poisson_data_[i_step_*n_nodes_]);

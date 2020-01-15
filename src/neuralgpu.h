@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <algorithm>
 
+#include "ngpu_exception.h"
 #include "node_group.h"
 #include "base_neuron.h"
 #include "connect_spec.h"
@@ -46,24 +47,20 @@ class Sequence
   
   inline int operator[](int i) {
     if (i<0) {
-      std::cerr << "Sequence index cannot be negative\n";
-      exit(0);
+      throw ngpu_exception("Sequence index cannot be negative");
     }
     if (i>=n) {
-      std::cerr << "Sequence index out of range\n";
-      exit(0);
+      throw ngpu_exception("Sequence index out of range");
     }
     return i0 + i;
   }
 
   inline Sequence Subseq(int first, int last) {
     if (first<0 || first>last) {
-      std::cerr << "Sequence subset range error\n";
-      exit(0);
+      throw ngpu_exception("Sequence subset range error");
     }
     if (last>=n) {
-      std::cerr << "Sequence subset out of range\n";
-      exit(0);
+      throw ngpu_exception("Sequence subset out of range");
     }
     return Sequence(i0 + first, last - first + 1);
   }

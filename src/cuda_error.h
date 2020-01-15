@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef CUDAERRORH
 #define CUDAERRORH
 #include <stdio.h>
+#include "ngpu_exception.h"
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -22,15 +23,15 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    if (code != cudaSuccess) 
    {
       fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-      if (abort) exit(code);
+      if (abort) throw ngpu_exception("CUDA error");
    }
 }
 
-#define CUDA_CALL(x) do { if((x) != cudaSuccess) { \
-      printf("Error at %s:%d\n",__FILE__,__LINE__);     \
-      exit(EXIT_FAILURE);}} while(0)
-#define CURAND_CALL(x) do { if((x) != CURAND_STATUS_SUCCESS) { \
-      printf("Error at %s:%d\n",__FILE__,__LINE__);            \
-      exit(EXIT_FAILURE);}} while(0)
+#define CUDA_CALL(x)   do { if((x) != cudaSuccess) { \
+      printf("Error at %s:%d\n",__FILE__,__LINE__);  \
+      throw ngpu_exception("CUDA error");}} while(0)
+#define CURAND_CALL(x) do { if((x) != CURAND_STATUS_SUCCESS) {	\
+     printf("Error at %s:%d\n",__FILE__,__LINE__);		\
+     throw ngpu_exception("CUDA error");}} while(0)
 
 #endif

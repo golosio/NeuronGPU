@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cmath>
 #include <stdlib.h>
 
+#include "ngpu_exception.h"
 #include "connect.h"
 
 using namespace std;
@@ -24,8 +25,7 @@ int NetConnection::Connect(int i_source, int i_target, unsigned char i_port,
 			   float weight, float delay) 
 {
   if (delay<time_resolution_) {
-    cerr << "Delay must be >= time resolution\n";
-    exit(1);
+    throw ngpu_exception("Delay must be >= time resolution");
   }
   
   int d_int = (int)round(delay/time_resolution_) - 1;
@@ -41,11 +41,6 @@ int NetConnection::Insert(int d_int, int i_source, TargetSyn tg)
   vector<ConnGroup> &conn = connection_[i_source];
   int conn_size = conn.size();
   for (id=0; id<conn_size && d_int>conn[id].delay; id++) {}
-  //if (conn_size==max_delay_num_ && (id==conn_size
-  //				     || d_int!=conn[id].delay)) {
-  //  cerr << "Maximum number of delays exceeded\n";
-  //  exit(1);
-  //}
   if (id==conn_size || d_int!=conn[id].delay) {
     ConnGroup new_conn;
     new_conn.delay = d_int;

@@ -142,8 +142,7 @@ int Multimeter::WriteRecords(float t)
 std::vector<std::vector<float>> *Multimeter::GetRecordData(int i_record)
 {
   if (i_record<0 || i_record>=(int)record_vect_.size()) {
-    std::cerr << "Record does not exist.\n";
-    exit(0);
+    throw ngpu_exception("Record does not exist.");
   }
   
   return &record_vect_[i_record].data_vect_;

@@ -1,7 +1,17 @@
-Check error handling
-How to prevent python to crash and exit in case of error in neuralgpu?
+Make commands (Create, Set, ...) more nest-like 
 
-finish C interface/header
+Implement SetStatus
+
+Implement distribution dictionaries
+
+Implement GetStatus?
+
+check if poisson generator and spike generator can be instantiated more tnan
+once
+
+make 'poiss_gen' model with variable rates
+
+convert spike generator to model
 
 Produce build system and check it on different linux, mac (windows?)
 
@@ -9,8 +19,11 @@ Make rk5 dynamic
 
 make user_neuron1, 2, ...
 
-make 'poiss_gen' model with variable rates
-
-convert spike generator to model
+Error handling in python: check all function arguments and raise
+exceptions if necessary
 
 Write tutorial
+
+Implement connection quering
+
+Implement stdp

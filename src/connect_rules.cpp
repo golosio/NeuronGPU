@@ -106,8 +106,6 @@ bool ConnSpec::IsParam(std::string param_name)
   }
 }
 
-//int ConnSpec::GetParam(std::string param_name);
-
 SynSpec::SynSpec()
 {
   Init();
@@ -259,7 +257,15 @@ bool SynSpec::IsFloatPtParam(std::string param_name)
   }
 }
 
-//float SynSpec::GetParam(std::string param_name);
+int NeuralGPU::Connect(int i_source_node, int i_target_node,
+		       unsigned char i_port, float weight, float delay)
+{
+  CheckUncalibrated("Connections cannot be created after calibration");
+  net_connection_->Connect(i_source_node, i_target_node,
+			   i_port, weight, delay);
+
+  return 0;
+}
 
 template<>
 int NeuralGPU::_SingleConnect<int, int>
@@ -267,8 +273,6 @@ int NeuralGPU::_SingleConnect<int, int>
  int i_target, float weight, float delay,
  int i_array, SynSpec &syn_spec)
 {
-  //return SingleConnect(i_source0 + i_source, i_target0 + i_target,
-  // weight, delay, i_array, syn_spec);
   return net_connection_->Connect(i_source0 + i_source, i_target0 + i_target,
 				  syn_spec.port_, weight, delay);
 }
@@ -280,8 +284,6 @@ int NeuralGPU::_SingleConnect<int, int*>
  float weight, float delay,
  int i_array, SynSpec &syn_spec)
 {
-  //return SingleConnect(*(i_source0 + i_source), *(i_target0 + i_target),
-  //		       weight, delay, i_array, syn_spec);
   return net_connection_->Connect(i_source0 + i_source,
 				  *(i_target0 + i_target),
 				  syn_spec.port_, weight, delay);
@@ -294,8 +296,6 @@ int NeuralGPU::_SingleConnect<int*, int>
  float weight, float delay,
  int i_array, SynSpec &syn_spec)
 {
-  //return SingleConnect(*(i_source0 + i_source), *(i_target0 + i_target),
-  //		       weight, delay, i_array, syn_spec);
   return net_connection_->Connect(*(i_source0 + i_source),
 				  i_target0 + i_target,
 				  syn_spec.port_, weight, delay);
@@ -308,39 +308,11 @@ int NeuralGPU::_SingleConnect<int*, int*>
  float weight, float delay,
  int i_array, SynSpec &syn_spec)
 {
-  //return SingleConnect(*(i_source0 + i_source), *(i_target0 + i_target),
-  //		       weight, delay, i_array, syn_spec);
   return net_connection_->Connect(*(i_source0 + i_source),
 				  *(i_target0 + i_target),
 				  syn_spec.port_, weight, delay);
 }
 
-/*
-template<>
-int NeuralGPU::_SingleConnect<RemoteNode>(RemoteNode source, int i_source,
-					    RemoteNode target, int i_target,
-					    float weight, float delay,
-					    int i_array, SynSpec &syn_spec)
-{
-  return RemoteSingleConnect(source.i_host_, source.i_node_ + i_source,
-			     target.i_host_, target.i_node_ + i_target,
-			     weight, delay, i_array, syn_spec);
-}
-
-template<>
-int NeuralGPU::_SingleConnect<RemoteNodePt>(RemoteNodePt source,
-					      int i_source,
-					      RemoteNodePt target,
-					      int i_target,
-					      float weight, float delay,
-					      int i_array, SynSpec &syn_spec)
-{
-  return RemoteSingleConnect(source.i_host_, *(source.i_node_ + i_source),
-			     target.i_host_, *(target.i_node_ + i_target),
-			     weight, delay, i_array, syn_spec);
-}
-
-*/
 int NeuralGPU::Connect(int i_source, int n_source, int i_target, int n_target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {

@@ -44,13 +44,14 @@ template <class T1, class T2>
 int NeuralGPU::_Connect(T1 source, int n_source, T2 target, int n_target,
 			ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   ////////////////////////
   // TO DO:
   // if (syn_spec.weight_distr_ != NULL) {
-  //   syn_spec.weight_array_ = Distribytion(syn_spec.weight_distr, n);
+  //   syn_spec.weight_array_ = Distribution(syn_spec.weight_distr, n);
   // }
   // if (syn_spec.delay_distr_ != NULL) {
-  //   syn_spec.delay_array_ = Distribytion(syn_spec.delay_distr, n);
+  //   syn_spec.delay_array_ = Distribution(syn_spec.delay_distr, n);
   // }
   
   switch (conn_spec.rule_) {
@@ -193,8 +194,6 @@ int NeuralGPU::_ConnectFixedTotalNumber
 }
 
 
-
-
 template <class T1, class T2>
 int NeuralGPU::_ConnectFixedIndegree
 (
@@ -256,6 +255,7 @@ int NeuralGPU::_RemoteConnect(RemoteNode<T1> source, int n_source,
 			      RemoteNode<T2> target, int n_target,
 			      ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+  CheckUncalibrated("Connections cannot be created after calibration");
   switch (conn_spec.rule_) {
   case ONE_TO_ONE:
     if (n_source != n_target) {

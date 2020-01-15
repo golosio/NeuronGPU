@@ -131,7 +131,8 @@ class NeuralGPU
 		       int i_array, SynSpec &syn_spec);
   template<class T1, class T2>
     int _SingleConnect(T1 source, int i_source, T2 target, int i_target,
-		       float weight, float delay, int i_array, SynSpec &syn_spec);
+		       float weight, float delay, int i_array,
+		       SynSpec &syn_spec);
 
   template <class T1, class T2>
     int _ConnectOneToOne(T1 source, T2 target, int n_nodes, SynSpec &syn_spec);
@@ -152,18 +153,30 @@ class NeuralGPU
      SynSpec &syn_spec
      );
 
-  /*
   template <class T1, class T2>
-    int _RemoteConnect
-    (T1 source, int n_source, T2 target, int n_target,
-     ConnSpec &conn_spec, SynSpec &syn_spec);
+    int _RemoteConnect(RemoteNode<T1> source, int n_source,
+		       RemoteNode<T2> target, int n_target,
+		       ConnSpec &conn_spec, SynSpec &syn_spec);
   
   template <class T1, class T2>
     int _RemoteConnectOneToOne
-    (
-     RemoteNode<T1> source, RemoteNode<T2> target, int n_nodes,
+    (RemoteNode<T1> source, RemoteNode<T2> target, int n_nodes,
      SynSpec &syn_spec);
-  */
+  
+  template <class T1, class T2>
+    int _RemoteConnectAllToAll
+    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
+     SynSpec &syn_spec);
+
+  template <class T1, class T2>
+    int _RemoteConnectFixedTotalNumber
+    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
+     int n_conn, SynSpec &syn_spec);
+  
+  template <class T1, class T2>
+    int _RemoteConnectFixedIndegree
+    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
+     int indegree, SynSpec &syn_spec);
 
     
  public:
@@ -271,63 +284,6 @@ class NeuralGPU
      float weight, float delay
      );
 
-  int ConnectOneToOne
-    (
-     int i_source_node_0, int i_target_node_0, int n_nodes,
-     unsigned char i_port, float weight, float delay
-     );
-
-  int ConnectAllToAll
-    (
-     int i_source_node_0, int n_source_nodes,
-     int i_target_node_0, int n_target_nodes,
-     unsigned char i_port, float weight, float delay
-     );
-  
-  int ConnectFixedIndegree
-    (
-     int i_source_node_0, int n_source_nodes,
-     int i_target_node_0, int n_target_nodes,
-     unsigned char i_port, float weight, float delay, int indegree
-     );
-
-  int ConnectFixedIndegreeArray
-    (
-     int i_source_node_0, int n_source_nodes,
-     int i_target_node_0, int n_target_nodes,
-     unsigned char i_port, float *weight_arr, float *delay_arr, int indegree
-     );
-  
-  int ConnectFixedTotalNumberArray(int i_source_node_0, int n_source_nodes,
-				   int i_target_node_0, int n_target_nodes,
-				   unsigned char i_port, float *weight_arr,
-				   float *delay_arr, int n_conn);
-
-  int RemoteConnect(int i_source_host, int i_source_node,
-		    int i_target_host, int i_target_node,
-		    unsigned char i_port, float weight, float delay);
-  
-  int RemoteConnectOneToOne
-    (
-     int i_source_host, int i_source_node_0,
-     int i_target_host, int i_target_node_0, int n_nodes,
-     unsigned char i_port, float weight, float delay
-     );
-
-  int RemoteConnectAllToAll
-    (
-     int i_source_host, int i_source_node_0, int n_source_nodes,
-     int i_target_host, int i_target_node_0, int n_target_nodes,
-     unsigned char i_port, float weight, float delay
-     );
-  
-  int RemoteConnectFixedIndegree
-    (
-     int i_source_host, int i_source_node_0, int n_source_nodes,
-     int i_target_host, int i_target_node_0, int n_target_nodes,
-     unsigned char i_port, float weight, float delay, int indegree
-     );
-
   int Connect(int i_source, int n_source, int i_target, int n_target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
 
@@ -351,32 +307,6 @@ class NeuralGPU
 
   int Connect(std::vector<int> source, std::vector<int> target,
 	      ConnSpec &conn_spec, SynSpec &syn_spec);
-
-
-  template <class T1, class T2>
-    int _RemoteConnect(RemoteNode<T1> source, int n_source,
-		       RemoteNode<T2> target, int n_target,
-		       ConnSpec &conn_spec, SynSpec &syn_spec);
-  
-  template <class T1, class T2>
-    int _RemoteConnectOneToOne
-    (RemoteNode<T1> source, RemoteNode<T2> target, int n_nodes,
-     SynSpec &syn_spec);
-  
-  template <class T1, class T2>
-    int _RemoteConnectAllToAll
-    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
-     SynSpec &syn_spec); // {return 0;}
-
-  template <class T1, class T2>
-    int _RemoteConnectFixedTotalNumber
-    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
-     int n_conn, SynSpec &syn_spec); // {return 0;}
-  
-  template <class T1, class T2>
-    int _RemoteConnectFixedIndegree
-    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
-     int indegree, SynSpec &syn_spec);
 
   int RemoteConnect(int i_source_host, int i_source, int n_source,
 		    int i_target_host, int i_target, int n_target,

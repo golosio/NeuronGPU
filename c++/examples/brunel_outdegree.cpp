@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   NeuralGPU neural_gpu;
   cout << "Building ...\n";
 
-  neural_gpu.SetRandomSeed(1234ULL); // seed for GPU random numbers
+  neural_gpu.SetRandomSeed(12345ULL); // seed for GPU random numbers
   
   int n_receptors = 2;
 
@@ -40,9 +40,8 @@ int main(int argc, char *argv[])
   int NI = 1 * order;      // number of inhibitory neurons
   int n_neurons = NE + NI; // number of neurons in total
 
-  int CE = 800;  // number of excitatory synapses per neuron
-  int CI = CE/4;  // number of inhibitory synapses per neuron
-
+  int CPN = 1000; // number of output connections per neuron
+  
   float Wex = 0.05;
   float Win = 0.35;
 
@@ -73,12 +72,12 @@ int main(int argc, char *argv[])
   float min_delay = 0.1;
   // Excitatory connections
   // connect excitatory neurons to port 0 of all neurons
-  // normally distributed delays, weight Wex and CE connections per neuron
-  float *exc_delays = neural_gpu.RandomNormalClipped(CE*n_neurons, mean_delay,
+  // normally distributed delays, weight Wex and CPN connections per neuron
+  float *exc_delays = neural_gpu.RandomNormalClipped(CPN*NE, mean_delay,
   						     std_delay, min_delay,
   						     mean_delay+3*std_delay);
   
-  ConnSpec conn_spec1(FIXED_INDEGREE, CE);
+  ConnSpec conn_spec1(FIXED_OUTDEGREE, CPN);
   SynSpec syn_spec1;
   syn_spec1.SetParam("receptor", 0);
   syn_spec1.SetParam("weight", Wex);
@@ -88,12 +87,12 @@ int main(int argc, char *argv[])
 
   // Inhibitory connections
   // connect inhibitory neurons to port 1 of all neurons
-  // normally distributed delays, weight Win and CI connections per neuron
-  float *inh_delays = neural_gpu.RandomNormalClipped(CI*n_neurons, mean_delay,
+  // normally distributed delays, weight Win and CPN connections per neuron
+  float *inh_delays = neural_gpu.RandomNormalClipped(CPN*NI, mean_delay,
   						     std_delay, min_delay,
   						     mean_delay+3*std_delay);
 
-  ConnSpec conn_spec2(FIXED_INDEGREE, CI);
+  ConnSpec conn_spec2(FIXED_OUTDEGREE, CPN);
   SynSpec syn_spec2;
   syn_spec2.SetParam("receptor", 1);
   syn_spec2.SetParam("weight", Win);
@@ -107,12 +106,17 @@ int main(int argc, char *argv[])
   // connect poisson generator to port 0 of all neurons
   neural_gpu.Connect(pg, neuron, conn_spec3, syn_spec3);
 
-  char filename[] = "test_brunel_net.dat";
+  char filename[] = "test_brunel_outdegree.dat";
+  // any set of neuron indexes
   int i_neuron_arr[] = {neuron[0], neuron[rand()%n_neurons],
-		     neuron[n_neurons-1]}; // any set of neuron indexes
+			neuron[rand()%n_neurons], neuron[rand()%n_neurons],
+			neuron[rand()%n_neurons], neuron[rand()%n_neurons],
+			neuron[rand()%n_neurons], neuron[rand()%n_neurons],
+			neuron[rand()%n_neurons], neuron[n_neurons-1]};
   // create multimeter record of V_m
-  std::string var_name_arr[] = {"V_m", "V_m", "V_m"};
-  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 3);
+  std::string var_name_arr[] = {"V_m", "V_m", "V_m", "V_m", "V_m", "V_m",
+				"V_m", "V_m", "V_m", "V_m"};
+  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 10);
 
   neural_gpu.Simulate();
 

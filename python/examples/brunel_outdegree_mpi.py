@@ -15,7 +15,7 @@ order = int(sys.argv[1])/5
 
 mpi_id = ngpu.MpiId()
 print("Building on host ", mpi_id, " ...")
-
+  
 ngpu.SetRandomSeed(1234) # seed for GPU random numbers
 
 n_receptors = 2
@@ -26,8 +26,12 @@ NE = 4 * order       # number of excitatory neurons
 NI = 1 * order       # number of inhibitory neurons
 n_neurons = NE + NI  # number of neurons in total
 
-CE = 800   # number of excitatory synapses per neuron
-CI = CE/4  # number of inhibitory synapses per neuron
+CPN = 1000 # number of output connections per neuron
+
+fext = 0.25 # fraction of the excitatory neurons that
+# send their output to neurons of another mpi host
+NEext = (int)(fext*NE)
+NEint = NE - NEext
 
 Wex = 0.05
 Win = 0.35
@@ -42,8 +46,12 @@ pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
 
 # Create n_neurons neurons with n_receptor receptor ports
 neuron = ngpu.CreateNeuron("aeif_cond_beta", n_neurons, n_receptors)
-exc_neuron = neuron[0:NE-1]      # excitatory neurons
-inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neurons
+excint_neuron = neuron[0:NEint-1]      # excitatory group
+# of neurons that project internally
+excest_neuron = neuron[NEint:NE-1]      # excitatory group
+# of neurons that project externally
+
+inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neuron group
   
 # receptor parameters
 E_rev = [0.0, -85.0]
@@ -56,38 +64,37 @@ ngpu.SetNeuronParam("taus_rise", neuron, taus_rise)
 
 # Excitatory local connections, defined on all hosts
 # connect excitatory neurons to port 0 of all neurons
-# weight Wex and fixed indegree CE*3/4
+# weight Wex and fixed outdegree CPN
 
-exc_conn_dict={"rule": "fixed_indegree", "indegree": CE*3/4}
-exc_syn_dict={"weight": Wex, "delay": delay,
-              "receptor":0}
-ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
+exc_conn_dict={"rule": "fixed_outdegree", "outdegree": CPN}
+exc_syn_dict={"weight": Wex, "delay": delay, "receptor":0}
+ngpu.Connect(excint_neuron, neuron, exc_conn_dict, exc_syn_dict)
 
 
 # Inhibitory local connections, defined on all hosts
 # connect inhibitory neurons to port 1 of all neurons
-# weight Win and fixed indegree CI*3/4
+# weight Win and fixed outdegree CPN
 
-inh_conn_dict={"rule": "fixed_indegree", "indegree": CI*3/4}
-inh_syn_dict={"weight": Win, "delay": delay,
-              "receptor":1}
+inh_conn_dict={"rule": "fixed_outdegree", "outdegree": CPN}
+inh_syn_dict={"weight": Win, "delay": delay, "receptor":1}
 ngpu.Connect(inh_neuron, neuron, inh_conn_dict, inh_syn_dict)
 
 
 #connect poisson generator to port 0 of all neurons
 pg_conn_dict={"rule": "one_to_one"}
-pg_syn_dict={"weight": poiss_weight, "delay": poiss_delay,
-              "receptor":0}
-
+pg_syn_dict={"weight": poiss_weight, "delay": poiss_delay, "receptor":0}
 ngpu.Connect(pg, neuron, pg_conn_dict, pg_syn_dict)
 
+filename = "test_brunel_outdegree_mpi" + str(mpi_id) + ".dat"
 
-filename = "test_brunel_mpi" + str(mpi_id) + ".dat"
-i_neuron_arr = [neuron[0], neuron[randrange(n_neurons)], neuron[n_neurons-1]]
-i_receptor_arr = [0, 0, 0]
 # any set of neuron indexes
+i_neuron_arr = [neuron[0], neuron[randrange(n_neurons)],
+                neuron[randrange(n_neurons)], neuron[randrange(n_neurons)],
+                neuron[n_neurons-1]]
+i_receptor_arr = [0, 0, 0, 0, 0]
+
 # create multimeter record of V_m
-var_name_arr = ["V_m", "V_m", "V_m"]
+var_name_arr = ["V_m", "V_m", "V_m", "V_m", "V_m"]
 record = ngpu.CreateRecord(filename, var_name_arr, i_neuron_arr,
                                 i_receptor_arr)
 
@@ -97,39 +104,24 @@ record = ngpu.CreateRecord(filename, var_name_arr, i_neuron_arr,
 
 # Excitatory remote connections
 # connect excitatory neurons to port 0 of all neurons
-# weight Wex and fixed indegree CE/4
+# weight Wex and fixed indegree CPN
 # host 0 to host 1
-re_conn_dict={"rule": "fixed_indegree", "indegree": CE/4}
-re_syn_dict={"weight": Wex, "delay": delay,
-              "receptor":0}
-# host 0 to host 1
-ngpu.RemoteConnect(0, exc_neuron, 1, neuron, re_conn_dict, re_syn_dict)
+ngpu.RemoteConnect(0, excest_neuron, 1, neuron, exc_conn_dict, exc_syn_dict)
 # host 1 to host 0
-ngpu.RemoteConnect(1, exc_neuron, 0, neuron, re_conn_dict, re_syn_dict)
-
-# Inhibitory remote connections
-# connect inhibitory neurons to port 1 of all neurons
-# weight Win and fixed indegree CI/4
-# host 0 to host 1
-ri_conn_dict={"rule": "fixed_indegree", "indegree": CI/4}
-ri_syn_dict={"weight": Win, "delay": delay,
-              "receptor":1}
-# host 0 to host 1
-ngpu.RemoteConnect(0, inh_neuron, 1, neuron, ri_conn_dict, ri_syn_dict)
-# host 1 to host 0
-ngpu.RemoteConnect(1, exc_neuron, 0, neuron, ri_conn_dict, ri_syn_dict)
+ngpu.RemoteConnect(1, excest_neuron, 0, neuron, exc_conn_dict, exc_syn_dict)
 
 ngpu.Simulate()
 
 nrows=ngpu.GetRecordDataRows(record)
 ncol=ngpu.GetRecordDataColumns(record)
-#print nrows, ncol
 
 data_list = ngpu.GetRecordData(record)
 t=[row[0] for row in data_list]
 V1=[row[1] for row in data_list]
 V2=[row[2] for row in data_list]
 V3=[row[3] for row in data_list]
+V4=[row[4] for row in data_list]
+V5=[row[5] for row in data_list]
 
 import matplotlib.pyplot as plt
 
@@ -144,5 +136,13 @@ plt.plot(t, V2)
 fig3 = plt.figure(3)
 fig3.suptitle("host " + str(mpi_id), fontsize=20)
 plt.plot(t, V3)
+
+fig4 = plt.figure(4)
+fig4.suptitle("host " + str(mpi_id), fontsize=20)
+plt.plot(t, V4)
+
+fig5 = plt.figure(5)
+fig5.suptitle("host " + str(mpi_id), fontsize=20)
+plt.plot(t, V5)
 
 plt.show()

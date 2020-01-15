@@ -1,11 +1,5 @@
-implement fixed outdegree connection rule
-
-Remove obsolete old connection functions from c++, c, python lib
-
 Check error handling
 How to prevent python to crash and exit in case of error in neuralgpu?
-
-Produce python tests/examples
 
 finish C interface/header
 

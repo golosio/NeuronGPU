@@ -10,7 +10,9 @@ if len(sys.argv) != 2:
 order = int(sys.argv[1])/5
 
 print("Building ...")
-  
+
+ngpu.SetRandomSeed(1234) # seed for GPU random numbers
+
 n_receptors = 2
 
 delay = 1.0       # synaptic delay in ms
@@ -56,12 +58,8 @@ exc_delays = ngpu.RandomNormalClipped(CE*n_neurons, mean_delay,
   			              std_delay, min_delay,
   			              mean_delay+3*std_delay)
 
-# efficient way to build float array with equal elements
-exc_weights = (ctypes.c_float * (CE*n_neurons))(*([Wex] * (CE*n_neurons)))
-
 exc_conn_dict={"rule": "fixed_indegree", "indegree": CE}
-exc_syn_dict={"weight_array": exc_weights, "delay_array": exc_delays,
-              "receptor":0}
+exc_syn_dict={"weight": Wex, "delay_array": exc_delays, "receptor":0}
 ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
 
 
@@ -72,11 +70,8 @@ inh_delays = ngpu.RandomNormalClipped(CI*n_neurons, mean_delay,
   					    std_delay, min_delay,
   					    mean_delay+3*std_delay)
 
-# efficient way to build float array with equal elements
-inh_weights = (ctypes.c_float * (CI*n_neurons))(*([Win] * (CI*n_neurons)))
-
 inh_conn_dict={"rule": "fixed_indegree", "indegree": CI}
-inh_syn_dict={"weight_array": inh_weights, "delay_array": inh_delays,
+inh_syn_dict={"weight": Win, "delay_array": inh_delays,
               "receptor":1}
 ngpu.Connect(inh_neuron, neuron, inh_conn_dict, inh_syn_dict)
 
@@ -97,9 +92,6 @@ i_receptor_arr = [0, 0, 0]
 var_name_arr = ["V_m", "V_m", "V_m"]
 record = ngpu.CreateRecord(filename, var_name_arr, i_neuron_arr,
                                 i_receptor_arr)
-# just to have same results in different simulations
-ngpu.SetRandomSeed(1234)
-ngpu.SetMaxSpikeBufferSize(10) # spike buffer per neuron size
 
 ngpu.Simulate()
 

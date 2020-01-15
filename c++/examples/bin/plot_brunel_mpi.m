@@ -11,10 +11,10 @@ figure(3);
 plot(t,V3);
 
 data1=load('test_brunel_mpi_1.dat');
-t1=data(:,1);
-V11=data(:,2);
-V12=data(:,3);
-V13=data(:,4);
+t1=data1(:,1);
+V11=data1(:,2);
+V12=data1(:,3);
+V13=data1(:,4);
 figure(4);
 plot(t1,V11);
 figure(5);

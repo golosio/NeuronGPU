@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -25,18 +25,18 @@ int main(int argc, char *argv[])
   NeuralGPU neural_gpu;
   neural_gpu.ConnectMpiInit(argc, argv);
   int mpi_np = neural_gpu.MpiNp();
-  if (argc != 2 || mpi_np != 2) {
+    if (argc != 2 || mpi_np != 2) {
     cout << "Usage: mpirun -np 2 " << argv[0] << " n_neurons\n";
     return 0;
   }
   int arg1;
   sscanf(argv[1], "%d", &arg1);
-
+  
   int mpi_id = neural_gpu.MpiId();
   cout << "Building on host " << mpi_id << " ..." <<endl;
 
-  neural_gpu.SetRandomSeed(1234ULL + mpi_id); // seed for GPU random numbers
- 
+  neural_gpu.SetRandomSeed(12345ULL + mpi_id); // seed for GPU random numbers
+  
   //////////////////////////////////////////////////////////////////////
   // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
   //////////////////////////////////////////////////////////////////////
@@ -49,13 +49,17 @@ int main(int argc, char *argv[])
   int NI = 1 * order;      // number of inhibitory neurons
   int n_neurons = NE + NI; // number of neurons in total
 
-  int CE = 800;  // number of excitatory synapses per neuron
-  int CI = CE/4;  // number of inhibitory synapses per neuron
+  int CPN = 1000;  // number of output connections per neuron
 
+  float fext = 0.25; // fraction of the excitatory neurons that
+  // send their output to neurons of another mpi host
+  int NEext = (int)(fext*NE);
+  int NEint = NE - NEext;
+  
   float Wex = 0.05;
   float Win = 0.35;
 
-  // each host has a poisson generator
+  // poisson generator parameters
   float poiss_rate = 20000.0; // poisson signal rate in Hz
   float poiss_weight = 0.37;
   float poiss_delay = 0.2; // poisson signal delay in ms
@@ -66,7 +70,11 @@ int main(int argc, char *argv[])
   // each host has n_neurons neurons with n_receptor receptor ports
   NodeSeq neuron = neural_gpu.CreateNeuron("aeif_cond_beta", n_neurons,
 					   n_receptors);
-  NodeSeq exc_neuron = neuron.Subseq(0,NE-1); // excitatory neuron group
+  NodeSeq excint_neuron = neuron.Subseq(0,NEint-1); // excitatory group
+  // of neurons that project internally
+  NodeSeq excext_neuron = neuron.Subseq(NEint,NE-1); // excitatory group
+  // of neurons that project externally
+  
   NodeSeq inh_neuron = neuron.Subseq(NE, n_neurons-1); //inhibitory neuron group
   
   // the following parameters are set to the same values on all hosts
@@ -80,17 +88,17 @@ int main(int argc, char *argv[])
   // Excitatory local connections, defined on all hosts
   // connect excitatory neurons to port 0 of all neurons
   // weight Wex and fixed indegree CE*3/4
-  ConnSpec conn_spec1(FIXED_INDEGREE, CE*3/4);
+  ConnSpec conn_spec1(FIXED_OUTDEGREE, CPN);
   SynSpec syn_spec1;
   syn_spec1.SetParam("receptor", 0);
   syn_spec1.SetParam("weight", Wex);
   syn_spec1.SetParam("delay", delay);
-  neural_gpu.Connect(exc_neuron, neuron, conn_spec1, syn_spec1);
+  neural_gpu.Connect(excint_neuron, neuron, conn_spec1, syn_spec1);
 
   // Inhibitory local connections, defined on all hosts
   // connect inhibitory neurons to port 1 of all neurons
   // weight Win and fixed indegree CI*3/4
-  ConnSpec conn_spec2(FIXED_INDEGREE, CI*3/4);
+  ConnSpec conn_spec2(FIXED_OUTDEGREE, CPN);
   SynSpec syn_spec2;
   syn_spec2.SetParam("receptor", 1);
   syn_spec2.SetParam("weight", Win);
@@ -104,13 +112,14 @@ int main(int argc, char *argv[])
 
 
   char filename[100];
-  sprintf(filename, "test_brunel_mpi_%d.dat", mpi_id);
+  sprintf(filename, "test_brunel_outdegree_mpi_%d.dat", mpi_id);
 
   int i_neuron_arr[] = {neuron[0], neuron[rand()%n_neurons],
-		     neuron[n_neurons-1]}; // any set of neuron indexes
+			neuron[rand()%n_neurons], neuron[rand()%n_neurons],
+			neuron[n_neurons-1]}; // any set of neuron indexes
   // create multimeter record of V_m
-  std::string var_name_arr[] = {"V_m", "V_m", "V_m"};
-  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 3);
+  std::string var_name_arr[] = {"V_m", "V_m", "V_m", "V_m", "V_m"};
+  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 5);
 
   //////////////////////////////////////////////////////////////////////
   // WRITE HERE REMOTE CONNECTIONS
@@ -118,31 +127,11 @@ int main(int argc, char *argv[])
 
   // Excitatory remote connections
   // connect excitatory neurons to port 0 of all neurons
-  // weight Wex and fixed indegree CE/4
+  // weight Wex and fixed outdegree CPN
   // host 0 to host 1
-  ConnSpec conn_spec4(FIXED_INDEGREE, CE/4);
-  SynSpec syn_spec4;
-  syn_spec4.SetParam("receptor", 0);
-  syn_spec4.SetParam("weight", Wex);
-  syn_spec4.SetParam("delay", delay);
-  // host 0 to host 1
-  neural_gpu.RemoteConnect(0, exc_neuron, 1, neuron, conn_spec4, syn_spec4);
+  neural_gpu.RemoteConnect(0, excext_neuron, 1, neuron, conn_spec1, syn_spec1);
   // host 1 to host 0
-  neural_gpu.RemoteConnect(1, exc_neuron, 0, neuron, conn_spec4, syn_spec4);
-
-  // Inhibitory remote connections
-  // connect inhibitory neurons to port 1 of all neurons
-  // weight Win and fixed indegree CI/4
-  // host 0 to host 1
-  ConnSpec conn_spec5(FIXED_INDEGREE, CI/4);
-  SynSpec syn_spec5;
-  syn_spec5.SetParam("receptor", 1);
-  syn_spec5.SetParam("weight", Win);
-  syn_spec5.SetParam("delay", delay);
-  // host 0 to host 1
-  neural_gpu.RemoteConnect(0, inh_neuron, 1, neuron, conn_spec5, syn_spec5);
-  // host 1 to host 0
-  neural_gpu.RemoteConnect(1, inh_neuron, 0, neuron, conn_spec5, syn_spec5);
+  neural_gpu.RemoteConnect(1, excext_neuron, 0, neuron, conn_spec1, syn_spec1);
 
   neural_gpu.Simulate();
 

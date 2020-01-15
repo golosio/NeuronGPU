@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   NeuralGPU neural_gpu;
   cout << "Building ...\n";
 
-  neural_gpu.SetMaxSpikeBufferSize(10); // max spike buffer size per neuron
+  neural_gpu.SetRandomSeed(1234ULL); // seed for GPU random numbers
   
   int n_receptors = 2;
 
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
   float Wex = 0.05;
   float Win = 0.35;
 
-  // each host has a poisson generator
+  // poisson generator parameters
   float poiss_rate = 20000.0; // poisson signal rate in Hz
   float poiss_weight = 0.37;
   float poiss_delay = 0.2; // poisson signal delay in ms
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
   NodeSeq pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
   std::vector<int> pg_vect = pg.ToVector();
 
-  // each host has n_neurons neurons with n_receptor receptor ports
+  // create n_neurons neurons with n_receptor receptor ports
   NodeSeq neuron = neural_gpu.CreateNeuron("aeif_cond_beta", n_neurons,
 					   n_receptors);
   std::vector<int> neuron_vect = neuron.ToVector();
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
   NodeSeq inh_neuron = neuron.Subseq(NE, n_neurons-1); //inhibitory neuron group
   std::vector<int> inh_neuron_vect = inh_neuron.ToVector();
 
-  // the following parameters are set to the same values on all hosts
+  // neuron parameters
   float E_rev[] = {0.0, -85.0};
   float taus_decay[] = {1.0, 1.0};
   float taus_rise[] = {1.0, 1.0};
@@ -81,17 +81,14 @@ int main(int argc, char *argv[])
   float *exc_delays = neural_gpu.RandomNormalClipped(CE*n_neurons, mean_delay,
   						     std_delay, min_delay,
   						     mean_delay+3*std_delay);
-  float *exc_weights = new float[CE*n_neurons];
-  for (int i=0; i<CE*n_neurons; i++) exc_weights[i] = Wex;
   
   ConnSpec conn_spec1(FIXED_INDEGREE, CE);
   SynSpec syn_spec1;
   syn_spec1.SetParam("receptor", 0);
-  syn_spec1.SetParam("weight_array", exc_weights);
+  syn_spec1.SetParam("weight", Wex);
   syn_spec1.SetParam("delay_array", exc_delays);
   neural_gpu.Connect(exc_neuron_vect, neuron, conn_spec1, syn_spec1);
   delete[] exc_delays;
-  delete[] exc_weights;
 
   // Inhibitory connections
   // connect inhibitory neurons to port 1 of all neurons
@@ -99,18 +96,15 @@ int main(int argc, char *argv[])
   float *inh_delays = neural_gpu.RandomNormalClipped(CI*n_neurons, mean_delay,
   						     std_delay, min_delay,
   						     mean_delay+3*std_delay);
-  float *inh_weights = new float[CI*n_neurons];
-  for (int i=0; i<CI*n_neurons; i++) inh_weights[i] = Win;
 
   ConnSpec conn_spec2(FIXED_INDEGREE, CI);
   SynSpec syn_spec2;
   syn_spec2.SetParam("receptor", 1);
-  syn_spec2.SetParam("weight_array", inh_weights);
+  syn_spec2.SetParam("weight", Win);
   syn_spec2.SetParam("delay_array", inh_delays);
   neural_gpu.Connect(inh_neuron, neuron_vect, conn_spec2, syn_spec2);
 
   delete[] inh_delays;
-  delete[] inh_weights;
 
   ConnSpec conn_spec3(ONE_TO_ONE);
   SynSpec syn_spec3(STANDARD_SYNAPSE, poiss_weight, poiss_delay, 0);
@@ -123,11 +117,8 @@ int main(int argc, char *argv[])
   // create multimeter record of V_m
   std::string var_name_arr[] = {"V_m", "V_m", "V_m"};
   neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 3);
-  // just to have same results in different simulations:
-  neural_gpu.SetRandomSeed(1234ULL);
-  neural_gpu.Simulate();
 
-  neural_gpu.MpiFinalize();
+  neural_gpu.Simulate();
 
   return 0;
 }

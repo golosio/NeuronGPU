@@ -154,6 +154,13 @@ class NeuralGPU
      );
 
   template <class T1, class T2>
+    int _ConnectFixedOutdegree
+    (
+     T1 source, int n_source, T2 target, int n_target, int outdegree,
+     SynSpec &syn_spec
+     );
+
+  template <class T1, class T2>
     int _RemoteConnect(RemoteNode<T1> source, int n_source,
 		       RemoteNode<T2> target, int n_target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec);
@@ -177,6 +184,11 @@ class NeuralGPU
     int _RemoteConnectFixedIndegree
     (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
      int indegree, SynSpec &syn_spec);
+
+  template <class T1, class T2>
+    int _RemoteConnectFixedOutdegree
+    (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
+     int outdegree, SynSpec &syn_spec);
 
     
  public:

@@ -30,10 +30,10 @@ int main(int argc, char *argv[])
   srand(12345);
   int n_neurons = 10000;
   
-  // each host has n_neurons neurons with 3 receptor ports
+  // create n_neurons neurons with 3 receptor ports
   NodeSeq neuron = ngpu.CreateNeuron("aeif_cond_beta", n_neurons, 3);
 
-  // the following parameters are set to the same values on all hosts
+  // neuron parameters
   float E_rev[] = {20.0, 0.0, -85.0};
   float taus_decay[] = {40.0, 20.0, 30.0};
   float taus_rise[] = {20.0, 10.0, 5.0};

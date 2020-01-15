@@ -61,7 +61,7 @@ NeuralGPU::NeuralGPU()
   calibrate_flag_ = false;
   mpi_flag_ = false;
   start_real_time_ = getRealTime();
-  max_spike_buffer_size_ = 100;
+  max_spike_buffer_size_ = 20;
   t_min_ = 0.0;
   sim_time_ = 1000.0;        //Simulation time in ms
   n_poiss_nodes_ = 0;

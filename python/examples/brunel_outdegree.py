@@ -21,8 +21,7 @@ NE = 4 * order       # number of excitatory neurons
 NI = 1 * order       # number of inhibitory neurons
 n_neurons = NE + NI  # number of neurons in total
 
-CE = 800   # number of excitatory synapses per neuron
-CI = CE/4  # number of inhibitory synapses per neuron
+CPN = 1000 # number of output connections per neuron
 
 Wex = 0.05
 Win = 0.35
@@ -34,62 +33,69 @@ poiss_delay = 0.2 # poisson signal delay in ms
 n_pg = n_neurons  # number of poisson generators
 # create poisson generator
 pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
-pg_list = pg.ToList()
 
 # Create n_neurons neurons with n_receptor receptor ports
 neuron = ngpu.CreateNeuron("aeif_cond_beta", n_neurons, n_receptors)
 exc_neuron = neuron[0:NE-1]      # excitatory neurons
 inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neurons
-neuron_list = neuron.ToList()
-exc_neuron_list = exc_neuron.ToList()
-inh_neuron_list = exc_neuron.ToList()
-
+  
 # receptor parameters
 E_rev = [0.0, -85.0]
 taus_decay = [1.0, 1.0]
 taus_rise = [1.0, 1.0]
 
-ngpu.SetNeuronParam("E_rev", neuron_list, E_rev)
-ngpu.SetNeuronParam("taus_decay", neuron_list, taus_decay)
-ngpu.SetNeuronParam("taus_rise", neuron_list, taus_rise)
+ngpu.SetNeuronParam("E_rev", neuron, E_rev)
+ngpu.SetNeuronParam("taus_decay", neuron, taus_decay)
+ngpu.SetNeuronParam("taus_rise", neuron, taus_rise)
 mean_delay = 0.5
 std_delay = 0.25
 min_delay = 0.1
 # Excitatory connections
 # connect excitatory neurons to port 0 of all neurons
-# normally distributed delays, weight Wex and CE connections per neuron
-exc_delays = ngpu.RandomNormalClipped(CE*n_neurons, mean_delay,
+# normally distributed delays, weight Wex and CPN connections per neuron
+exc_delays = ngpu.RandomNormalClipped(CPN*NE, mean_delay,
   			              std_delay, min_delay,
   			              mean_delay+3*std_delay)
 
-exc_conn_dict={"rule": "fixed_indegree", "indegree": CE}
-exc_syn_dict={"weight": Wex, "delay_array": exc_delays, "receptor":0}
-ngpu.Connect(exc_neuron, neuron_list, exc_conn_dict, exc_syn_dict)
+exc_conn_dict={"rule": "fixed_outdegree", "outdegree": CPN}
+exc_syn_dict={"weight": Wex, "delay_array": exc_delays,
+              "receptor":0}
+ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
+
 
 # Inhibitory connections
 # connect inhibitory neurons to port 1 of all neurons
-# normally distributed delays, weight Win and CI connections per neuron
-inh_delays = ngpu.RandomNormalClipped(CI*n_neurons, mean_delay,
+# normally distributed delays, weight Win and CPN connections per neuron
+inh_delays = ngpu.RandomNormalClipped(CPN*NI, mean_delay,
   					    std_delay, min_delay,
   					    mean_delay+3*std_delay)
 
-inh_conn_dict={"rule": "fixed_indegree", "indegree": CI}
-inh_syn_dict={"weight": Win, "delay_array": inh_delays, "receptor":1}
-ngpu.Connect(inh_neuron_list, neuron, inh_conn_dict, inh_syn_dict)
+inh_conn_dict={"rule": "fixed_outdegree", "outdegree": CPN}
+inh_syn_dict={"weight": Win, "delay_array": inh_delays,
+              "receptor":1}
+ngpu.Connect(inh_neuron, neuron, inh_conn_dict, inh_syn_dict)
+
 
 #connect poisson generator to port 0 of all neurons
 pg_conn_dict={"rule": "one_to_one"}
 pg_syn_dict={"weight": poiss_weight, "delay": poiss_delay,
               "receptor":0}
 
-ngpu.Connect(pg_list, neuron_list, pg_conn_dict, pg_syn_dict)
+ngpu.Connect(pg, neuron, pg_conn_dict, pg_syn_dict)
 
-filename = "test_brunel_list.dat"
-i_neuron_arr = [neuron[37], neuron[randrange(n_neurons)], neuron[n_neurons-1]]
-i_receptor_arr = [0, 0, 0]
+
+filename = "test_brunel_outdegree.dat"
 # any set of neuron indexes
+i_neuron_arr = [neuron[0], neuron[randrange(n_neurons)],
+                neuron[randrange(n_neurons)], neuron[randrange(n_neurons)],
+                neuron[randrange(n_neurons)], neuron[randrange(n_neurons)],
+                neuron[randrange(n_neurons)], neuron[randrange(n_neurons)],
+                neuron[randrange(n_neurons)], neuron[n_neurons-1]]
+i_receptor_arr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
 # create multimeter record of V_m
-var_name_arr = ["V_m", "V_m", "V_m"]
+var_name_arr = ["V_m", "V_m", "V_m", "V_m", "V_m", "V_m", "V_m", "V_m", "V_m",
+                "V_m"]
 record = ngpu.CreateRecord(filename, var_name_arr, i_neuron_arr,
                                 i_receptor_arr)
 
@@ -104,6 +110,13 @@ t=[row[0] for row in data_list]
 V1=[row[1] for row in data_list]
 V2=[row[2] for row in data_list]
 V3=[row[3] for row in data_list]
+V4=[row[4] for row in data_list]
+V5=[row[5] for row in data_list]
+V6=[row[6] for row in data_list]
+V7=[row[7] for row in data_list]
+V8=[row[8] for row in data_list]
+V9=[row[9] for row in data_list]
+V10=[row[10] for row in data_list]
 
 import matplotlib.pyplot as plt
 
@@ -115,6 +128,27 @@ plt.plot(t, V2)
 
 plt.figure(3)
 plt.plot(t, V3)
+
+plt.figure(4)
+plt.plot(t, V4)
+
+plt.figure(5)
+plt.plot(t, V5)
+
+plt.figure(6)
+plt.plot(t, V6)
+
+plt.figure(7)
+plt.plot(t, V7)
+
+plt.figure(8)
+plt.plot(t, V8)
+
+plt.figure(9)
+plt.plot(t, V9)
+
+plt.figure(10)
+plt.plot(t, V10)
 
 plt.draw()
 plt.pause(0.5)

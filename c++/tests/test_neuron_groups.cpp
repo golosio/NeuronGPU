@@ -29,9 +29,9 @@ int main(int argc, char *argv[])
 
   NeuralGPU ngpu;
   cout << "Building ...\n";
-
-  ngpu.SetMaxSpikeBufferSize(10); //max buffer size per neuron
   
+  ngpu.SetRandomSeed(1234ULL); // seed for GPU random numbers
+
   // poisson generator parameters
   float poiss_rate = 5000.0; // poisson signal rate in Hz
   float poiss_weight = 1.0;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
   int n_recept3 = 2; // number of receptors
   NodeSeq neur_group3 = ngpu.CreateNeuron("aeif_cond_beta", n_neur3, n_recept3);
   
-  // the following parameters are set to the same values on all hosts
+  // neuron parameters
   float E_rev[] = {0.0, 0.0, 0.0};
   float taus_decay[] = {1.0, 1.0, 1.0};
   float taus_rise[] = {1.0, 1.0, 1.0};
@@ -130,7 +130,6 @@ int main(int argc, char *argv[])
   ngpu.CreateRecord(filename3, var_name_arr3,
 		    i_neuron_arr3, 7);
 
-  ngpu.SetRandomSeed(1234ULL);
   ngpu.Simulate();
 
   std::vector<std::vector<float>> data_vect1 =

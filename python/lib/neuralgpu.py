@@ -612,3 +612,76 @@ def Connect(source, target, conn_dict, syn_dict):
 
         return NeuralGPU_ConnectGroup(source_arr_pt, len(source_list),
                                       target_arr_pt, len(target_list))
+
+
+NeuralGPU_RemoteConnectSeq = _neuralgpu.NeuralGPU_RemoteConnectSeq
+NeuralGPU_RemoteConnectSeq.argtypes = (ctypes.c_int, ctypes.c_int,
+                                       ctypes.c_int, ctypes.c_int,
+                                       ctypes.c_int, ctypes.c_int)
+NeuralGPU_RemoteConnectSeq.restype = ctypes.c_int
+
+NeuralGPU_RemoteConnectGroup = _neuralgpu.NeuralGPU_RemoteConnectGroup
+NeuralGPU_RemoteConnectGroup.argtypes = (ctypes.c_int, ctypes.c_void_p,
+                                         ctypes.c_int, ctypes.c_int,
+                                         ctypes.c_void_p, ctypes.c_int)
+NeuralGPU_RemoteConnectGroup.restype = ctypes.c_int
+
+def RemoteConnect(i_source_host, source, i_target_host, target,
+                  conn_dict, syn_dict): 
+    "Connect two node groups of differen mpi hosts"
+    if (type(i_source_host)!=int) | (type(i_target_host)!=int):
+        raise ValueError("Error in host index")
+    if (type(source)!=list) & (type(source)!=tuple) & (type(source)!=NodeSeq):
+        raise ValueError("Unknown source type")
+    if (type(target)!=list) & (type(target)!=tuple) & (type(target)!=NodeSeq):
+        raise ValueError("Unknown target type")
+        
+    ConnSpecInit()
+    SynSpecInit()
+    for param_name in conn_dict:
+        if param_name=="rule":
+            for i_rule in range(len(conn_rule_name)):
+                if conn_dict[param_name]==conn_rule_name[i_rule]:
+                    break
+            if i_rule < len(conn_rule_name):
+                SetConnSpecParam(param_name, i_rule)
+            else:
+                raise ValueError("Unknown connection rule")
+                
+        elif ConnSpecIsParam(param_name):
+            SetConnSpecParam(param_name, conn_dict[param_name])
+        else:
+            raise ValueError("Unknown connection parameter")
+
+    for param_name in syn_dict:
+        if SynSpecIsIntParam(param_name):
+            SetSynSpecIntParam(param_name, syn_dict[param_name])
+        elif SynSpecIsFloatParam(param_name):
+            SetSynSpecFloatParam(param_name, syn_dict[param_name])
+        elif SynSpecIsFloatPtParam(param_name):
+            SetSynSpecFloatPtParam(param_name, syn_dict[param_name])
+        else:
+            raise ValueError("Unknown synapse parameter")
+    if (type(source)==NodeSeq) & (type(target)==NodeSeq) :
+        return NeuralGPU_RemoteConnectSeq(i_source_host, source.i0, source.n,
+                                          i_target_host, target.i0, target.n)
+    else:
+        if type(source)==NodeSeq:
+            source_list = source.ToList()
+        else:
+            source_list = source
+            
+        if type(target)==NodeSeq:
+            target_list = target.ToList()
+        else:
+            target_list = target
+
+        source_arr = (ctypes.c_int * len(source_list))(*source_list) 
+        source_arr_pt = ctypes.cast(source_arr, ctypes.c_void_p)    
+        target_arr = (ctypes.c_int * len(target_list))(*target_list) 
+        target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
+
+        return NeuralGPU_RemoteConnectGroup(i_source_host, source_arr_pt,
+                                            len(source_list),
+                                            i_target_host, target_arr_pt,
+                                            len(target_list))

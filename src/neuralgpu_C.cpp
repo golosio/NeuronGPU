@@ -476,5 +476,27 @@ extern "C" {
 				      ConnSpec_instance, SynSpec_instance);
   }
 
+  int NeuralGPU_RemoteConnectSeq(int i_source_host, int i_source, int n_source,
+				 int i_target_host, int i_target, int n_target)
+  {
+    checkNeuralGPUInstance();
+    return NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
+					     i_target_host, i_target, n_target,
+					     ConnSpec_instance,
+					     SynSpec_instance); 
+  }
+
+  int NeuralGPU_RemoteConnectGroup(int i_source_host, int *i_source,
+				   int n_source,
+				   int i_target_host, int *i_target,
+				   int n_target)
+  {
+    checkNeuralGPUInstance();
+    return NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
+					     i_target_host, i_target, n_target,
+					     ConnSpec_instance,
+					     SynSpec_instance);
+  }
+
 }
 

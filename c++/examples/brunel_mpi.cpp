@@ -116,31 +116,29 @@ int main(int argc, char *argv[])
 
   // Excitatory remote connections
   // connect excitatory neurons to port 0 of all neurons
-  // weight Wex and fixed indegree CE-CE*3/4
+  // weight Wex and fixed indegree CE/4
   // host 0 to host 1
-  ConnSpec conn_spec4(FIXED_INDEGREE, CE-CE*3/4);
+  ConnSpec conn_spec4(FIXED_INDEGREE, CE/4);
   SynSpec syn_spec4;
   syn_spec4.SetParam("receptor", 0);
   syn_spec4.SetParam("weight", Wex);
   syn_spec4.SetParam("delay", delay);
+  // host 0 to host 1
   neural_gpu.RemoteConnect(0, exc_neuron, 1, neuron, conn_spec4, syn_spec4);
-
   // host 1 to host 0
   neural_gpu.RemoteConnect(1, exc_neuron, 0, neuron, conn_spec4, syn_spec4);
 
   // Inhibitory remote connections
   // connect inhibitory neurons to port 1 of all neurons
-  // weight Win and fixed indegree CI-CI*3/4
+  // weight Win and fixed indegree CI/4
   // host 0 to host 1
-
-  
-  ConnSpec conn_spec5(FIXED_INDEGREE, CI-CI*3/4);
+  ConnSpec conn_spec5(FIXED_INDEGREE, CI/4);
   SynSpec syn_spec5;
   syn_spec5.SetParam("receptor", 1);
   syn_spec5.SetParam("weight", Win);
   syn_spec5.SetParam("delay", delay);
+  // host 0 to host 1
   neural_gpu.RemoteConnect(0, inh_neuron, 1, neuron, conn_spec5, syn_spec5);
-
   // host 1 to host 0
   neural_gpu.RemoteConnect(1, inh_neuron, 0, neuron, conn_spec5, syn_spec5);
 

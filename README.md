@@ -1,15 +1,15 @@
 # NeuralGPU
 A GPU library for simulation of large scale networks of biological neurons
 
-IMPORTANT NOTES: This is just a preliminary version of the library. You can try to use it under the term of the license, however we are not ready to accept pull requests. NeuralGPU is intended to be a library. For this reason it does not have a user interface or an interpreter. In the examples, the command are written in C++ files that must be compiled. I plan to propose an integration of NeuralGPU as an optional library in the NEST simulator (http://www.nest-simulator.org/).
+IMPORTANT NOTES: This is just a preliminary version of the library. You can freely use it under the term of the license, however we are not ready to accept pull requests.
 
 # NeuralGPU software specifications
-* Simulated neuron model: at the moment only the adaptive exponential integrate and fire model (AEIF), see below.
+* Simulated neuron model: at the moment only the adaptive exponential integrate and fire model (AEIF, also called AdEx), see below.
 * Synaptic current model: conductance based model with independent rise time and decay time described by alpha or beta function.
 * Differential equation integration method: 5th order Runge-Kutta with adaptive step-size control.
 * Synapse model: standard synapse.
 * Connection parameters: weight, delay, receptor port.
-* Connection rules: one-to-one, all-to-all, fixed indegree, user defined.
+* Connection rules: one-to-one, all-to-all, fixed indegree, fixed outdegree, user defined.
 * GPU Cluster: efficient implementation of GPU-MPI.
 * Numeric precision: 32 bit float.
 * Simulated devices: Poisson signal generator, spike generator, multimeter.
@@ -18,3 +18,23 @@ IMPORTANT NOTES: This is just a preliminary version of the library. You can try 
 CUDA Toolkit
 openmpi
 openmpi-devel (libopenmpi-dev in ubuntu),
+
+To install the library, from a terminal extract the source code and  type:
+cd NeuralGPU
+./make.sh /home/username/lib
+where /home/username/lib should be replaced by the folder where you whish to install the library
+
+To install the python interface type:
+./make_C.sh /home/username/lib
+
+Be sure to include the directory where you installed the library in your
+shared library path. For instance in Linux you can add to your .bashrc file
+the following line:
+export LD_LIBRARY_PATH=/home/username/lib:\$LD_LIBRARY_PATH
+
+To setup the environment for using the python interface, run the script
+setenv.sh
+which you can find in the python folder
+
+To start, have a look at the examples in the python/examples and c++/examples
+folders.

@@ -19,6 +19,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 extern "C" {
 #endif
   
+  char *NeuralGPU_GetErrorMessage();
+
+  unsigned char NeuralGPU_GetErrorCode();
+  
+  void NeuralGPU_SetOnException(int on_exception);
+
   int NeuralGPU_SetRandomSeed(unsigned long long seed);
 
   int NeuralGPU_SetTimeResolution(float time_res);

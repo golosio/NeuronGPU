@@ -68,6 +68,11 @@ NeuralGPU::NeuralGPU()
   n_spike_gen_nodes_ = 0;
   SetTimeResolution(0.1);  // time resolution in ms
   connect_mpi_->net_connection_ = net_connection_;
+  error_flag_ = false;
+  error_message_ = "";
+  error_code_ = 0;
+  on_exception_ = ON_EXCEPTION_EXIT;
+
   NestedLoop::Init();
 }
 

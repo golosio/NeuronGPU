@@ -19,9 +19,6 @@ Make rk5 dynamic
 
 make user_neuron1, 2, ...
 
-Error handling in python: check all function arguments and raise
-exceptions if necessary
-
 Write tutorial
 
 Implement connection quering

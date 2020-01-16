@@ -76,6 +76,8 @@ class Sequence
 
 typedef Sequence NodeSeq;
 
+enum {ON_EXCEPTION_EXIT=0, ON_EXCEPTION_HANDLE};
+
 class NeuralGPU
 {
   float time_resolution_; // time resolution in ms
@@ -109,6 +111,11 @@ class NeuralGPU
   double start_real_time_;
   double build_real_time_;
   double end_real_time_;
+
+  bool error_flag_;
+  std::string error_message_;
+  unsigned char error_code_;
+  int on_exception_;
   
   int CreateNodeGroup(int n_neurons, int n_ports);
   int CheckUncalibrated(std::string message);
@@ -277,7 +284,24 @@ class NeuralGPU
   int ProcMaster();
 
   int MpiFinalize();
+
+  void SetErrorFlag(bool error_flag) {error_flag_ = error_flag;}
   
+  void SetErrorMessage(std::string error_message) { error_message_
+      = error_message; }
+
+  void SetErrorCode(unsigned char error_code) {error_code_ = error_code;}
+
+  void SetOnException(int on_exception) {on_exception_ = on_exception;}
+
+  bool GetErrorFlag() {return error_flag_;}
+
+  char *GetErrorMessage() {return &error_message_[0];}
+
+  unsigned char GetErrorCode() {return error_code_;}
+
+  int OnException() {return on_exception_;}
+
   unsigned int *RandomInt(size_t n);
   
   float *RandomUniform(size_t n);

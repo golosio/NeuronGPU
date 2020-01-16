@@ -36,7 +36,7 @@ n_pg = n_neurons  # number of poisson generators
 pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
 
 # Create n_neurons neurons with n_receptor receptor ports
-neuron = ngpu.CreateNeuron("aeif_cond_beta", n_neurons, n_receptors)
+neuron = ngpu.Create("aeif_cond_beta", n_neurons, n_receptors)
 exc_neuron = neuron[0:NE-1]      # excitatory neurons
 inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neurons
   

@@ -1,6 +1,6 @@
 import neuralgpu as ngpu
 
-neuron = ngpu.CreateNeuron("aeif_cond_beta", 1, 1)
+neuron = ngpu.Create("aeif_cond_beta", 1, 1)
 poiss_gen = ngpu.CreatePoissonGenerator(1, 12000.0);
 
 conn_dict={"rule": "one_to_one"}

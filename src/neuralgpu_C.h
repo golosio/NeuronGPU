@@ -35,7 +35,7 @@ extern "C" {
 
   int NeuralGPU_GetMaxSpikeBufferSize();
 
-  int NeuralGPU_CreateNeuron(char *model_name, int n_neurons, int n_ports);
+  int NeuralGPU_Create(char *model_name, int n_neurons, int n_ports);
 
   int NeuralGPU_CreatePoissonGenerator(int n_nodes, float rate);
   

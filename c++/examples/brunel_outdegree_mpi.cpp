@@ -22,9 +22,9 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-  NeuralGPU neural_gpu;
-  neural_gpu.ConnectMpiInit(argc, argv);
-  int mpi_np = neural_gpu.MpiNp();
+  NeuralGPU ngpu;
+  ngpu.ConnectMpiInit(argc, argv);
+  int mpi_np = ngpu.MpiNp();
     if (argc != 2 || mpi_np != 2) {
     cout << "Usage: mpirun -np 2 " << argv[0] << " n_neurons\n";
     return 0;
@@ -32,10 +32,10 @@ int main(int argc, char *argv[])
   int arg1;
   sscanf(argv[1], "%d", &arg1);
   
-  int mpi_id = neural_gpu.MpiId();
+  int mpi_id = ngpu.MpiId();
   cout << "Building on host " << mpi_id << " ..." <<endl;
 
-  neural_gpu.SetRandomSeed(12345ULL + mpi_id); // seed for GPU random numbers
+  ngpu.SetRandomSeed(12345ULL + mpi_id); // seed for GPU random numbers
   
   //////////////////////////////////////////////////////////////////////
   // WRITE HERE COMMANDS THAT ARE EXECUTED ON ALL HOSTS
@@ -65,10 +65,10 @@ int main(int argc, char *argv[])
   float poiss_delay = 0.2; // poisson signal delay in ms
   int n_pg = n_neurons; // number of poisson generators
   // create poisson generator
-  NodeSeq pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
+  NodeSeq pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate);
 
   // each host has n_neurons neurons with n_receptor receptor ports
-  NodeSeq neuron = neural_gpu.CreateNeuron("aeif_cond_beta", n_neurons,
+  NodeSeq neuron = ngpu.Create("aeif_cond_beta", n_neurons,
 					   n_receptors);
   NodeSeq excint_neuron = neuron.Subseq(0,NEint-1); // excitatory group
   // of neurons that project internally
@@ -81,9 +81,9 @@ int main(int argc, char *argv[])
   float E_rev[] = {0.0, -85.0};
   float taus_decay[] = {1.0, 1.0};
   float taus_rise[] = {1.0, 1.0};
-  neural_gpu.SetNeuronParam("E_rev", neuron, E_rev, 2);
-  neural_gpu.SetNeuronParam("taus_decay", neuron, taus_decay, 2);
-  neural_gpu.SetNeuronParam("taus_rise", neuron, taus_rise, 2);
+  ngpu.SetNeuronParam("E_rev", neuron, E_rev, 2);
+  ngpu.SetNeuronParam("taus_decay", neuron, taus_decay, 2);
+  ngpu.SetNeuronParam("taus_rise", neuron, taus_rise, 2);
 
   // Excitatory local connections, defined on all hosts
   // connect excitatory neurons to port 0 of all neurons
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
   syn_spec1.SetParam("receptor", 0);
   syn_spec1.SetParam("weight", Wex);
   syn_spec1.SetParam("delay", delay);
-  neural_gpu.Connect(excint_neuron, neuron, conn_spec1, syn_spec1);
+  ngpu.Connect(excint_neuron, neuron, conn_spec1, syn_spec1);
 
   // Inhibitory local connections, defined on all hosts
   // connect inhibitory neurons to port 1 of all neurons
@@ -103,12 +103,12 @@ int main(int argc, char *argv[])
   syn_spec2.SetParam("receptor", 1);
   syn_spec2.SetParam("weight", Win);
   syn_spec2.SetParam("delay", delay);
-  neural_gpu.Connect(inh_neuron, neuron, conn_spec2, syn_spec2);
+  ngpu.Connect(inh_neuron, neuron, conn_spec2, syn_spec2);
 
   ConnSpec conn_spec3(ONE_TO_ONE);
   SynSpec syn_spec3(STANDARD_SYNAPSE, poiss_weight, poiss_delay, 0);
   // connect poisson generator to port 0 of all neurons
-  neural_gpu.Connect(pg, neuron, conn_spec3, syn_spec3);
+  ngpu.Connect(pg, neuron, conn_spec3, syn_spec3);
 
 
   char filename[100];
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 			neuron[n_neurons-1]}; // any set of neuron indexes
   // create multimeter record of V_m
   std::string var_name_arr[] = {"V_m", "V_m", "V_m", "V_m", "V_m"};
-  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 5);
+  ngpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 5);
 
   //////////////////////////////////////////////////////////////////////
   // WRITE HERE REMOTE CONNECTIONS
@@ -129,13 +129,13 @@ int main(int argc, char *argv[])
   // connect excitatory neurons to port 0 of all neurons
   // weight Wex and fixed outdegree CPN
   // host 0 to host 1
-  neural_gpu.RemoteConnect(0, excext_neuron, 1, neuron, conn_spec1, syn_spec1);
+  ngpu.RemoteConnect(0, excext_neuron, 1, neuron, conn_spec1, syn_spec1);
   // host 1 to host 0
-  neural_gpu.RemoteConnect(1, excext_neuron, 0, neuron, conn_spec1, syn_spec1);
+  ngpu.RemoteConnect(1, excext_neuron, 0, neuron, conn_spec1, syn_spec1);
 
-  neural_gpu.Simulate();
+  ngpu.Simulate();
 
-  neural_gpu.MpiFinalize();
+  ngpu.MpiFinalize();
 
   return 0;
 }

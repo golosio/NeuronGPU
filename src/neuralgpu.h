@@ -219,7 +219,7 @@ class NeuralGPU
 
   int SetMaxSpikeBufferSize(int max_size);
   int GetMaxSpikeBufferSize();
-  NodeSeq CreateNeuron(std::string model_name, int n_neurons, int n_ports);
+  NodeSeq Create(std::string model_name, int n_neurons, int n_ports);
   NodeSeq CreatePoissonGenerator(int n_nodes, float rate);
   NodeSeq CreateSpikeGenerator(int n_nodes);
   int CreateRecord(std::string file_name, std::string *var_name_arr,

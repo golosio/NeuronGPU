@@ -45,7 +45,7 @@ n_pg = n_neurons  # number of poisson generators
 pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
 
 # Create n_neurons neurons with n_receptor receptor ports
-neuron = ngpu.CreateNeuron("aeif_cond_beta", n_neurons, n_receptors)
+neuron = ngpu.Create("aeif_cond_beta", n_neurons, n_receptors)
 excint_neuron = neuron[0:NEint-1]      # excitatory group
 # of neurons that project internally
 excest_neuron = neuron[NEint:NE-1]      # excitatory group

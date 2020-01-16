@@ -43,13 +43,13 @@ int main(int argc, char *argv[])
   // create 3 neuron groups
   int n_neur1 = 100; // number of neurons
   int n_recept1 = 3; // number of receptors
-  NodeSeq neur_group1 = ngpu.CreateNeuron("aeif_cond_beta", n_neur1, n_recept1);
+  NodeSeq neur_group1 = ngpu.Create("aeif_cond_beta", n_neur1, n_recept1);
   int n_neur2 = 20; // number of neurons
   int n_recept2 = 1; // number of receptors
-  NodeSeq neur_group2 = ngpu.CreateNeuron("aeif_cond_beta", n_neur2, n_recept2);
+  NodeSeq neur_group2 = ngpu.Create("aeif_cond_beta", n_neur2, n_recept2);
   int n_neur3 = 50; // number of neurons
   int n_recept3 = 2; // number of receptors
-  NodeSeq neur_group3 = ngpu.CreateNeuron("aeif_cond_beta", n_neur3, n_recept3);
+  NodeSeq neur_group3 = ngpu.Create("aeif_cond_beta", n_neur3, n_recept3);
   
   // neuron parameters
   float E_rev[] = {0.0, 0.0, 0.0};

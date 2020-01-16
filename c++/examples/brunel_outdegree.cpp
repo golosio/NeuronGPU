@@ -28,10 +28,10 @@ int main(int argc, char *argv[])
   }
   int arg1;
   sscanf(argv[1], "%d", &arg1);
-  NeuralGPU neural_gpu;
+  NeuralGPU ngpu;
   cout << "Building ...\n";
 
-  neural_gpu.SetRandomSeed(12345ULL); // seed for GPU random numbers
+  ngpu.SetRandomSeed(12345ULL); // seed for GPU random numbers
   
   int n_receptors = 2;
 
@@ -51,10 +51,10 @@ int main(int argc, char *argv[])
   float poiss_delay = 0.2; // poisson signal delay in ms
   int n_pg = n_neurons; // number of poisson generators
   // create poisson generator
-  NodeSeq pg = neural_gpu.CreatePoissonGenerator(n_pg, poiss_rate);
+  NodeSeq pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate);
 
   // create n_neurons neurons with n_receptor receptor ports
-  NodeSeq neuron = neural_gpu.CreateNeuron("aeif_cond_beta", n_neurons,
+  NodeSeq neuron = ngpu.Create("aeif_cond_beta", n_neurons,
 					   n_receptors);
   NodeSeq exc_neuron = neuron.Subseq(0,NE-1); // excitatory neuron group
   NodeSeq inh_neuron = neuron.Subseq(NE, n_neurons-1); //inhibitory neuron group
@@ -63,9 +63,9 @@ int main(int argc, char *argv[])
   float E_rev[] = {0.0, -85.0};
   float taus_decay[] = {1.0, 1.0};
   float taus_rise[] = {1.0, 1.0};
-  neural_gpu.SetNeuronParam("E_rev", neuron, E_rev, 2);
-  neural_gpu.SetNeuronParam("taus_decay", neuron, taus_decay, 2);
-  neural_gpu.SetNeuronParam("taus_rise", neuron, taus_rise, 2);
+  ngpu.SetNeuronParam("E_rev", neuron, E_rev, 2);
+  ngpu.SetNeuronParam("taus_decay", neuron, taus_decay, 2);
+  ngpu.SetNeuronParam("taus_rise", neuron, taus_rise, 2);
   
   float mean_delay = 0.5;
   float std_delay = 0.25;
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
   // Excitatory connections
   // connect excitatory neurons to port 0 of all neurons
   // normally distributed delays, weight Wex and CPN connections per neuron
-  float *exc_delays = neural_gpu.RandomNormalClipped(CPN*NE, mean_delay,
+  float *exc_delays = ngpu.RandomNormalClipped(CPN*NE, mean_delay,
   						     std_delay, min_delay,
   						     mean_delay+3*std_delay);
   
@@ -82,13 +82,13 @@ int main(int argc, char *argv[])
   syn_spec1.SetParam("receptor", 0);
   syn_spec1.SetParam("weight", Wex);
   syn_spec1.SetParam("delay_array", exc_delays);
-  neural_gpu.Connect(exc_neuron, neuron, conn_spec1, syn_spec1);
+  ngpu.Connect(exc_neuron, neuron, conn_spec1, syn_spec1);
   delete[] exc_delays;
 
   // Inhibitory connections
   // connect inhibitory neurons to port 1 of all neurons
   // normally distributed delays, weight Win and CPN connections per neuron
-  float *inh_delays = neural_gpu.RandomNormalClipped(CPN*NI, mean_delay,
+  float *inh_delays = ngpu.RandomNormalClipped(CPN*NI, mean_delay,
   						     std_delay, min_delay,
   						     mean_delay+3*std_delay);
 
@@ -97,14 +97,14 @@ int main(int argc, char *argv[])
   syn_spec2.SetParam("receptor", 1);
   syn_spec2.SetParam("weight", Win);
   syn_spec2.SetParam("delay_array", inh_delays);
-  neural_gpu.Connect(inh_neuron, neuron, conn_spec2, syn_spec2);
+  ngpu.Connect(inh_neuron, neuron, conn_spec2, syn_spec2);
 
   delete[] inh_delays;
 
   ConnSpec conn_spec3(ONE_TO_ONE);
   SynSpec syn_spec3(STANDARD_SYNAPSE, poiss_weight, poiss_delay, 0);
   // connect poisson generator to port 0 of all neurons
-  neural_gpu.Connect(pg, neuron, conn_spec3, syn_spec3);
+  ngpu.Connect(pg, neuron, conn_spec3, syn_spec3);
 
   char filename[] = "test_brunel_outdegree.dat";
   // any set of neuron indexes
@@ -116,9 +116,9 @@ int main(int argc, char *argv[])
   // create multimeter record of V_m
   std::string var_name_arr[] = {"V_m", "V_m", "V_m", "V_m", "V_m", "V_m",
 				"V_m", "V_m", "V_m", "V_m"};
-  neural_gpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 10);
+  ngpu.CreateRecord(string(filename), var_name_arr, i_neuron_arr, 10);
 
-  neural_gpu.Simulate();
+  ngpu.Simulate();
 
   return 0;
 }

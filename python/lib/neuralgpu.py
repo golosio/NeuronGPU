@@ -34,7 +34,9 @@ class NodeSeq(object):
         return self.i0 + i
     def ToList(self):
         return list(range(self.i0, self.i0 + self.n))
-
+    def __len__(self):
+        return self.n
+    
 conn_rule_name = ("one_to_one", "all_to_all", "fixed_total_number",
                   "fixed_indegree", "fixed_outdegree")
     
@@ -80,7 +82,6 @@ def SetTimeResolution(time_res):
         raise ValueError(GetErrorMessage())
     return ret
 
-
 NeuralGPU_GetTimeResolution = _neuralgpu.NeuralGPU_GetTimeResolution
 NeuralGPU_GetTimeResolution.restype = ctypes.c_float
 def GetTimeResolution():
@@ -111,14 +112,23 @@ def GetMaxSpikeBufferSize():
         raise ValueError(GetErrorMessage())
     return ret
 
+NeuralGPU_SetSimTime = _neuralgpu.NeuralGPU_SetSimTime
+NeuralGPU_SetSimTime.argtypes = (ctypes.c_float,)
+NeuralGPU_SetSimTime.restype = ctypes.c_int
+def SetSimTime(sim_time):
+    "Set neural activity simulated time in ms"
+    ret = NeuralGPU_SetSimTime(ctypes.c_float(sim_time))
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
 
-NeuralGPU_CreateNeuron = _neuralgpu.NeuralGPU_CreateNeuron
-NeuralGPU_CreateNeuron.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int)
-NeuralGPU_CreateNeuron.restype = ctypes.c_int
-def CreateNeuron(model_name, n_nodes, n_ports):
+NeuralGPU_Create = _neuralgpu.NeuralGPU_Create
+NeuralGPU_Create.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int)
+NeuralGPU_Create.restype = ctypes.c_int
+def Create(model_name, n_nodes=1, n_ports=1):
     "Create a neuron group"
     c_model_name = ctypes.create_string_buffer(str.encode(model_name), len(model_name)+1)
-    i_node =NeuralGPU_CreateNeuron(c_model_name, ctypes.c_int(n_nodes), ctypes.c_int(n_ports))
+    i_node =NeuralGPU_Create(c_model_name, ctypes.c_int(n_nodes), ctypes.c_int(n_ports))
     ret = NodeSeq(i_node, n_nodes)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
@@ -368,8 +378,9 @@ def Calibrate():
 
 NeuralGPU_Simulate = _neuralgpu.NeuralGPU_Simulate
 NeuralGPU_Simulate.restype = ctypes.c_int
-def Simulate():
+def Simulate(sim_time=1000.0):
     "Simulate neural activity"
+    SetSimTime(sim_time)
     ret = NeuralGPU_Simulate()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
@@ -776,3 +787,26 @@ def RemoteConnect(i_source_host, source, i_target_host, target,
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
+
+
+
+def SetStatus(nodes, params, val=None):
+    "Set neuron group scalar or vector parameters using dictionaries"
+    if val != None:
+         SetNeuronParam(params, nodes, val)
+    elif type(params)==dict:
+        for param_name in params:
+            SetNeuronParam(param_name, nodes, params[param_name])
+    elif type(params)==list:
+        if len(list) != len(nodes):
+            raise ValueError("List should have the same size as nodes")
+        for param_dict in list:
+            if type(param_dict)!=dict:
+                raise ValueError("Type of list elements should be dict")
+            for param_name in param_dict:
+                SetNeuronParam(param_name, nodes, param_dict[param_name])
+    else:
+        raise ValueError("Wrong argument in SetStatus")       
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    

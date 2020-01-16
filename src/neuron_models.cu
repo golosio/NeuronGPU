@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuralgpu.h"
 #include "aeif_cond_beta.h"
 
-NodeSeq NeuralGPU::CreateNeuron(std::string model_name, int n_nodes, int n_ports)
+NodeSeq NeuralGPU::Create(std::string model_name, int n_nodes, int n_ports)
 {
   CheckUncalibrated("Nodes cannot be created after calibration");
    if (n_nodes <= 0) {

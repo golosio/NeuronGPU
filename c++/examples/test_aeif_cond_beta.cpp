@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   int n_neurons = 10000;
   
   // create n_neurons neurons with 3 receptor ports
-  NodeSeq neuron = ngpu.CreateNeuron("aeif_cond_beta", n_neurons, 3);
+  NodeSeq neuron = ngpu.Create("aeif_cond_beta", n_neurons, 3);
 
   // neuron parameters
   float E_rev[] = {20.0, 0.0, -85.0};

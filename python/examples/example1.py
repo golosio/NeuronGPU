@@ -1,6 +1,6 @@
 import neuralgpu as ngpu
 
-neuron = ngpu.CreateNeuron("aeif_cond_beta", 1, 1)
+neuron = ngpu.Create("aeif_cond_beta", 1, 1)
 
 ngpu.SetNeuronParam("I_e", neuron, 1000.0)
 

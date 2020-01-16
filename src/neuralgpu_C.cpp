@@ -78,10 +78,15 @@ extern "C" {
     ret = NeuralGPU_instance->GetMaxSpikeBufferSize();
   } END_ERR_PROP return ret; }
 
-  int NeuralGPU_CreateNeuron(char *model_name, int n_neurons, int n_ports)
+  int NeuralGPU_SetSimTime(float sim_time)
+  { int ret; BEGIN_ERR_PROP {
+    ret = NeuralGPU_instance->SetSimTime(sim_time);
+  } END_ERR_PROP return ret; }
+
+  int NeuralGPU_Create(char *model_name, int n_neurons, int n_ports)
   { int ret; BEGIN_ERR_PROP {
     std::string model_name_str = std::string(model_name);
-    NodeSeq neur = NeuralGPU_instance->CreateNeuron(model_name_str, n_neurons,
+    NodeSeq neur = NeuralGPU_instance->Create(model_name_str, n_neurons,
 						    n_ports);
     ret = neur[0];
   } END_ERR_PROP return ret; }

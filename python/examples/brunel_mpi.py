@@ -49,10 +49,8 @@ inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neurons
 E_rev = [0.0, -85.0]
 taus_decay = [1.0, 1.0]
 taus_rise = [1.0, 1.0]
-
-ngpu.SetNeuronParam("E_rev", neuron, E_rev)
-ngpu.SetNeuronParam("taus_decay", neuron, taus_decay)
-ngpu.SetNeuronParam("taus_rise", neuron, taus_rise)
+ngpu.SetStatus(neuron, {"E_rev":E_rev, "taus_decay":taus_decay,
+                        "taus_rise":taus_rise})
 
 # Excitatory local connections, defined on all hosts
 # connect excitatory neurons to port 0 of all neurons

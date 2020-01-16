@@ -1,7 +1,3 @@
-Make commands (Create, Set, ...) more nest-like 
-
-Implement SetStatus
-
 Implement distribution dictionaries
 
 Implement GetStatus?

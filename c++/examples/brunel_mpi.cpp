@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
   int mpi_np = ngpu.MpiNp();
   if (argc != 2 || mpi_np != 2) {
     cout << "Usage: mpirun -np 2 " << argv[0] << " n_neurons\n";
-    return 0;
+    exit(-1);
   }
   int arg1;
   sscanf(argv[1], "%d", &arg1);

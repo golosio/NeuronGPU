@@ -48,10 +48,10 @@ inh_neuron_list = exc_neuron.ToList()
 E_rev = [0.0, -85.0]
 taus_decay = [1.0, 1.0]
 taus_rise = [1.0, 1.0]
+ngpu.SetStatus(neuron, {"E_rev":E_rev, "taus_decay":taus_decay,
+                        "taus_rise":taus_rise})
 
-ngpu.SetNeuronParam("E_rev", neuron_list, E_rev)
-ngpu.SetNeuronParam("taus_decay", neuron_list, taus_decay)
-ngpu.SetNeuronParam("taus_rise", neuron_list, taus_rise)
+
 mean_delay = 0.5
 std_delay = 0.25
 min_delay = 0.1

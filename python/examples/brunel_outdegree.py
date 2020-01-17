@@ -15,8 +15,6 @@ ngpu.SetRandomSeed(1234) # seed for GPU random numbers
 
 n_receptors = 2
 
-delay = 1.0       # synaptic delay in ms
-
 NE = 4 * order       # number of excitatory neurons
 NI = 1 * order       # number of inhibitory neurons
 n_neurons = NE + NI  # number of neurons in total
@@ -52,26 +50,22 @@ min_delay = 0.1
 # Excitatory connections
 # connect excitatory neurons to port 0 of all neurons
 # normally distributed delays, weight Wex and CPN connections per neuron
-exc_delays = ngpu.RandomNormalClipped(CPN*NE, mean_delay,
-  			              std_delay, min_delay,
-  			              mean_delay+3*std_delay)
-
 exc_conn_dict={"rule": "fixed_outdegree", "outdegree": CPN}
-exc_syn_dict={"weight": Wex, "delay_array": exc_delays,
-              "receptor":0}
+exc_syn_dict={"weight": Wex, "delay": {"distribution":"normal_clipped",
+                                       "mu":mean_delay, "low":min_delay,
+                                       "high":mean_delay+3*std_delay,
+                                       "sigma":std_delay}, "receptor":0}
 ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
 
 
 # Inhibitory connections
 # connect inhibitory neurons to port 1 of all neurons
 # normally distributed delays, weight Win and CPN connections per neuron
-inh_delays = ngpu.RandomNormalClipped(CPN*NI, mean_delay,
-  					    std_delay, min_delay,
-  					    mean_delay+3*std_delay)
-
 inh_conn_dict={"rule": "fixed_outdegree", "outdegree": CPN}
-inh_syn_dict={"weight": Win, "delay_array": inh_delays,
-              "receptor":1}
+inh_syn_dict={"weight": Win, "delay":{"distribution":"normal_clipped",
+                                       "mu":mean_delay, "low":min_delay,
+                                       "high":mean_delay+3*std_delay,
+                                       "sigma":std_delay}, "receptor":1}
 ngpu.Connect(inh_neuron, neuron, inh_conn_dict, inh_syn_dict)
 
 

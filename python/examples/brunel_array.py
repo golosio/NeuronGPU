@@ -32,55 +32,56 @@ poiss_delay = 0.2 # poisson signal delay in ms
 n_pg = n_neurons  # number of poisson generators
 # create poisson generator
 pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
-pg_list = pg.ToList()
 
 # Create n_neurons neurons with n_receptor receptor ports
 neuron = ngpu.Create("aeif_cond_beta", n_neurons, n_receptors)
 exc_neuron = neuron[0:NE-1]      # excitatory neurons
 inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neurons
-neuron_list = neuron.ToList()
-exc_neuron_list = exc_neuron.ToList()
-inh_neuron_list = exc_neuron.ToList()
-
+  
 # receptor parameters
 E_rev = [0.0, -85.0]
 taus_decay = [1.0, 1.0]
 taus_rise = [1.0, 1.0]
+
 ngpu.SetStatus(neuron, {"E_rev":E_rev, "taus_decay":taus_decay,
                         "taus_rise":taus_rise})
-
-
 mean_delay = 0.5
 std_delay = 0.25
 min_delay = 0.1
 # Excitatory connections
 # connect excitatory neurons to port 0 of all neurons
 # normally distributed delays, weight Wex and CE connections per neuron
+exc_delays = ngpu.RandomNormalClipped(CE*n_neurons, mean_delay,
+  			              std_delay, min_delay,
+  			              mean_delay+3*std_delay)
+
 exc_conn_dict={"rule": "fixed_indegree", "indegree": CE}
-exc_syn_dict={"weight": Wex, "delay": {"distribution":"normal_clipped",
-                                       "mu":mean_delay, "low":min_delay,
-                                       "high":mean_delay+3*std_delay,
-                                       "sigma":std_delay}, "receptor":0}
-ngpu.Connect(exc_neuron, neuron_list, exc_conn_dict, exc_syn_dict)
+exc_syn_dict={"weight": Wex, "delay": {"array":exc_delays}, "receptor":0}
+ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
+
 
 # Inhibitory connections
 # connect inhibitory neurons to port 1 of all neurons
 # normally distributed delays, weight Win and CI connections per neuron
+inh_delays = ngpu.RandomNormalClipped(CI*n_neurons, mean_delay,
+  					    std_delay, min_delay,
+  					    mean_delay+3*std_delay)
+
 inh_conn_dict={"rule": "fixed_indegree", "indegree": CI}
-inh_syn_dict={"weight": Win, "delay":{"distribution":"normal_clipped",
-                                       "mu":mean_delay, "low":min_delay,
-                                       "high":mean_delay+3*std_delay,
-                                       "sigma":std_delay}, "receptor":1}
-ngpu.Connect(inh_neuron_list, neuron, inh_conn_dict, inh_syn_dict)
+inh_syn_dict={"weight": Win, "delay":{"array": inh_delays},
+              "receptor":1}
+ngpu.Connect(inh_neuron, neuron, inh_conn_dict, inh_syn_dict)
+
 
 #connect poisson generator to port 0 of all neurons
 pg_conn_dict={"rule": "one_to_one"}
 pg_syn_dict={"weight": poiss_weight, "delay": poiss_delay,
               "receptor":0}
 
-ngpu.Connect(pg_list, neuron_list, pg_conn_dict, pg_syn_dict)
+ngpu.Connect(pg, neuron, pg_conn_dict, pg_syn_dict)
 
-filename = "test_brunel_list.dat"
+
+filename = "test_brunel_net.dat"
 i_neuron_arr = [neuron[37], neuron[randrange(n_neurons)], neuron[n_neurons-1]]
 i_receptor_arr = [0, 0, 0]
 # any set of neuron indexes

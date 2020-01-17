@@ -600,7 +600,7 @@ NeuralGPU_SetSynSpecFloatPtParam.restype = ctypes.c_int
 def SetSynSpecFloatPtParam(param_name, arr):
     "Set synapse pointer to float parameter"
     c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
-    if type(arr) is list:
+    if (type(arr) is list)  | (type(arr) is tuple):
         arr = (ctypes.c_float * len(arr))(*arr) 
     arr_pt = ctypes.cast(arr, ctypes.c_void_p)    
     ret = NeuralGPU_SetSynSpecFloatPtParam(c_param_name, arr_pt)
@@ -645,6 +645,76 @@ def SynSpecIsFloatPtParam(param_name):
     return ret
 
 
+def DictToArray(param_dict, array_size):
+    dist_name = None
+    arr = None
+    low = -1.0e35
+    high = 1.0e35
+    mu = None
+    sigma = None
+    
+    for param_name in param_dict:
+        pval = param_dict[param_name]
+        if param_name=="array":
+            dist_name = "array"
+            arr = pval
+        elif param_name=="distribution":
+            dist_name = pval
+        elif param_name=="low":
+            low = pval
+        elif param_name=="high":
+            high = pval
+        elif param_name=="mu":
+            mu = pval
+        elif param_name=="sigma":
+            sigma = pval
+        else:
+            raise ValueError("Unknown parameter name in dictionary")
+
+    if dist_name=="array":
+        if (type(arr) is list) | (type(arr) is tuple):
+            if len(arr) != array_size:
+                raise ValueError("Wrong array size.")
+            arr = (ctypes.c_float * len(arr))(*arr)
+            #array_pt = ctypes.cast(arr, ctypes.c_void_p)
+            #return array_pt
+        return arr
+    elif dist_name=="normal":
+        return RandomNormal(array_size, mu, sigma)
+    elif dist_name=="normal_clipped":
+        return RandomNormalClipped(array_size, mu, sigma, low, high)
+    else:
+        raise ValueError("Unknown distribution")
+
+
+def RuleArraySize(conn_dict, source, target):
+    if conn_dict["rule"]=="one_to_one":
+        array_size = len(source)
+    elif conn_dict["rule"]=="all_to_all":
+        array_size = len(source)*len(target)
+    elif conn_dict["rule"]=="fixed_total_number":
+        array_size = conn_dict["total_num"]
+    elif conn_dict["rule"]=="fixed_indegree":
+        array_size = len(target)*conn_dict["indegree"]
+    elif conn_dict["rule"]=="fixed_outdegree":
+        array_size = len(source)*conn_dict["outdegree"]
+    else:
+        raise ValueError("Unknown number of connections for this rule")
+    return array_size
+
+
+def SetSynParamFromArray(param_name, par_dict, array_size):
+    arr_param_name = param_name + "_array"
+    if (not SynSpecIsFloatPtParam(arr_param_name)):
+        raise ValueError("Synapse parameter cannot be set by"
+                         " arrays or distributions")
+    arr = DictToArray(par_dict, array_size)
+    array_pt = ctypes.cast(arr, ctypes.c_void_p)
+    SetSynSpecFloatPtParam(arr_param_name, array_pt)
+    
+
+    
+
 NeuralGPU_ConnectSeq = _neuralgpu.NeuralGPU_ConnectSeq
 NeuralGPU_ConnectSeq.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
 NeuralGPU_ConnectSeq.restype = ctypes.c_int
@@ -672,17 +742,23 @@ def Connect(source, target, conn_dict, syn_dict):
                 SetConnSpecParam(param_name, i_rule)
             else:
                 raise ValueError("Unknown connection rule")
-                
         elif ConnSpecIsParam(param_name):
             SetConnSpecParam(param_name, conn_dict[param_name])
         else:
             raise ValueError("Unknown connection parameter")
-
+    
+    array_size = RuleArraySize(conn_dict, source, target)
+    
     for param_name in syn_dict:
         if SynSpecIsIntParam(param_name):
             SetSynSpecIntParam(param_name, syn_dict[param_name])
         elif SynSpecIsFloatParam(param_name):
-            SetSynSpecFloatParam(param_name, syn_dict[param_name])
+            fpar = syn_dict[param_name]
+            if (type(fpar)==dict):
+                SetSynParamFromArray(param_name, fpar, array_size)
+            else:
+                SetSynSpecFloatParam(param_name, fpar)
+
         elif SynSpecIsFloatPtParam(param_name):
             SetSynSpecFloatPtParam(param_name, syn_dict[param_name])
         else:
@@ -751,12 +827,19 @@ def RemoteConnect(i_source_host, source, i_target_host, target,
             SetConnSpecParam(param_name, conn_dict[param_name])
         else:
             raise ValueError("Unknown connection parameter")
-
+        
+    array_size = RuleArraySize(conn_dict, source, target)    
+        
     for param_name in syn_dict:
         if SynSpecIsIntParam(param_name):
             SetSynSpecIntParam(param_name, syn_dict[param_name])
         elif SynSpecIsFloatParam(param_name):
-            SetSynSpecFloatParam(param_name, syn_dict[param_name])
+            fpar = syn_dict[param_name]
+            if (type(fpar)==dict):
+                SetSynParamFromArray(param_name, fpar, array_size)
+            else:
+                SetSynSpecFloatParam(param_name, fpar)
+                
         elif SynSpecIsFloatPtParam(param_name):
             SetSynSpecFloatPtParam(param_name, syn_dict[param_name])
         else:
@@ -797,10 +880,10 @@ def SetStatus(nodes, params, val=None):
     elif type(params)==dict:
         for param_name in params:
             SetNeuronParam(param_name, nodes, params[param_name])
-    elif type(params)==list:
-        if len(list) != len(nodes):
+    elif (type(params)==list)  | (type(params) is tuple):
+        if len(params) != len(nodes):
             raise ValueError("List should have the same size as nodes")
-        for param_dict in list:
+        for param_dict in params:
             if type(param_dict)!=dict:
                 raise ValueError("Type of list elements should be dict")
             for param_name in param_dict:
@@ -810,3 +893,6 @@ def SetStatus(nodes, params, val=None):
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     
+
+
+

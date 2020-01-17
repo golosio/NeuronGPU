@@ -1,13 +1,11 @@
-Implement distribution dictionaries
-
-Implement GetStatus?
-
 check if poisson generator and spike generator can be instantiated more tnan
 once
 
 make 'poiss_gen' model with variable rates
 
 convert spike generator to model
+
+Implement GetStatus?
 
 Produce build system and check it on different linux, mac (windows?)
 

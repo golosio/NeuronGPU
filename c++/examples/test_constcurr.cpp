@@ -32,10 +32,10 @@ int main(int argc, char *argv[])
   NodeSeq neuron = ngpu.Create("aeif_cond_beta", n_neurons, 1);
 
   // neuron parameters
-  ngpu.SetNeuronParam("a", neuron,  4.0);
-  ngpu.SetNeuronParam("b", neuron,  80.5);
-  ngpu.SetNeuronParam("E_L", neuron,  -70.6);
-  ngpu.SetNeuronParam("I_e", neuron,  800.0);
+  ngpu.SetNeuronParam(neuron, "a", 4.0);
+  ngpu.SetNeuronParam(neuron, "b",  80.5);
+  ngpu.SetNeuronParam(neuron, "E_L", -70.6);
+  ngpu.SetNeuronParam(neuron, "I_e", 800.0);
 
   string filename = "test_constcurr.dat";
   int i_neurons[] = {neuron[rand()%n_neurons]}; // any set of neuron indexes

@@ -20,19 +20,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_models.h"
 #include "neuralgpu.h"
 #include "aeif_cond_beta.h"
+#include "poiss_gen.h"
 
-NodeSeq NeuralGPU::Create(std::string model_name, int n_nodes, int n_ports)
+NodeSeq NeuralGPU::Create(std::string model_name, int n_nodes /*=1*/,
+			  int n_ports /*=1*/)
 {
   CheckUncalibrated("Nodes cannot be created after calibration");
    if (n_nodes <= 0) {
      throw ngpu_exception("Number of nodes must be greater than zero.");
   }
-  else if (n_ports <= 0) {
-    throw ngpu_exception("Number of ports must be greater than zero.");
+  else if (n_ports < 0) {
+    throw ngpu_exception("Number of ports must be >= zero.");
   }
   if (model_name == neuron_model_name[i_aeif_cond_beta_model]) {
-    aeif_cond_beta *aeif_cond_beta_neuron = new aeif_cond_beta;
-    node_vect_.push_back(aeif_cond_beta_neuron);
+    aeif_cond_beta *aeif_cond_beta_group = new aeif_cond_beta;
+    node_vect_.push_back(aeif_cond_beta_group);
+  }
+  else if (model_name == neuron_model_name[i_poisson_generator_model]) {
+    n_ports = 0;
+    poiss_gen *poiss_gen_group = new poiss_gen;
+    node_vect_.push_back(poiss_gen_group);
   }
   else {
     throw ngpu_exception(std::string("Unknown neuron model name: ")

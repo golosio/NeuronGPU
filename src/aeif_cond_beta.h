@@ -33,7 +33,8 @@ class aeif_cond_beta : public BaseNeuron
   float h_;
   RK5DataStruct rk5_data_struct_;
     
-  int Init(int i_node_0, int n_neurons, int n_ports, int i_group);
+  int Init(int i_node_0, int n_neurons, int n_ports, int i_group,
+	   unsigned long long *seed);
 
   int Calibrate(float t_min);
 		
@@ -52,23 +53,5 @@ class aeif_cond_beta : public BaseNeuron
 
 };
 
-template <>
-int aeif_cond_beta::UpdateNR<0>(int it, float t1);
-
-template<int N_PORTS>
-int aeif_cond_beta::UpdateNR(int it, float t1)
-{
-  if (N_PORTS == n_ports_) {
-    const int NVAR = N_SCAL_VAR + N_VECT_VAR*N_PORTS;
-    const int NPARAMS = N_SCAL_PARAMS + N_VECT_PARAMS*N_PORTS;
-
-    rk5_.Update<NVAR, NPARAMS>(t1, h_min_, rk5_data_struct_);
-  }
-  else {
-    UpdateNR<N_PORTS - 1>(it, t1);
-  }
-
-  return 0;
-}
 
 #endif

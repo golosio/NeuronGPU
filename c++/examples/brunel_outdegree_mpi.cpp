@@ -27,7 +27,8 @@ int main(int argc, char *argv[])
   int mpi_np = ngpu.MpiNp();
     if (argc != 2 || mpi_np != 2) {
     cout << "Usage: mpirun -np 2 " << argv[0] << " n_neurons\n";
-    exit(-1);
+    ngpu.MpiFinalize();
+    return 0;
   }
   int arg1;
   sscanf(argv[1], "%d", &arg1);
@@ -63,9 +64,10 @@ int main(int argc, char *argv[])
   float poiss_rate = 20000.0; // poisson signal rate in Hz
   float poiss_weight = 0.37;
   float poiss_delay = 0.2; // poisson signal delay in ms
-  int n_pg = n_neurons; // number of poisson generators
+
   // create poisson generator
-  NodeSeq pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate);
+  NodeSeq pg = ngpu.Create("poisson_generator");
+  ngpu.SetNeuronParam(pg, "rate", poiss_rate);
 
   // each host has n_neurons neurons with n_receptor receptor ports
   NodeSeq neuron = ngpu.Create("aeif_cond_beta", n_neurons,
@@ -81,9 +83,9 @@ int main(int argc, char *argv[])
   float E_rev[] = {0.0, -85.0};
   float taus_decay[] = {1.0, 1.0};
   float taus_rise[] = {1.0, 1.0};
-  ngpu.SetNeuronParam("E_rev", neuron, E_rev, 2);
-  ngpu.SetNeuronParam("taus_decay", neuron, taus_decay, 2);
-  ngpu.SetNeuronParam("taus_rise", neuron, taus_rise, 2);
+  ngpu.SetNeuronParam(neuron, "E_rev", E_rev, 2);
+  ngpu.SetNeuronParam(neuron, "taus_decay", taus_decay, 2);
+  ngpu.SetNeuronParam(neuron, "taus_rise", taus_rise, 2);
 
   // Excitatory local connections, defined on all hosts
   // connect excitatory neurons to port 0 of all neurons
@@ -105,7 +107,7 @@ int main(int argc, char *argv[])
   syn_spec2.SetParam("delay", delay);
   ngpu.Connect(inh_neuron, neuron, conn_spec2, syn_spec2);
 
-  ConnSpec conn_spec3(ONE_TO_ONE);
+  ConnSpec conn_spec3(ALL_TO_ALL);
   SynSpec syn_spec3(STANDARD_SYNAPSE, poiss_weight, poiss_delay, 0);
   // connect poisson generator to port 0 of all neurons
   ngpu.Connect(pg, neuron, conn_spec3, syn_spec3);

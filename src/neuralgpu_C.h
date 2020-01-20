@@ -51,23 +51,23 @@ extern "C" {
 
   float **NeuralGPU_GetRecordData(int i_record);
 
-  int NeuralGPU_SetNeuronScalParam(char *param_name, int i_node, int n_neurons,
+  int NeuralGPU_SetNeuronScalParam(int i_node, int n_neurons, char *param_name,
 				   float val);
 
-  int NeuralGPU_SetNeuronVectParam(char *param_name, int i_node,
-				   int n_neurons, float *params,
+  int NeuralGPU_SetNeuronVectParam(int i_node, int n_neurons,
+				   char *param_name, float *params,
 				   int vect_size);
 
-  int NeuralGPU_SetNeuronPtScalParam(char *param_name, int *i_node,
-				     int n_neurons, float val);
+  int NeuralGPU_SetNeuronPtScalParam(int *i_node, int n_neurons,
+				     char *param_name, float val);
 
-  int NeuralGPU_SetNeuronPtVectParam(char *param_name, int *i_node,
-				     int n_neurons, float *params,
+  int NeuralGPU_SetNeuronPtVectParam(int *i_node, int n_neurons,
+				     char *param_name, float *params,
 				     int vect_size);
   
-  int NeuralGPU_IsNeuronScalParam(char *param_name, int i_node);
+  int NeuralGPU_IsNeuronScalParam(int i_node, char *param_name);
   
-  int NeuralGPU_IsNeuronVectParam(char *param_name, int i_node);
+  int NeuralGPU_IsNeuronVectParam(int i_node, char *param_name);
   
   int NeuralGPU_SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 				  float *spike_height);

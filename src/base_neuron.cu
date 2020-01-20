@@ -36,27 +36,52 @@ __global__ void BaseNeuronSetFloatPtArray(float *arr, int *pos, int n_elems,
 }
 
 int BaseNeuron::Init(int i_node_0, int n_nodes, int n_ports,
-		   int i_group)
+		     int i_group, unsigned long long *seed)
 {
   node_type_= 0; // NULL MODEL
   i_node_0_ = i_node_0;
   n_nodes_ = n_nodes;
   n_ports_ = n_ports;
   i_group_ = i_group;
-  get_spike_array_ = NULL;
+  seed_ = seed;
+  
+  n_scal_var_ = 0;
+  n_vect_var_ = 0;
+  n_scal_params_ = 0;
+  n_vect_params_ = 0;
+  n_var_ = 0;
+  n_params_ = 0;
 
+  get_spike_array_ = NULL;
+  port_weight_arr_ = NULL;
+  port_weight_arr_step_ = 0;
+  port_weight_port_step_ = 0;
+  port_input_arr_ = NULL;
+  port_input_arr_step_ = 0;
+  port_input_port_step_ = 0;
+  var_arr_ = NULL;
+  params_arr_ = NULL;
+  scal_var_name_ = NULL;
+  vect_var_name_= NULL;
+  scal_param_name_ = NULL;
+  vect_param_name_ = NULL;
+  d_dir_conn_array_ = NULL;
+  n_dir_conn_ = 0;
+  has_dir_conn_ = false;
+ 
   return 0;
 }			    
 
-int BaseNeuron::SetScalParam(std::string param_name, int i_neuron,
-		    int n_neurons, float val) {
+int BaseNeuron::SetScalParam(int i_neuron, int n_neurons,
+			     std::string param_name, float val)
+{
   if (!IsScalParam(param_name)) {
     throw ngpu_exception(std::string("Unrecognized scalar parameter ")
 			 + param_name);
   }
   CheckNeuronIdx(i_neuron);
   CheckNeuronIdx(i_neuron + n_neurons - 1);
-  float *param_pt = GetParamPt(param_name, i_neuron);
+  float *param_pt = GetParamPt(i_neuron, param_name);
   BaseNeuronSetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
     (param_pt, n_neurons, n_params_, val);
   gpuErrchk( cudaPeekAtLastError() );
@@ -65,8 +90,9 @@ int BaseNeuron::SetScalParam(std::string param_name, int i_neuron,
   return 0;
 }
 
-int BaseNeuron::SetScalParam(std::string param_name, int *i_neuron,
-		    int n_neurons, float val) {
+int BaseNeuron::SetScalParam( int *i_neuron, int n_neurons,
+			      std::string param_name, float val)
+{
   if (!IsScalParam(param_name)) {
     throw ngpu_exception(std::string("Unrecognized scalar parameter ")
 				     + param_name);
@@ -75,7 +101,7 @@ int BaseNeuron::SetScalParam(std::string param_name, int *i_neuron,
   gpuErrchk(cudaMalloc(&d_i_neuron, n_neurons*sizeof(int)));
   gpuErrchk(cudaMemcpy(d_i_neuron, i_neuron, n_neurons*sizeof(int),
 		       cudaMemcpyHostToDevice));
-  float *param_pt = GetParamPt(param_name, 0);
+  float *param_pt = GetParamPt(0, param_name);
   BaseNeuronSetFloatPtArray<<<(n_neurons+1023)/1024, 1024>>>
     (param_pt, d_i_neuron, n_neurons, n_params_, val);
   gpuErrchk( cudaPeekAtLastError() );
@@ -85,8 +111,10 @@ int BaseNeuron::SetScalParam(std::string param_name, int *i_neuron,
   return 0;
 }
 
-int BaseNeuron::SetVectParam(std::string param_name, int i_neuron,
-			      int n_neurons, float *params, int vect_size) {
+int BaseNeuron::SetVectParam( int i_neuron, int n_neurons,
+			      std::string param_name, float *params,
+			      int vect_size)
+{
   if (!IsVectParam(param_name)) {
     throw ngpu_exception(std::string("Unrecognized vector parameter ")
 			 + param_name);
@@ -100,7 +128,7 @@ int BaseNeuron::SetVectParam(std::string param_name, int i_neuron,
   float *param_pt;
     
   for (int i_vect=0; i_vect<vect_size; i_vect++) {
-    param_pt = GetParamPt(param_name, i_neuron, i_vect);
+    param_pt = GetParamPt(i_neuron, param_name, i_vect);
     BaseNeuronSetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
       (param_pt, n_neurons, n_params_, params[i_vect]);
     gpuErrchk( cudaPeekAtLastError() );
@@ -109,8 +137,10 @@ int BaseNeuron::SetVectParam(std::string param_name, int i_neuron,
   return 0;
 }
 
-int BaseNeuron::SetVectParam(std::string param_name, int *i_neuron,
-			      int n_neurons, float *params, int vect_size) {
+int BaseNeuron::SetVectParam( int *i_neuron, int n_neurons,
+			      std::string param_name, float *params,
+			      int vect_size)
+{
   if (!IsVectParam(param_name)) {
     throw ngpu_exception(std::string("Unrecognized vector parameter ")
 			 + param_name);
@@ -124,7 +154,7 @@ int BaseNeuron::SetVectParam(std::string param_name, int *i_neuron,
   gpuErrchk(cudaMemcpy(d_i_neuron, i_neuron, n_neurons*sizeof(int),
 		       cudaMemcpyHostToDevice));
   for (int i_vect=0; i_vect<vect_size; i_vect++) {
-    float *param_pt = GetParamPt(param_name, 0, i_vect);
+    float *param_pt = GetParamPt(0, param_name, i_vect);
     BaseNeuronSetFloatPtArray<<<(n_neurons+1023)/1024, 1024>>>
       (param_pt, d_i_neuron, n_neurons, n_params_, params[i_vect]);
     gpuErrchk( cudaPeekAtLastError() );
@@ -259,11 +289,13 @@ int BaseNeuron::CheckPortIdx(int i_port)
   return 0;
 }
 
-float *BaseNeuron::GetVarPt(std::string var_name, int i_neuron,
+float *BaseNeuron::GetVarPt(int i_neuron, std::string var_name,
 			    int i_port /*=0*/)
 {
   CheckNeuronIdx(i_neuron);
-  CheckPortIdx(i_port);
+  if (i_port!=0) {
+    CheckPortIdx(i_port);
+  }
     
   if (IsScalVar(var_name)) {
     int i_var =  GetScalVarIdx(var_name);
@@ -280,12 +312,13 @@ float *BaseNeuron::GetVarPt(std::string var_name, int i_neuron,
   }
 }
 
-float *BaseNeuron::GetParamPt(std::string param_name, int i_neuron,
+float *BaseNeuron::GetParamPt(int i_neuron, std::string param_name,
 			      int i_port /*=0*/)
 {
   CheckNeuronIdx(i_neuron);
-  CheckPortIdx(i_port);
-    
+  if (i_port!=0) {
+    CheckPortIdx(i_port);
+  }
   if (IsScalParam(param_name)) {
     int i_param =  GetScalParamIdx(param_name);
     return GetParamArr() + i_neuron*n_params_ + i_param;

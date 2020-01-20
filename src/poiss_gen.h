@@ -12,17 +12,42 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURONMODELSH
-#define NEURONMODELSH
+#ifndef POISSGENH
+#define POISSGENH
 
-enum NeuronModels {
-  i_null_model = 0, i_aeif_cond_beta_model, i_poisson_generator_model,
-  N_NEURON_MODELS
+#include <iostream>
+#include <string>
+#include <curand.h>
+#include <curand_kernel.h>
+#include "cuda_error.h"
+#include "node_group.h"
+#include "base_neuron.h"
+#include "neuron_models.h"
+
+/*
+const int N_POISS_GEN_SCAL_PARAMS = 4;
+const std::string poiss_gen_scal_param_name[] = {
+  "rate",
+  "origin"
+  "start",
+  "stop",
+};
+*/
+
+class poiss_gen : public BaseNeuron
+{
+  curandState *d_curand_state_;
+ public:
+  
+  int Init(int i_node_0, int n_nodes, int n_ports, int i_group,
+	   unsigned long long *seed);
+
+  int Calibrate(float);
+		
+  int Update(int it, float t1);
+  int SendDirectSpikes(float t, float time_step);
+
 };
 
-const std::string neuron_model_name[N_NEURON_MODELS] = {
-  "", "aeif_cond_beta", "poisson_generator"
-};
 
 #endif
-

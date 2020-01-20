@@ -37,13 +37,13 @@ int main(int argc, char *argv[])
   float E_rev[] = {20.0, 0.0, -85.0};
   float taus_decay[] = {40.0, 20.0, 30.0};
   float taus_rise[] = {20.0, 10.0, 5.0};
-  ngpu.SetNeuronParam("E_rev", neuron, E_rev, 3);
-  ngpu.SetNeuronParam("taus_decay", neuron, taus_decay, 3);
-  ngpu.SetNeuronParam("taus_rise", neuron, taus_rise, 3);
-  ngpu.SetNeuronParam("a", neuron,  4.0);
-  ngpu.SetNeuronParam("b", neuron,  80.5);
-  ngpu.SetNeuronParam("E_L", neuron,  -70.6);
-  ngpu.SetNeuronParam("g_L", neuron,  300.0);
+  ngpu.SetNeuronParam(neuron, "E_rev", E_rev, 3);
+  ngpu.SetNeuronParam(neuron, "taus_decay", taus_decay, 3);
+  ngpu.SetNeuronParam(neuron, "taus_rise", taus_rise, 3);
+  ngpu.SetNeuronParam(neuron, "a", 4.0);
+  ngpu.SetNeuronParam(neuron, "b", 80.5);
+  ngpu.SetNeuronParam(neuron, "E_L", -70.6);
+  ngpu.SetNeuronParam(neuron, "g_L", 300.0);
 
   int n_sg = 1; // number of spike generators
   NodeSeq sg = ngpu.CreateSpikeGenerator(n_sg); // create spike generator

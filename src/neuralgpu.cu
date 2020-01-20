@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "random.h"
 #include "neuralgpu.h"
 #include "nested_loop.h"
+#include "dir_connect.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -86,13 +87,18 @@ NeuralGPU::~NeuralGPU()
   }
   delete net_connection_;
   delete connect_mpi_;
-  FreeNodeGroupMap();
-  FreeGetSpikeArrays();
   curandDestroyGenerator(*random_generator_);
+  delete random_generator_;
+  if (calibrate_flag_) {
+    FreeNodeGroupMap();
+    FreeGetSpikeArrays();
+  }
+
 }
 
 int NeuralGPU::SetRandomSeed(unsigned long long seed)
 {
+  kernel_seed_ = seed + 12345;
   CURAND_CALL(curandDestroyGenerator(*random_generator_));
   random_generator_ = new curandGenerator_t;
   CURAND_CALL(curandCreateGenerator(random_generator_,
@@ -147,7 +153,7 @@ int NeuralGPU::CreateNodeGroup(int n_nodes, int n_ports)
     = connect_mpi_->extern_connection_.end();
   connect_mpi_->extern_connection_.insert(it1, n_nodes, conn_node);
 
-  node_vect_[i_group]->Init(i_node_0, n_nodes, n_ports, i_group);
+  node_vect_[i_group]->Init(i_node_0, n_nodes, n_ports, i_group, &kernel_seed_);
   node_vect_[i_group]->get_spike_array_ = InitGetSpikeArray(n_nodes, n_ports);
   
   return i_node_0;
@@ -209,6 +215,8 @@ int NeuralGPU::Calibrate()
 {
   CheckUncalibrated("Calibration can be made only once");
   calibrate_flag_ = true;
+  BuildDirectConnections();
+  
   if (mpi_flag_) {
     std::cout << "Calibrating on host " << connect_mpi_->mpi_id_ << " ...\n";
   }
@@ -348,33 +356,40 @@ int NeuralGPU::Simulate()
     gpuErrchk(cudaMemcpy(&n_spikes, d_SpikeNum, sizeof(int),
 			 cudaMemcpyDeviceToHost));
     //cout << "n_spikes: " << n_spikes << endl;
+
+    ClearGetSpikeArrays();    
     if (n_spikes > 0) {
-      ClearGetSpikeArrays();      
       time_mark = getRealTime();
       NestedLoop::Run(n_spikes, d_SpikeTargetNum);
       NestedLoop_time += (getRealTime() - time_mark);
       time_mark = getRealTime();
-      // improve using a grid
-      for (unsigned int i=0; i<node_vect_.size(); i++) {
-	if (node_vect_[i]->n_ports_>0) {
-	  GetSpikes<<<(node_vect_[i]->n_nodes_
-		       *node_vect_[i]->n_ports_+1023)/1024, 1024>>>
-	    (node_vect_[i]->i_group_, node_vect_[i]->n_nodes_,
-	     node_vect_[i]->n_ports_,
-	     node_vect_[i]->n_var_,
-	     node_vect_[i]->port_weight_arr_,
-	     node_vect_[i]->port_weight_arr_step_,
-	     node_vect_[i]->port_weight_port_step_,
-	     node_vect_[i]->port_input_arr_,
-	     node_vect_[i]->port_input_arr_step_,
-	     node_vect_[i]->port_input_port_step_);
-	  
-	  gpuErrchk( cudaPeekAtLastError() );
-	  gpuErrchk( cudaDeviceSynchronize() );
-	}
-      }
-      GetSpike_time += (getRealTime() - time_mark);
     }
+    for (unsigned int i=0; i<node_vect_.size(); i++) {
+      if (node_vect_[i]->has_dir_conn_) {
+	node_vect_[i]->SendDirectSpikes(neural_time_, time_resolution_/1000.0);
+      }
+    }
+
+    for (unsigned int i=0; i<node_vect_.size(); i++) {
+      if (node_vect_[i]->n_ports_>0) {
+	GetSpikes<<<(node_vect_[i]->n_nodes_
+		     *node_vect_[i]->n_ports_+1023)/1024, 1024>>>
+	  (node_vect_[i]->i_group_, node_vect_[i]->n_nodes_,
+	   node_vect_[i]->n_ports_,
+	   node_vect_[i]->n_var_,
+	   node_vect_[i]->port_weight_arr_,
+	   node_vect_[i]->port_weight_arr_step_,
+	   node_vect_[i]->port_weight_port_step_,
+	   node_vect_[i]->port_input_arr_,
+	   node_vect_[i]->port_input_arr_step_,
+	   node_vect_[i]->port_input_port_step_);
+	
+	gpuErrchk( cudaPeekAtLastError() );
+	gpuErrchk( cudaDeviceSynchronize() );
+      }
+    }
+    GetSpike_time += (getRealTime() - time_mark);
+
     time_mark = getRealTime();
     SpikeReset<<<1, 1>>>();
     gpuErrchk( cudaPeekAtLastError() );
@@ -490,48 +505,47 @@ std::vector<int> NeuralGPU::GetNodeArrayWithOffset(int *i_node, int n_nodes,
   return node_vect;
 }
 
-int NeuralGPU::SetNeuronParam(std::string param_name, int i_node,
-			       int n_nodes, float val)
+int NeuralGPU::SetNeuronParam(int i_node, int n_nodes,
+			      std::string param_name, float val)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_nodes, i_group);
   
-  return node_vect_[i_group]->SetScalParam(param_name, i_neuron,
-					      n_nodes, val);
+  return node_vect_[i_group]->SetScalParam(i_neuron, n_nodes, param_name, val);
 }
 
-int NeuralGPU::SetNeuronParam(std::string param_name, int *i_node,
-			       int n_nodes, float val)
+int NeuralGPU::SetNeuronParam(int *i_node, int n_nodes,
+			      std::string param_name, float val)
 {
   int i_group;
   std::vector<int> node_vect = GetNodeArrayWithOffset(i_node, n_nodes,
 						      i_group);
-  return node_vect_[i_group]->SetScalParam(param_name, node_vect.data(),
-					      n_nodes, val);
+  return node_vect_[i_group]->SetScalParam(node_vect.data(), n_nodes,
+					   param_name, val);
 }
 
-int NeuralGPU::SetNeuronParam(std::string param_name, int i_node,
-			       int n_nodes, float *params, int vect_size)
+int NeuralGPU::SetNeuronParam(int i_node, int n_nodes, std::string param_name,
+			      float *params, int vect_size)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_nodes, i_group);
-  
-  return node_vect_[i_group]->SetVectParam(param_name, i_neuron,
-					     n_nodes, params, vect_size);
+  return node_vect_[i_group]->SetVectParam(i_neuron, n_nodes, param_name,
+					   params, vect_size);
 }
 
-int NeuralGPU::SetNeuronParam(std::string param_name, int *i_node,
-			       int n_nodes, float *params, int vect_size)
+int NeuralGPU::SetNeuronParam( int *i_node, int n_nodes,
+			       std::string param_name, float *params,
+			       int vect_size)
 {
   int i_group;
   std::vector<int> node_vect = GetNodeArrayWithOffset(i_node, n_nodes,
 						      i_group);
   
-  return node_vect_[i_group]->SetVectParam(param_name, node_vect.data(),
-					      n_nodes, params, vect_size);
+  return node_vect_[i_group]->SetVectParam(node_vect.data(), n_nodes,
+					   param_name, params, vect_size);
 }
 
-int NeuralGPU::IsNeuronScalParam(std::string param_name, int i_node)
+int NeuralGPU::IsNeuronScalParam(int i_node, std::string param_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -539,7 +553,7 @@ int NeuralGPU::IsNeuronScalParam(std::string param_name, int i_node)
   return node_vect_[i_group]->IsScalParam(param_name);
 }
 
-int NeuralGPU::IsNeuronVectParam(std::string param_name, int i_node)
+int NeuralGPU::IsNeuronVectParam(int i_node, std::string param_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -636,3 +650,40 @@ float *NeuralGPU::RandomNormalClipped(size_t n, float mean, float stddev,
   return arr; 
 }
 
+int NeuralGPU::BuildDirectConnections()
+{
+  for (unsigned int iv=0; iv<node_vect_.size(); iv++) {
+    if (node_vect_[iv]->has_dir_conn_==true) {
+      std::vector<DirectConnection> dir_conn_vect;
+      int i0 = node_vect_[iv]->i_node_0_;
+      int n = node_vect_[iv]->n_nodes_;
+      for (int i_source=i0; i_source<i0+n; i_source++) {
+	vector<ConnGroup> &conn = net_connection_->connection_[i_source];
+	for (unsigned int id=0; id<conn.size(); id++) {
+	  std::vector<TargetSyn> tv = conn[id].target_vect;
+	  for (unsigned int i=0; i<tv.size(); i++) {
+	    DirectConnection dir_conn;
+	    dir_conn.irel_source_ = i_source - i0;
+	    dir_conn.i_target_ = tv[i].node;
+	    dir_conn.port_ = tv[i].port;
+	    dir_conn.weight_ = tv[i].weight;
+	    dir_conn.delay_ = time_resolution_*(conn[id].delay+1);
+	    dir_conn_vect.push_back(dir_conn);
+	  }
+	}
+      }
+      long n_dir_conn = dir_conn_vect.size();
+      node_vect_[iv]->n_dir_conn_ = n_dir_conn;
+      
+      DirectConnection *d_dir_conn_array;
+      gpuErrchk(cudaMalloc(&d_dir_conn_array,
+			   n_dir_conn*sizeof(DirectConnection )));
+      gpuErrchk(cudaMemcpy(d_dir_conn_array, dir_conn_vect.data(),
+			   n_dir_conn*sizeof(DirectConnection),
+			   cudaMemcpyHostToDevice));
+      node_vect_[iv]->d_dir_conn_array_ = d_dir_conn_array;
+    }
+  }
+
+  return 0;
+}

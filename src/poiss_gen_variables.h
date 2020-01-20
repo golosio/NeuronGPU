@@ -12,17 +12,29 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURONMODELSH
-#define NEURONMODELSH
+#ifndef POISSGENVARIABLESH
+#define POISSGENVARIABLESH
 
-enum NeuronModels {
-  i_null_model = 0, i_aeif_cond_beta_model, i_poisson_generator_model,
-  N_NEURON_MODELS
+#include <string>
+
+enum {
+  i_rate = 0,
+  i_origin,
+  i_start,
+  i_stop,
+  N_POISS_GEN_SCAL_PARAMS
 };
 
-const std::string neuron_model_name[N_NEURON_MODELS] = {
-  "", "aeif_cond_beta", "poisson_generator"
+const std::string poiss_gen_scal_param_name[N_POISS_GEN_SCAL_PARAMS] = {
+  "rate",
+  "origin",
+  "start",
+  "stop",
 };
+
+#define rate params[i_rate]
+#define origin params[i_origin]
+#define start params[i_start]
+#define stop params[i_stop]
 
 #endif
-

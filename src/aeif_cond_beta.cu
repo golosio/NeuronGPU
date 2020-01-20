@@ -14,19 +14,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <math.h>
 #include <iostream>
+#include "aeif_cond_beta_variables.h"
 #include "rk5.h"
 #include "aeif_cond_beta.h"
-#include "aeif_cond_beta_variables.h"
+
 
 int aeif_cond_beta::Init(int i_node_0, int n_nodes, int n_ports,
-	       int i_group) {
-  node_type_ = i_aeif_cond_beta_model;
-  i_node_0_ = i_node_0;
-  n_nodes_ = n_nodes;
-  n_ports_ = n_ports;
-  i_group_ = i_group;
+			 int i_group, unsigned long long *seed) {
+  BaseNeuron::Init(i_node_0, n_nodes, n_ports, i_group, seed);
   h_min_=1.0e-4;
   h_ = 1.0e-2;
+  node_type_ = i_aeif_cond_beta_model;
   n_scal_var_ = N_SCAL_VAR;
   n_vect_var_ = N_VECT_VAR;
   n_scal_params_ = N_SCAL_PARAMS;
@@ -55,7 +53,6 @@ int aeif_cond_beta::Init(int i_node_0, int n_nodes, int n_ports,
     + GetVectVarIdx("g1");
   port_input_arr_step_ = n_var_;
   port_input_port_step_ = n_vect_var_;
-
 
   return 0;
 }

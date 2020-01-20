@@ -12,17 +12,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURONMODELSH
-#define NEURONMODELSH
+#ifndef DIRCONNECTH
+#define DIRCONNECTH
 
-enum NeuronModels {
-  i_null_model = 0, i_aeif_cond_beta_model, i_poisson_generator_model,
-  N_NEURON_MODELS
-};
-
-const std::string neuron_model_name[N_NEURON_MODELS] = {
-  "", "aeif_cond_beta", "poisson_generator"
+struct DirectConnection
+{
+  int irel_source_;
+  int i_target_;
+  unsigned char port_;
+  float weight_;
+  float delay_;
 };
 
 #endif
-

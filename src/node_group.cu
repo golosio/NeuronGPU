@@ -66,7 +66,7 @@ double *NeuralGPU::InitGetSpikeArray (int n_nodes, int n_ports)
 
 int NeuralGPU::FreeNodeGroupMap()
 {
-  gpuErrchk(cudaFree(d_node_group_map_));
+  //gpuErrchk(cudaFree(d_node_group_map_));
 	    
   return 0;
 }

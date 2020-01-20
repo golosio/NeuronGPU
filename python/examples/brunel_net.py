@@ -29,9 +29,10 @@ Win = 0.35
 poiss_rate = 20000.0 # poisson signal rate in Hz
 poiss_weight = 0.37
 poiss_delay = 0.2 # poisson signal delay in ms
-n_pg = n_neurons  # number of poisson generators
+
 # create poisson generator
-pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate)
+pg = ngpu.Create("poisson_generator")
+ngpu.SetStatus(pg, "rate", poiss_rate)
 
 # Create n_neurons neurons with n_receptor receptor ports
 neuron = ngpu.Create("aeif_cond_beta", n_neurons, n_receptors)
@@ -71,7 +72,7 @@ ngpu.Connect(inh_neuron, neuron, inh_conn_dict, inh_syn_dict)
 
 
 #connect poisson generator to port 0 of all neurons
-pg_conn_dict={"rule": "one_to_one"}
+pg_conn_dict={"rule": "all_to_all"}
 pg_syn_dict={"weight": poiss_weight, "delay": poiss_delay, "receptor":0}
 
 ngpu.Connect(pg, neuron, pg_conn_dict, pg_syn_dict)

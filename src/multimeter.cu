@@ -38,7 +38,7 @@ Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
   var_pt_vect_.clear();
   for (unsigned int i=0; i<var_name_vect.size(); i++) {
     if (var_name_vect[i]!=SpikeVarName) {
-      float *var_pt = neur_vect[i]->GetVarPt(var_name_vect[i], i_neur_vect[i],
+      float *var_pt = neur_vect[i]->GetVarPt(i_neur_vect[i], var_name_vect[i],
 					     i_port_vect[i]);
       var_pt_vect_.push_back(var_pt);
     }

@@ -50,9 +50,10 @@ int main(int argc, char *argv[])
   float poiss_rate = 20000.0; // poisson signal rate in Hz
   float poiss_weight = 0.37;
   float poiss_delay = 0.2; // poisson signal delay in ms
-  int n_pg = n_neurons; // number of poisson generators
+
   // create poisson generator
-  NodeSeq pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate);
+  NodeSeq pg = ngpu.Create("poisson_generator");
+  ngpu.SetNeuronParam(pg, "rate", poiss_rate);
   std::vector<int> pg_vect = pg.ToVector();
 
   // create n_neurons neurons with n_receptor receptor ports
@@ -68,9 +69,9 @@ int main(int argc, char *argv[])
   float E_rev[] = {0.0, -85.0};
   float taus_decay[] = {1.0, 1.0};
   float taus_rise[] = {1.0, 1.0};
-  ngpu.SetNeuronParam("E_rev", neuron_vect, E_rev, 2);
-  ngpu.SetNeuronParam("taus_decay", neuron_vect, taus_decay, 2);
-  ngpu.SetNeuronParam("taus_rise", neuron_vect, taus_rise, 2);
+  ngpu.SetNeuronParam(neuron_vect, "E_rev", E_rev, 2);
+  ngpu.SetNeuronParam(neuron_vect, "taus_decay", taus_decay, 2);
+  ngpu.SetNeuronParam(neuron_vect, "taus_rise", taus_rise, 2);
   
   float mean_delay = 0.5;
   float std_delay = 0.25;
@@ -106,7 +107,7 @@ int main(int argc, char *argv[])
 
   delete[] inh_delays;
 
-  ConnSpec conn_spec3(ONE_TO_ONE);
+  ConnSpec conn_spec3(ALL_TO_ALL);
   SynSpec syn_spec3(STANDARD_SYNAPSE, poiss_weight, poiss_delay, 0);
   // connect poisson generator to port 0 of all neurons
   ngpu.Connect(pg_vect, neuron_vect, conn_spec3, syn_spec3);

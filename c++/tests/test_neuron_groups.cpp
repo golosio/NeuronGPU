@@ -36,9 +36,10 @@ int main(int argc, char *argv[])
   float poiss_rate = 5000.0; // poisson signal rate in Hz
   float poiss_weight = 1.0;
   float poiss_delay = 0.2; // poisson signal delay in ms
-  int n_pg = 7; // number of poisson generators
+
   // create poisson generator
-  NodeSeq pg = ngpu.CreatePoissonGenerator(n_pg, poiss_rate);
+  NodeSeq pg = ngpu.Create("poisson_generator");
+  ngpu.SetNeuronParam(pg, "rate", poiss_rate);
 
   // create 3 neuron groups
   int n_neur1 = 100; // number of neurons
@@ -55,15 +56,15 @@ int main(int argc, char *argv[])
   float E_rev[] = {0.0, 0.0, 0.0};
   float taus_decay[] = {1.0, 1.0, 1.0};
   float taus_rise[] = {1.0, 1.0, 1.0};
-  ngpu.SetNeuronParam("E_rev", neur_group1, E_rev, 3);
-  ngpu.SetNeuronParam("taus_decay", neur_group1, taus_decay, 3);
-  ngpu.SetNeuronParam("taus_rise", neur_group1, taus_rise, 3);
-  ngpu.SetNeuronParam("E_rev", neur_group2, E_rev, 1);
-  ngpu.SetNeuronParam("taus_decay", neur_group2, taus_decay, 1);
-  ngpu.SetNeuronParam("taus_rise", neur_group2, taus_rise, 1);
-  ngpu.SetNeuronParam("E_rev", neur_group3, E_rev, 2);
-  ngpu.SetNeuronParam("taus_decay", neur_group3, taus_decay, 2);
-  ngpu.SetNeuronParam("taus_rise", neur_group3, taus_rise, 2);
+  ngpu.SetNeuronParam(neur_group1, "E_rev", E_rev, 3);
+  ngpu.SetNeuronParam(neur_group1, "taus_decay", taus_decay, 3);
+  ngpu.SetNeuronParam(neur_group1, "taus_rise", taus_rise, 3);
+  ngpu.SetNeuronParam(neur_group2, "E_rev", E_rev, 1);
+  ngpu.SetNeuronParam(neur_group2, "taus_decay", taus_decay, 1);
+  ngpu.SetNeuronParam(neur_group2, "taus_rise", taus_rise, 1);
+  ngpu.SetNeuronParam(neur_group3, "E_rev", E_rev, 2);
+  ngpu.SetNeuronParam(neur_group3, "taus_decay", taus_decay, 2);
+  ngpu.SetNeuronParam(neur_group3, "taus_rise", taus_rise, 2);
 
   int i11 = neur_group1[rand()%n_neur1];
   int i12 = neur_group2[rand()%n_neur2];
@@ -81,12 +82,12 @@ int main(int argc, char *argv[])
   
   // connect poisson generator to port 0 of all neurons
   ngpu.Connect(pg[0], i11, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[1], i12, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[2], i13, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[3], i14, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[4], i21, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[5], i31, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[6], i32, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i12, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i13, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i14, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i21, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i31, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i32, 0, poiss_weight, poiss_delay);
 
   float weight = 0.01; // connection weight
   float delay = 0.2; // connection delay in ms

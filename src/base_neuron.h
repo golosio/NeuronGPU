@@ -16,21 +16,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BASENEURONH
 
 #include <string>
+#include "dir_connect.h"
+
+class NeuralGPU;
 
 class BaseNeuron
 {
- public:
+ protected:
+  friend class NeuralGPU;
   int node_type_;
   int i_node_0_;
   int n_nodes_;
   int n_ports_;
   int i_group_;
-  int n_var_;
-  int n_params_;
+  unsigned long long *seed_;  
+
   int n_scal_var_;
   int n_vect_var_;
   int n_scal_params_;
   int n_vect_params_;
+  int n_var_;
+  int n_params_;
 
   double *get_spike_array_;
   float *port_weight_arr_;
@@ -46,10 +52,15 @@ class BaseNeuron
   const std::string *scal_param_name_;
   const std::string *vect_param_name_;
 
+  DirectConnection *d_dir_conn_array_;
+  long n_dir_conn_; // = 0;
+  bool has_dir_conn_; // = false;
+
+ public:
   virtual ~BaseNeuron() {}
   
   virtual int Init(int i_node_0, int n_neurons, int n_ports,
-		   int i_neuron_group);
+		   int i_neuron_group, unsigned long long *seed);
 
   virtual int Calibrate(float t_min) {return 0;}
 		
@@ -59,17 +70,18 @@ class BaseNeuron
   
   virtual int GetY(int i_var, int i_neuron, int n_neurons, float *y) {return 0;}
   
-  virtual int SetScalParam(std::string param_name, int i_neuron, int n_neurons,
+  virtual int SetScalParam(int i_neuron, int n_neurons, std::string param_name, 
 			   float val);
 
-  virtual int SetScalParam(std::string param_name, int *i_neuron, int n_neurons,
+  virtual int SetScalParam(int *i_neuron, int n_neurons, std::string param_name,
 			   float val);
   
-  virtual int SetVectParam(std::string param_name, int i_neuron, int n_neurons,
-			    float *params, int vect_size);
+  virtual int SetVectParam(int i_neuron, int n_neurons, std::string param_name,
+			   float *params, int vect_size);
   
-  virtual int SetVectParam(std::string param_name, int *i_neuron,
-			   int n_neurons, float *params, int vect_size);
+  virtual int SetVectParam(int *i_neuron, int n_neurons,
+			   std::string param_name, float *params,
+			   int vect_size);
 
   virtual int GetScalVarIdx(std::string var_name);
 
@@ -95,11 +107,13 @@ class BaseNeuron
 
   int CheckPortIdx(int i_port);
 
-  virtual float *GetVarPt(std::string var_name, int i_neuron, int i_port=0);
+  virtual float *GetVarPt(int i_neuron, std::string var_name, int i_port=0);
 
-  virtual float *GetParamPt(std::string param_name, int i_neuron,
-		    int i_port=0);
+  virtual float *GetParamPt(int i_neuron, std::string param_name, 
+			    int i_port=0);
   virtual float GetSpikeActivity(int i_neuron);
+
+  virtual int SendDirectSpikes(float t, float time_step) {return 0;}
 
 };
 

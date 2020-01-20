@@ -1,7 +1,9 @@
 import neuralgpu as ngpu
 
-neuron = ngpu.Create("aeif_cond_beta", 1, 1)
-poiss_gen = ngpu.CreatePoissonGenerator(1, 12000.0);
+neuron = ngpu.Create("aeif_cond_beta")
+poiss_gen = ngpu.Create("poisson_generator");
+
+ngpu.SetStatus(poiss_gen, "rate", 12000.0)
 
 conn_dict={"rule": "one_to_one"}
 syn_dict={"weight": 0.05, "delay": 2.0, "receptor":0}

@@ -82,6 +82,7 @@ class NeuralGPU
 {
   float time_resolution_; // time resolution in ms
   curandGenerator_t *random_generator_;
+  unsigned long long kernel_seed_;
   bool calibrate_flag_; // becomes true after calibration
   bool mpi_flag_; // true if MPI is initialized
 
@@ -219,7 +220,7 @@ class NeuralGPU
 
   int SetMaxSpikeBufferSize(int max_size);
   int GetMaxSpikeBufferSize();
-  NodeSeq Create(std::string model_name, int n_neurons, int n_ports);
+  NodeSeq Create(std::string model_name, int n_neurons=1, int n_ports=1);
   NodeSeq CreatePoissonGenerator(int n_nodes, float rate);
   NodeSeq CreateSpikeGenerator(int n_nodes);
   int CreateRecord(std::string file_name, std::string *var_name_arr,
@@ -228,35 +229,35 @@ class NeuralGPU
 		   int *i_node_arr, int *i_port_arr, int n_nodes);
   std::vector<std::vector<float>> *GetRecordData(int i_record);
 
-  int SetNeuronParam(std::string param_name, int i_node, int n_neurons,
-		      float val);
-
-  int SetNeuronParam(std::string param_name, int *i_node, int n_neurons,
+  int SetNeuronParam(int i_node, int n_neurons, std::string param_name,
 		     float val);
 
-  int SetNeuronParam(std::string param_name, int i_node, int n_neurons,
-			  float *params, int vect_size);
+  int SetNeuronParam(int *i_node, int n_neurons, std::string param_name,
+		     float val);
 
-  int SetNeuronParam(std::string param_name, int *i_node, int n_neurons,
-			  float *params, int vect_size);
+  int SetNeuronParam(int i_node, int n_neurons, std::string param_name,
+		     float *params, int vect_size);
 
-  int SetNeuronParam(std::string param_name, NodeSeq nodes, float val) {
-    return SetNeuronParam(param_name, nodes.i0, nodes.n, val);
+  int SetNeuronParam(int *i_node, int n_neurons, std::string param_name,
+		     float *params, int vect_size);
+
+  int SetNeuronParam(NodeSeq nodes, std::string param_name, float val) {
+    return SetNeuronParam(nodes.i0, nodes.n, param_name, val);
   }
 
-  int SetNeuronParam(std::string param_name, NodeSeq nodes, float *params,
+  int SetNeuronParam(NodeSeq nodes, std::string param_name, float *params,
 		      int vect_size) {
-    return SetNeuronParam(param_name, nodes.i0, nodes.n, params, vect_size);
+    return SetNeuronParam(nodes.i0, nodes.n, param_name, params, vect_size);
   }
   
-  int SetNeuronParam(std::string param_name, std::vector<int> nodes,
+  int SetNeuronParam(std::vector<int> nodes, std::string param_name,
 		     float val) {
-    return SetNeuronParam(param_name, nodes.data(), nodes.size(), val);
+    return SetNeuronParam(nodes.data(), nodes.size(), param_name, val);
   }
 
-  int SetNeuronParam(std::string param_name, std::vector<int> nodes,
+  int SetNeuronParam(std::vector<int> nodes, std::string param_name,
 		     float *params, int vect_size) {
-    return SetNeuronParam(param_name, nodes.data(), nodes.size(), params,
+    return SetNeuronParam(nodes.data(), nodes.size(), param_name, params,
 			  vect_size);
   }
 
@@ -265,9 +266,9 @@ class NeuralGPU
   std::vector<int> GetNodeArrayWithOffset(int *i_node, int n_nodes,
 					  int &i_group);
 
-  int IsNeuronScalParam(std::string param_name, int i_node);
+  int IsNeuronScalParam(int i_node, std::string param_name);
 
-  int IsNeuronVectParam(std::string param_name, int i_node);
+  int IsNeuronVectParam(int i_node, std::string param_name);
 
   int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 			float *spike_height);
@@ -373,6 +374,7 @@ class NeuralGPU
 		    int i_target_host, std::vector<int> target,
 		    ConnSpec &conn_spec, SynSpec &syn_spec);
 
+  int BuildDirectConnections();
 
 };
 

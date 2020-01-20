@@ -23,7 +23,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
- BEGIN_TRY {
+  BEGIN_TRY {
   if (argc != 2) {
     cout << "Usage: " << argv[0] << " n_neurons\n";
     return 0;
@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
   // create n_neurons neurons with n_receptor receptor ports
   NodeSeq neuron = ngpu.Create("aeif_cond_beta", n_neurons,
 					   n_receptors);
+
   NodeSeq exc_neuron = neuron.Subseq(0,NE-1); // excitatory neuron group
   NodeSeq inh_neuron = neuron.Subseq(NE, n_neurons-1); //inhibitory neuron group
 
@@ -66,9 +67,10 @@ int main(int argc, char *argv[])
   float E_rev[] = {0.0, -85.0};
   float taus_decay[] = {1.0, 1.0};
   float taus_rise[] = {1.0, 1.0};
-  ngpu.SetNeuronParam("Non-existent", neuron, E_rev, 2);
-  ngpu.SetNeuronParam("taus_decay", neuron, taus_decay, 2);
-  ngpu.SetNeuronParam("taus_rise", neuron, taus_rise, 2);
+
+  ngpu.SetNeuronParam(neuron, "Non-existent", E_rev, 2);
+  ngpu.SetNeuronParam(neuron, "taus_decay", taus_decay, 2);
+  ngpu.SetNeuronParam(neuron, "taus_rise", taus_rise, 2);
   
   float mean_delay = 0.5;
   float std_delay = 0.25;
@@ -119,6 +121,6 @@ int main(int argc, char *argv[])
   ngpu.Simulate();
 
   return 0;
- } END_TRY
+  } END_TRY
   return -1;
 }

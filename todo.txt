@@ -1,8 +1,3 @@
-check if poisson generator and spike generator can be instantiated more tnan
-once
-
-make 'poiss_gen' model with variable rates
-
 convert spike generator to model
 
 Implement GetStatus?

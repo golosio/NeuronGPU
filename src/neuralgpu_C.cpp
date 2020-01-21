@@ -97,13 +97,6 @@ extern "C" {
     ret = pg[0];
   } END_ERR_PROP return ret; }
   
-  int NeuralGPU_CreateSpikeGenerator(int n_nodes)
-  { int ret; BEGIN_ERR_PROP {
-    NodeSeq sg = NeuralGPU_instance->CreateSpikeGenerator(n_nodes);
-
-    ret = sg[0];
-  } END_ERR_PROP return ret; }
-  
   int NeuralGPU_CreateRecord(char *file_name, char *var_name_arr[],
 			     int *i_node_arr, int *i_port_arr,
 			     int n_nodes)
@@ -155,14 +148,14 @@ extern "C" {
 					     param_name_str, val);
   } END_ERR_PROP return ret; }
 
-  int NeuralGPU_SetNeuronVectParam(int i_node, int n_neurons,
-				   char *param_name, float *params,
-				    int vect_size)
+  int NeuralGPU_SetNeuronArrayParam(int i_node, int n_neurons,
+				    char *param_name, float *params,
+				    int array_size)
   { int ret; BEGIN_ERR_PROP {
-    std::string param_name_str = std::string(param_name);    
-    ret = NeuralGPU_instance->SetNeuronParam(i_node, n_neurons,
-					     param_name_str, params,
-					     vect_size);
+      std::string param_name_str = std::string(param_name);    
+      ret = NeuralGPU_instance->SetNeuronParam(i_node, n_neurons,
+					       param_name_str, params,
+					       array_size);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SetNeuronPtScalParam(int *i_node, int n_neurons,
@@ -173,14 +166,14 @@ extern "C" {
 					     param_name_str, val);
   } END_ERR_PROP return ret; }
 
-  int NeuralGPU_SetNeuronPtVectParam(int *i_node, int n_neurons,
+  int NeuralGPU_SetNeuronPtArrayParam(int *i_node, int n_neurons,
 				     char *param_name, float *params,
-				     int vect_size)
+				     int array_size)
   { int ret; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);    
     ret = NeuralGPU_instance->SetNeuronParam(i_node, n_neurons,
 					     param_name_str, params,
-					     vect_size);
+					     array_size);
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_IsNeuronScalParam(int i_node, char *param_name)
@@ -190,20 +183,20 @@ extern "C" {
     ret = NeuralGPU_instance->IsNeuronScalParam(i_node, param_name_str);
   } END_ERR_PROP return ret; }
   
-  int NeuralGPU_IsNeuronVectParam(int i_node, char *param_name)
+  int NeuralGPU_IsNeuronPortParam(int i_node, char *param_name)
   { int ret; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     
-    ret = NeuralGPU_instance->IsNeuronVectParam(i_node, param_name_str);
+    ret = NeuralGPU_instance->IsNeuronPortParam(i_node, param_name_str);
   } END_ERR_PROP return ret; }
   
-  int NeuralGPU_SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
-			float *spike_height)
+  int NeuralGPU_IsNeuronArrayParam(int i_node, char *param_name)
   { int ret; BEGIN_ERR_PROP {
-    ret = NeuralGPU_instance->SetSpikeGenerator(i_node, n_spikes, spike_time,
-						 spike_height);
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuralGPU_instance->IsNeuronArrayParam(i_node, param_name_str);
   } END_ERR_PROP return ret; }
-
+  
   int NeuralGPU_Calibrate()
   { int ret; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Calibrate();

@@ -52,7 +52,6 @@ NeuralGPU::NeuralGPU()
   CURAND_CALL(curandCreateGenerator(random_generator_,
 				    CURAND_RNG_PSEUDO_DEFAULT));
   poiss_generator_ = new PoissonGenerator;
-  spike_generator_ = new SpikeGenerator;
   multimeter_ = new Multimeter;
   net_connection_ = new NetConnection;
   connect_mpi_ = new ConnectMpi;
@@ -66,7 +65,6 @@ NeuralGPU::NeuralGPU()
   t_min_ = 0.0;
   sim_time_ = 1000.0;        //Simulation time in ms
   n_poiss_nodes_ = 0;
-  n_spike_gen_nodes_ = 0;
   SetTimeResolution(0.1);  // time resolution in ms
   connect_mpi_->net_connection_ = net_connection_;
   error_flag_ = false;
@@ -80,7 +78,6 @@ NeuralGPU::NeuralGPU()
 NeuralGPU::~NeuralGPU()
 {
   delete poiss_generator_;
-  delete spike_generator_;
   delete multimeter_;
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     delete node_vect_[i];
@@ -181,26 +178,6 @@ NodeSeq NeuralGPU::CreatePoissonGenerator(int n_nodes, float rate)
   return NodeSeq(i_node_0, n_nodes);
 }
 
-NodeSeq NeuralGPU::CreateSpikeGenerator(int n_nodes)
-{
-  CheckUncalibrated("Spike generator cannot be created after calibration");
-  if (n_spike_gen_nodes_ != 0) {
-    throw ngpu_exception("Number of spike generators cannot be modified.");
-  }
-  else if (n_nodes <= 0) {
-    throw ngpu_exception("Number of nodes must be greater than zero.");
-  }
-
-  n_spike_gen_nodes_ = n_nodes;               
-
-  BaseNeuron *bn = new BaseNeuron;
-  node_vect_.push_back(bn);
-  int i_node_0 = CreateNodeGroup( n_nodes, 0);
-  
-  spike_generator_->Create(i_node_0, n_nodes, t_min_, time_resolution_);
-    
-  return NodeSeq(i_node_0, n_nodes);
-}
 
 int NeuralGPU::CheckUncalibrated(std::string message)
 {
@@ -248,7 +225,7 @@ int NeuralGPU::Calibrate()
   multimeter_->OpenFiles();
   
   for (unsigned int i=0; i<node_vect_.size(); i++) {
-    node_vect_[i]->Calibrate(t_min_);
+    node_vect_[i]->Calibrate(t_min_, time_resolution_);
   }
   //float x;
   //float y;
@@ -261,11 +238,10 @@ int NeuralGPU::Calibrate()
   return 0;
 }
 
-int NeuralGPU::Simulate()
+int NeuralGPU::Simulate(float sim_time)
 {
   double SpikeBufferUpdate_time = 0;
   double poisson_generator_time = 0;
-  double spike_generator_time = 0;
   double neuron_Update_time = 0;
   double copy_ext_spike_time = 0;
   double SendExternalSpike_time = 0;
@@ -277,6 +253,8 @@ int NeuralGPU::Simulate()
   double ExternalSpikeReset_time = 0;
   double time_mark;
 
+  sim_time_ = sim_time;
+  
   if (!calibrate_flag_) {
     Calibrate();
   }
@@ -306,12 +284,6 @@ int NeuralGPU::Simulate()
     if (n_poiss_nodes_>0) {
       poiss_generator_->Update(Nt-it);
       poisson_generator_time += (getRealTime() - time_mark);
-    }
-
-    time_mark = getRealTime();
-    if (n_spike_gen_nodes_>0) {
-      spike_generator_->Update(it);
-      spike_generator_time += (getRealTime() - time_mark);
     }
 
     time_mark = getRealTime();
@@ -414,7 +386,6 @@ int NeuralGPU::Simulate()
   std::cout << "\n";
   std::cout << "  SpikeBufferUpdate_time: " << SpikeBufferUpdate_time << "\n";
   std::cout << "  poisson_generator_time: " << poisson_generator_time << "\n";
-  std::cout << "  spike_generator_time: " << spike_generator_time << "\n";
   std::cout << "  neuron_Update_time: " << neuron_Update_time << "\n";
   std::cout << "  copy_ext_spike_time: " << copy_ext_spike_time << "\n";
   std::cout << "  SendExternalSpike_time: " << SendExternalSpike_time << "\n";
@@ -489,10 +460,10 @@ std::vector<int> NeuralGPU::GetNodeArrayWithOffset(int *i_node, int n_nodes,
   }
   i_group = node_group_map_[in0];
   int i0 = node_vect_[i_group]->i_node_0_;
-  std::vector<int> node_vect;
-  node_vect.assign(i_node, i_node+n_nodes);
+  std::vector<int> nodes;
+  nodes.assign(i_node, i_node+n_nodes);
   for(int i=0; i<n_nodes; i++) {
-    int in = node_vect[i];
+    int in = nodes[i];
     if (in<0 || in>=(int)node_group_map_.size()) {
       throw ngpu_exception("Unrecognized node in setting parameter");
     }
@@ -500,9 +471,9 @@ std::vector<int> NeuralGPU::GetNodeArrayWithOffset(int *i_node, int n_nodes,
       throw ngpu_exception("Nodes belong to different node groups "
 			   "in setting parameter");
     }
-    node_vect[i] -= i0;
+    nodes[i] -= i0;
   }
-  return node_vect;
+  return nodes;
 }
 
 int NeuralGPU::SetNeuronParam(int i_node, int n_nodes,
@@ -518,9 +489,9 @@ int NeuralGPU::SetNeuronParam(int *i_node, int n_nodes,
 			      std::string param_name, float val)
 {
   int i_group;
-  std::vector<int> node_vect = GetNodeArrayWithOffset(i_node, n_nodes,
-						      i_group);
-  return node_vect_[i_group]->SetScalParam(node_vect.data(), n_nodes,
+  std::vector<int> nodes = GetNodeArrayWithOffset(i_node, n_nodes,
+						  i_group);
+  return node_vect_[i_group]->SetScalParam(nodes.data(), n_nodes,
 					   param_name, val);
 }
 
@@ -529,8 +500,14 @@ int NeuralGPU::SetNeuronParam(int i_node, int n_nodes, std::string param_name,
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_nodes, i_group);
-  return node_vect_[i_group]->SetVectParam(i_neuron, n_nodes, param_name,
-					   params, vect_size);
+  if (node_vect_[i_group]->IsPortParam(param_name)) {
+      return node_vect_[i_group]->SetPortParam(i_neuron, n_nodes, param_name,
+					       params, vect_size);
+  }
+  else {
+    return node_vect_[i_group]->SetArrayParam(i_neuron, n_nodes, param_name,
+					      params, vect_size);
+  }
 }
 
 int NeuralGPU::SetNeuronParam( int *i_node, int n_nodes,
@@ -540,9 +517,14 @@ int NeuralGPU::SetNeuronParam( int *i_node, int n_nodes,
   int i_group;
   std::vector<int> node_vect = GetNodeArrayWithOffset(i_node, n_nodes,
 						      i_group);
-  
-  return node_vect_[i_group]->SetVectParam(node_vect.data(), n_nodes,
-					   param_name, params, vect_size);
+  if (node_vect_[i_group]->IsPortParam(param_name)) {  
+    return node_vect_[i_group]->SetPortParam(node_vect.data(), n_nodes,
+					     param_name, params, vect_size);
+  }
+  else {
+    return node_vect_[i_group]->SetArrayParam(node_vect.data(), n_nodes,
+					      param_name, params, vect_size);
+  }    
 }
 
 int NeuralGPU::IsNeuronScalParam(int i_node, std::string param_name)
@@ -553,12 +535,20 @@ int NeuralGPU::IsNeuronScalParam(int i_node, std::string param_name)
   return node_vect_[i_group]->IsScalParam(param_name);
 }
 
-int NeuralGPU::IsNeuronVectParam(int i_node, std::string param_name)
+int NeuralGPU::IsNeuronPortParam(int i_node, std::string param_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
   
-  return node_vect_[i_group]->IsVectParam(param_name);
+  return node_vect_[i_group]->IsPortParam(param_name);
+}
+
+int NeuralGPU::IsNeuronArrayParam(int i_node, std::string param_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  
+  return node_vect_[i_group]->IsArrayParam(param_name);
 }
 
 int NeuralGPU::ConnectMpiInit(int argc, char *argv[])
@@ -598,12 +588,6 @@ int NeuralGPU::MpiFinalize()
   }
   
   return 0;
-}
-
-int NeuralGPU::SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
-				 float *spike_height)
-{
-  return spike_generator_->Set(i_node, n_spikes, spike_time, spike_height);
 }
 
 unsigned int *NeuralGPU::RandomInt(size_t n)

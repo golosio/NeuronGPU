@@ -36,7 +36,7 @@ class aeif_cond_beta : public BaseNeuron
   int Init(int i_node_0, int n_neurons, int n_ports, int i_group,
 	   unsigned long long *seed);
 
-  int Calibrate(float t_min);
+  int Calibrate(float time_min, float time_resolution);
 		
   int Update(int it, float t1);
   

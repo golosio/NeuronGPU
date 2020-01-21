@@ -39,8 +39,6 @@ extern "C" {
 
   int NeuralGPU_CreatePoissonGenerator(int n_nodes, float rate);
   
-  int NeuralGPU_CreateSpikeGenerator(int n_nodes);
-  
   int NeuralGPU_CreateRecord(char *file_name, char *var_name_arr[],
 			     int *i_node_arr, int *i_port_arr,
 			     int n_nodes);
@@ -54,24 +52,23 @@ extern "C" {
   int NeuralGPU_SetNeuronScalParam(int i_node, int n_neurons, char *param_name,
 				   float val);
 
-  int NeuralGPU_SetNeuronVectParam(int i_node, int n_neurons,
-				   char *param_name, float *params,
-				   int vect_size);
+  int NeuralGPU_SetNeuronArrayParam(int i_node, int n_neurons,
+				    char *param_name, float *params,
+				    int array_size);
 
   int NeuralGPU_SetNeuronPtScalParam(int *i_node, int n_neurons,
 				     char *param_name, float val);
 
-  int NeuralGPU_SetNeuronPtVectParam(int *i_node, int n_neurons,
-				     char *param_name, float *params,
-				     int vect_size);
+  int NeuralGPU_SetNeuronPtArrayParam(int *i_node, int n_neurons,
+				      char *param_name, float *params,
+				      int array_size);
   
   int NeuralGPU_IsNeuronScalParam(int i_node, char *param_name);
   
-  int NeuralGPU_IsNeuronVectParam(int i_node, char *param_name);
-  
-  int NeuralGPU_SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
-				  float *spike_height);
+  int NeuralGPU_IsNeuronPortParam(int i_node, char *param_name);
 
+  int NeuralGPU_IsNeuronArrayParam(int i_node, char *param_name);
+  
   int NeuralGPU_Calibrate();
 
   int NeuralGPU_Simulate();

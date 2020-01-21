@@ -32,9 +32,9 @@ class BaseNeuron
   unsigned long long *seed_;  
 
   int n_scal_var_;
-  int n_vect_var_;
+  int n_port_var_;
   int n_scal_params_;
-  int n_vect_params_;
+  int n_port_params_;
   int n_var_;
   int n_params_;
 
@@ -48,9 +48,9 @@ class BaseNeuron
   float *var_arr_;
   float *params_arr_;
   const std::string *scal_var_name_;
-  const std::string *vect_var_name_;
+  const std::string *port_var_name_;
   const std::string *scal_param_name_;
-  const std::string *vect_param_name_;
+  const std::string *port_param_name_;
 
   DirectConnection *d_dir_conn_array_;
   long n_dir_conn_; // = 0;
@@ -62,7 +62,7 @@ class BaseNeuron
   virtual int Init(int i_node_0, int n_neurons, int n_ports,
 		   int i_neuron_group, unsigned long long *seed);
 
-  virtual int Calibrate(float t_min) {return 0;}
+  virtual int Calibrate(float time_min, float time_resolution) {return 0;}
 		
   virtual int Update(int it, float t1) {return 0;}
   
@@ -76,20 +76,27 @@ class BaseNeuron
   virtual int SetScalParam(int *i_neuron, int n_neurons, std::string param_name,
 			   float val);
   
-  virtual int SetVectParam(int i_neuron, int n_neurons, std::string param_name,
+  virtual int SetPortParam(int i_neuron, int n_neurons, std::string param_name,
 			   float *params, int vect_size);
   
-  virtual int SetVectParam(int *i_neuron, int n_neurons,
+  virtual int SetPortParam(int *i_neuron, int n_neurons,
 			   std::string param_name, float *params,
 			   int vect_size);
 
+  virtual int SetArrayParam(int i_neuron, int n_neurons, std::string param_name,
+			   float *array, int array_size);
+  
+  virtual int SetArrayParam(int *i_neuron, int n_neurons,
+			   std::string param_name, float *array,
+			   int array_size);
+
   virtual int GetScalVarIdx(std::string var_name);
 
-  virtual int GetVectVarIdx(std::string var_name);
+  virtual int GetPortVarIdx(std::string var_name);
 
   virtual int GetScalParamIdx(std::string param_name);
 
-  virtual int GetVectParamIdx(std::string param_name);
+  virtual int GetPortParamIdx(std::string param_name);
 
   virtual float *GetVarArr();
 
@@ -97,11 +104,13 @@ class BaseNeuron
 
   virtual bool IsScalVar(std::string var_name);
 
-  virtual bool IsVectVar(std::string var_name);
+  virtual bool IsPortVar(std::string var_name);
 
   virtual bool IsScalParam(std::string param_name);
 
-  virtual bool IsVectParam(std::string param_name);
+  virtual bool IsPortParam(std::string param_name);
+
+  virtual bool IsArrayParam(std::string param_name);
 
   int CheckNeuronIdx(int i_neuron);
 

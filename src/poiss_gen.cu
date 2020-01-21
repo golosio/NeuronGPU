@@ -92,7 +92,7 @@ int poiss_gen::Init(int i_node_0, int n_nodes, int /*n_ports*/,
   return 0;
 }
 
-int poiss_gen::Calibrate(float)
+int poiss_gen::Calibrate(float, float)
 {
   cudaMalloc(&d_curand_state_, n_dir_conn_*sizeof(curandState));
 

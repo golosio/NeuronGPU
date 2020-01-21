@@ -17,11 +17,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 enum NeuronModels {
   i_null_model = 0, i_aeif_cond_beta_model, i_poisson_generator_model,
-  N_NEURON_MODELS
+  i_spike_generator_model, N_NEURON_MODELS
 };
 
 const std::string neuron_model_name[N_NEURON_MODELS] = {
-  "", "aeif_cond_beta", "poisson_generator"
+  "", "aeif_cond_beta", "poisson_generator", "spike_generator"
 };
 
 #endif

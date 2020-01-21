@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -12,55 +12,61 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SPIKE_GENERATOR_H
-#define SPIKE_GENERATOR_H
+#ifndef SPIKEGENERATORH
+#define SPIKEGENERATORH
 
-extern __device__ int *SpikeGeneratorSpikeNum;
+#include <iostream>
+#include <string>
+#include "cuda_error.h"
+				    //#include "node_group.h"
+#include "base_neuron.h"
+#include "neuron_models.h"
 
-extern __device__ int *SpikeGeneratorSpikeIdx;
+/*
+const int N_POISS_GEN_SCAL_PARAMS = 4;
+const std::string poiss_gen_scal_param_name[] = {
+  "rate",
+  "origin"
+  "start",
+  "stop",
+};
+*/
 
-extern __device__ int **SpikeGeneratorTimeIdx;
-
-extern __device__ float **SpikeGeneratorHeight;
-
-__global__
-void SpikeGeneratorUpdate(int i_node_0, int n_nodes, int i_time);
-
-__global__
-void DeviceSpikeGeneratorInit(int *d_n_spikes, int *d_i_spike,
-			      int **d_spike_time_idx,
-			      float **d_spike_height);
-
-class SpikeGenerator
+class spike_generator : public BaseNeuron
 {
- public:
-  int i_node_0_;
-  int n_nodes_;
-  float time_resolution_;
-  float time_min_;
-
   int *d_n_spikes_;
   int *d_i_spike_;	    
   int **d_spike_time_idx_;
   float **d_spike_height_;
   int **h_spike_time_idx_;
   float ** h_spike_height_;
+  std::vector<std::vector<float>> spike_time_vect_;
+  std::vector<std::vector<float>> spike_height_vect_;
 
-  SpikeGenerator();
+  int SetSpikes(int irel_node, int n_spikes, float *spike_time,
+		float *spike_height, float time_min, float time_resolution);
+  
+ public:
+  ~spike_generator();
+  
+  int Init(int i_node_0, int n_nodes, int n_ports, int i_group,
+	   unsigned long long *seed);
 
-  ~SpikeGenerator();
-    
-    int Init();
-    
-    int Create(int i_node_0, int n_nodes, float min_time,
-	       float time_resolution);
-    
-    int Free();
-    
-    int Update(int i_time);
-    
-    int Set(int i_node, int n_spikes, float *spike_time, float *spike_height);
+  int Free();
+  
+  int Update(int i_time, float t1);
+
+  int Calibrate(float time_min, float time_resolution);
+
+  bool IsArrayParam(std::string param_name);
+
+  int SetArrayParam(int i_neuron, int n_neurons, std::string param_name,
+		    float *array, int array_size);
+  
+  int SetArrayParam(int *i_neuron, int n_neurons, std::string param_name,
+		    float *array, int array_size);
 
 };
+
 
 #endif

@@ -1,6 +1,8 @@
-convert spike generator to model
+Extend SetStatus to variables
 
 Implement GetStatus?
+
+Implement read connections based on connect class print method
 
 Produce build system and check it on different linux, mac (windows?)
 

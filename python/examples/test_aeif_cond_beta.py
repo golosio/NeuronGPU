@@ -7,13 +7,13 @@ ngpu.SetStatus(neuron, {"V_peak": 0.0, "a": 4.0, "b":80.5,
 ngpu.SetStatus(neuron, {'E_rev':[20.0, 0.0, -85.0],
                         'taus_decay':[40.0, 20.0, 30.0],
                         'taus_rise':[20.0, 10.0, 5.0]})
-spike = ngpu.CreateSpikeGenerator(1)
-spike_time = [10.0]
-spike_height = [1.0]
-n_spikes = 1
-sg_node = 0 # this spike generator has only one node
+spike = ngpu.Create("spike_generator")
+spike_time = [10.0, 400.0]
+spike_height = [1.0, 0.5]
+n_spikes = 2
+
 # set spike times and height
-ngpu.SetSpikeGenerator(0, spike_time, spike_height)
+ngpu.SetStatus(spike, {"spike_time": spike_time, "spike_height":spike_height})
 delay = [1.0, 100.0, 130.0]
 weight = [0.1, 0.2, 0.15]
 
@@ -25,7 +25,7 @@ for syn in range(3):
 
 record = ngpu.CreateRecord("", ["V_m"], [neuron[0]], [0])
 
-ngpu.Simulate(300.0)
+ngpu.Simulate(800.0)
 
 data_list = ngpu.GetRecordData(record)
 t=[row[0] for row in data_list]

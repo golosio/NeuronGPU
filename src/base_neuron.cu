@@ -46,9 +46,9 @@ int BaseNeuron::Init(int i_node_0, int n_nodes, int n_ports,
   seed_ = seed;
   
   n_scal_var_ = 0;
-  n_vect_var_ = 0;
+  n_port_var_ = 0;
   n_scal_params_ = 0;
-  n_vect_params_ = 0;
+  n_port_params_ = 0;
   n_var_ = 0;
   n_params_ = 0;
 
@@ -62,9 +62,9 @@ int BaseNeuron::Init(int i_node_0, int n_nodes, int n_ports,
   var_arr_ = NULL;
   params_arr_ = NULL;
   scal_var_name_ = NULL;
-  vect_var_name_= NULL;
+  port_var_name_= NULL;
   scal_param_name_ = NULL;
-  vect_param_name_ = NULL;
+  port_param_name_ = NULL;
   d_dir_conn_array_ = NULL;
   n_dir_conn_ = 0;
   has_dir_conn_ = false;
@@ -111,11 +111,11 @@ int BaseNeuron::SetScalParam( int *i_neuron, int n_neurons,
   return 0;
 }
 
-int BaseNeuron::SetVectParam( int i_neuron, int n_neurons,
+int BaseNeuron::SetPortParam( int i_neuron, int n_neurons,
 			      std::string param_name, float *params,
 			      int vect_size)
 {
-  if (!IsVectParam(param_name)) {
+  if (!IsPortParam(param_name)) {
     throw ngpu_exception(std::string("Unrecognized vector parameter ")
 			 + param_name);
   }
@@ -137,11 +137,11 @@ int BaseNeuron::SetVectParam( int i_neuron, int n_neurons,
   return 0;
 }
 
-int BaseNeuron::SetVectParam( int *i_neuron, int n_neurons,
+int BaseNeuron::SetPortParam( int *i_neuron, int n_neurons,
 			      std::string param_name, float *params,
 			      int vect_size)
 {
-  if (!IsVectParam(param_name)) {
+  if (!IsPortParam(param_name)) {
     throw ngpu_exception(std::string("Unrecognized vector parameter ")
 			 + param_name);
   }
@@ -165,6 +165,21 @@ int BaseNeuron::SetVectParam( int *i_neuron, int n_neurons,
   return 0;
 }
 
+int BaseNeuron::SetArrayParam(int i_neuron, int n_neurons,
+			      std::string param_name, float *array,
+			      int array_size)
+{
+  throw ngpu_exception("This neuron group does not have array parameters");  
+}
+
+int BaseNeuron::SetArrayParam(int *i_neuron, int n_neurons,
+			      std::string param_name, float *array,
+			      int array_size)
+{
+  throw ngpu_exception("This neuron group does not have array parameters");  
+}
+
+
 int BaseNeuron::GetScalVarIdx(std::string var_name)
 {
   int i_var;
@@ -179,13 +194,13 @@ int BaseNeuron::GetScalVarIdx(std::string var_name)
   return i_var;
 }
 
-int BaseNeuron::GetVectVarIdx(std::string var_name)
+int BaseNeuron::GetPortVarIdx(std::string var_name)
 {
   int i_var;
-  for (i_var=0; i_var<n_vect_var_; i_var++) {
-    if (var_name == vect_var_name_[i_var]) break;
+  for (i_var=0; i_var<n_port_var_; i_var++) {
+    if (var_name == port_var_name_[i_var]) break;
   }
-  if (i_var == n_vect_var_) {
+  if (i_var == n_port_var_) {
     throw ngpu_exception(std::string("Unrecognized vector variable ")
 				     + var_name);
   }
@@ -207,13 +222,13 @@ int BaseNeuron::GetScalParamIdx(std::string param_name)
   return i_param;
 }
 
-int BaseNeuron::GetVectParamIdx(std::string param_name)
+int BaseNeuron::GetPortParamIdx(std::string param_name)
 {  
   int i_param;
-  for (i_param=0; i_param<n_vect_params_; i_param++) {
-    if (param_name == vect_param_name_[i_param]) break;
+  for (i_param=0; i_param<n_port_params_; i_param++) {
+    if (param_name == port_param_name_[i_param]) break;
   }
-  if (i_param == n_vect_params_) {
+  if (i_param == n_port_params_) {
     throw ngpu_exception(std::string("Unrecognized vector parameter ")
 			 + param_name);
   }
@@ -240,11 +255,11 @@ bool BaseNeuron::IsScalVar(std::string var_name)
   return false;
 }
 
-bool BaseNeuron::IsVectVar(std::string var_name)
+bool BaseNeuron::IsPortVar(std::string var_name)
 {
   int i_var;
-  for (i_var=0; i_var<n_vect_var_; i_var++) {
-    if (var_name == vect_var_name_[i_var]) return true;
+  for (i_var=0; i_var<n_port_var_; i_var++) {
+    if (var_name == port_var_name_[i_var]) return true;
   }
   return false;
 }
@@ -258,12 +273,17 @@ bool BaseNeuron::IsScalParam(std::string param_name)
   return false;
 }
 
-bool BaseNeuron::IsVectParam(std::string param_name)
+bool BaseNeuron::IsPortParam(std::string param_name)
 {  
   int i_param;
-  for (i_param=0; i_param<n_vect_params_; i_param++) {
-    if (param_name == vect_param_name_[i_param]) return true;
+  for (i_param=0; i_param<n_port_params_; i_param++) {
+    if (param_name == port_param_name_[i_param]) return true;
   }
+  return false;
+}
+
+bool BaseNeuron::IsArrayParam(std::string param_name)
+{  
   return false;
 }
 
@@ -301,10 +321,10 @@ float *BaseNeuron::GetVarPt(int i_neuron, std::string var_name,
     int i_var =  GetScalVarIdx(var_name);
     return GetVarArr() + i_neuron*n_var_ + i_var;
   }
-  else if (IsVectVar(var_name)) {
-    int i_vvar =  GetVectVarIdx(var_name);
+  else if (IsPortVar(var_name)) {
+    int i_vvar =  GetPortVarIdx(var_name);
     return GetVarArr() + i_neuron*n_var_ + n_scal_var_
-      + i_port*n_vect_var_ + i_vvar;
+      + i_port*n_port_var_ + i_vvar;
   }
   else {
     throw ngpu_exception(std::string("Unrecognized variable ")
@@ -323,10 +343,10 @@ float *BaseNeuron::GetParamPt(int i_neuron, std::string param_name,
     int i_param =  GetScalParamIdx(param_name);
     return GetParamArr() + i_neuron*n_params_ + i_param;
   }
-  else if (IsVectParam(param_name)) {
-    int i_vparam =  GetVectParamIdx(param_name);
+  else if (IsPortParam(param_name)) {
+    int i_vparam =  GetPortParamIdx(param_name);
     return GetParamArr() + i_neuron*n_params_ + n_scal_params_
-      + i_port*n_vect_params_ + i_vparam;
+      + i_port*n_port_params_ + i_vparam;
   }
   else {
     throw ngpu_exception(std::string("Unrecognized parameter ")

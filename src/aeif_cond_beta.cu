@@ -26,17 +26,17 @@ int aeif_cond_beta::Init(int i_node_0, int n_nodes, int n_ports,
   h_ = 1.0e-2;
   node_type_ = i_aeif_cond_beta_model;
   n_scal_var_ = N_SCAL_VAR;
-  n_vect_var_ = N_VECT_VAR;
+  n_port_var_ = N_PORT_VAR;
   n_scal_params_ = N_SCAL_PARAMS;
-  n_vect_params_ = N_VECT_PARAMS;
+  n_port_params_ = N_PORT_PARAMS;
 
-  n_var_ = n_scal_var_ + n_vect_var_*n_ports;
-  n_params_ = n_scal_params_ + n_vect_params_*n_ports;
+  n_var_ = n_scal_var_ + n_port_var_*n_ports;
+  n_params_ = n_scal_params_ + n_port_params_*n_ports;
 
   scal_var_name_ = aeif_cond_beta_scal_var_name;
-  vect_var_name_= aeif_cond_beta_vect_var_name;
+  port_var_name_= aeif_cond_beta_port_var_name;
   scal_param_name_ = aeif_cond_beta_scal_param_name;
-  vect_param_name_ = aeif_cond_beta_vect_param_name;
+  port_param_name_ = aeif_cond_beta_port_param_name;
   rk5_data_struct_.node_type_ = i_aeif_cond_beta_model;
   rk5_data_struct_.i_node_0_ = i_node_0_;
 
@@ -45,20 +45,21 @@ int aeif_cond_beta::Init(int i_node_0, int n_nodes, int n_ports,
   params_arr_ = rk5_.GetParamArr();
 
   port_weight_arr_ = GetParamArr() + n_scal_params_
-    + GetVectParamIdx("g0");
+    + GetPortParamIdx("g0");
   port_weight_arr_step_ = n_params_;
-  port_weight_port_step_ = n_vect_params_;
+  port_weight_port_step_ = n_port_params_;
 
   port_input_arr_ = GetVarArr() + n_scal_var_
-    + GetVectVarIdx("g1");
+    + GetPortVarIdx("g1");
   port_input_arr_step_ = n_var_;
-  port_input_port_step_ = n_vect_var_;
+  port_input_port_step_ = n_port_var_;
 
   return 0;
 }
 
-int aeif_cond_beta::Calibrate(float t_min) {
-  rk5_.Calibrate(t_min, h_, rk5_data_struct_);
+int aeif_cond_beta::Calibrate(float time_min, float /*time_resolution*/)
+{
+  rk5_.Calibrate(time_min, h_, rk5_data_struct_);
   
   return 0;
 }

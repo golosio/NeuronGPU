@@ -26,7 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "connect_spec.h"
 
 class PoissonGenerator;
-class SpikeGenerator;
 class Multimeter;
 class NetConnection;
 class ConnectMpi;
@@ -87,7 +86,6 @@ class NeuralGPU
   bool mpi_flag_; // true if MPI is initialized
 
   PoissonGenerator *poiss_generator_;
-  SpikeGenerator *spike_generator_;
   Multimeter *multimeter_;
   std::vector<BaseNeuron*> node_vect_; // -> node_group_vect
   
@@ -107,7 +105,6 @@ class NeuralGPU
   float neural_time_; // Neural activity time
   float sim_time_; // Simulation time in ms
   int n_poiss_nodes_;
-  int n_spike_gen_nodes_;
 
   double start_real_time_;
   double build_real_time_;
@@ -222,7 +219,6 @@ class NeuralGPU
   int GetMaxSpikeBufferSize();
   NodeSeq Create(std::string model_name, int n_neurons=1, int n_ports=1);
   NodeSeq CreatePoissonGenerator(int n_nodes, float rate);
-  NodeSeq CreateSpikeGenerator(int n_nodes);
   int CreateRecord(std::string file_name, std::string *var_name_arr,
 		   int *i_node_arr, int n_nodes);  
   int CreateRecord(std::string file_name, std::string *var_name_arr,
@@ -268,13 +264,15 @@ class NeuralGPU
 
   int IsNeuronScalParam(int i_node, std::string param_name);
 
-  int IsNeuronVectParam(int i_node, std::string param_name);
+  int IsNeuronPortParam(int i_node, std::string param_name);
+
+  int IsNeuronArrayParam(int i_node, std::string param_name);
 
   int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 			float *spike_height);
 
   int Calibrate();
-  int Simulate();
+  int Simulate(float sim_time=1000.0);
 
   int ConnectMpiInit(int argc, char *argv[]);
 

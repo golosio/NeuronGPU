@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuralgpu.h"
 #include "aeif_cond_beta.h"
 #include "poiss_gen.h"
+#include "spike_generator.h"
 
 NodeSeq NeuralGPU::Create(std::string model_name, int n_nodes /*=1*/,
 			  int n_ports /*=1*/)
@@ -40,6 +41,11 @@ NodeSeq NeuralGPU::Create(std::string model_name, int n_nodes /*=1*/,
     n_ports = 0;
     poiss_gen *poiss_gen_group = new poiss_gen;
     node_vect_.push_back(poiss_gen_group);
+  }
+  else if (model_name == neuron_model_name[i_spike_generator_model]) {
+    n_ports = 0;
+    spike_generator *spike_generator_group = new spike_generator;
+    node_vect_.push_back(spike_generator_group);
   }
   else {
     throw ngpu_exception(std::string("Unknown neuron model name: ")

@@ -112,6 +112,7 @@ def GetMaxSpikeBufferSize():
         raise ValueError(GetErrorMessage())
     return ret
 
+
 NeuralGPU_SetSimTime = _neuralgpu.NeuralGPU_SetSimTime
 NeuralGPU_SetSimTime.argtypes = (ctypes.c_float,)
 NeuralGPU_SetSimTime.restype = ctypes.c_int
@@ -121,6 +122,7 @@ def SetSimTime(sim_time):
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
+
 
 NeuralGPU_Create = _neuralgpu.NeuralGPU_Create
 NeuralGPU_Create.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int)
@@ -134,6 +136,7 @@ def Create(model_name, n_nodes=1, n_ports=1):
         raise ValueError(GetErrorMessage())
     return ret
 
+
 NeuralGPU_CreatePoissonGenerator = _neuralgpu.NeuralGPU_CreatePoissonGenerator
 NeuralGPU_CreatePoissonGenerator.argtypes = (ctypes.c_int, ctypes.c_float)
 NeuralGPU_CreatePoissonGenerator.restype = ctypes.c_int
@@ -145,16 +148,6 @@ def CreatePoissonGenerator(n_nodes, rate):
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuralGPU_CreateSpikeGenerator = _neuralgpu.NeuralGPU_CreateSpikeGenerator
-NeuralGPU_CreateSpikeGenerator.argtypes = (ctypes.c_int,)
-NeuralGPU_CreateSpikeGenerator.restype = ctypes.c_int
-def CreateSpikeGenerator(n_nodes):
-    "Create a spike generator"
-    i_node = NeuralGPU_CreateSpikeGenerator(ctypes.c_int(n_nodes)) 
-    ret = NodeSeq(i_node, n_nodes)
-    if GetErrorCode() != 0:
-        raise ValueError(GetErrorMessage())
-    return ret
 
 NeuralGPU_CreateRecord = _neuralgpu.NeuralGPU_CreateRecord
 NeuralGPU_CreateRecord.argtypes = (c_char_p, ctypes.POINTER(c_char_p), c_int_p, c_int_p, ctypes.c_int)
@@ -239,16 +232,16 @@ def SetNeuronScalParam(i_node, n_nodes, param_name, val):
     return ret
 
 
-NeuralGPU_SetNeuronVectParam = _neuralgpu.NeuralGPU_SetNeuronVectParam
-NeuralGPU_SetNeuronVectParam.argtypes = (ctypes.c_int, ctypes.c_int,
+NeuralGPU_SetNeuronArrayParam = _neuralgpu.NeuralGPU_SetNeuronArrayParam
+NeuralGPU_SetNeuronArrayParam.argtypes = (ctypes.c_int, ctypes.c_int,
                                           c_char_p, c_float_p, ctypes.c_int)
-NeuralGPU_SetNeuronVectParam.restype = ctypes.c_int
-def SetNeuronVectParam(i_node, n_nodes, param_name, params_list):
+NeuralGPU_SetNeuronArrayParam.restype = ctypes.c_int
+def SetNeuronArrayParam(i_node, n_nodes, param_name, params_list):
     "Set neuron vector parameter value"
     c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
     vect_size = len(params_list)
     array_float_type = ctypes.c_float * vect_size
-    ret = NeuralGPU_SetNeuronVectParam(ctypes.c_int(i_node),
+    ret = NeuralGPU_SetNeuronArrayParam(ctypes.c_int(i_node),
                                        ctypes.c_int(n_nodes), c_param_name,
                                        array_float_type(*params_list),
                                        ctypes.c_int(vect_size))  
@@ -272,17 +265,17 @@ def SetNeuronPtScalParam(node_pt, n_nodes, param_name, val):
     return ret
 
 
-NeuralGPU_SetNeuronPtVectParam = _neuralgpu.NeuralGPU_SetNeuronPtVectParam
-NeuralGPU_SetNeuronPtVectParam.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NeuralGPU_SetNeuronPtArrayParam = _neuralgpu.NeuralGPU_SetNeuronPtArrayParam
+NeuralGPU_SetNeuronPtArrayParam.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                            c_char_p, c_float_p,
                                            ctypes.c_int)
-NeuralGPU_SetNeuronPtVectParam.restype = ctypes.c_int
-def SetNeuronPtVectParam(node_pt, n_nodes, param_name, params_list):
+NeuralGPU_SetNeuronPtArrayParam.restype = ctypes.c_int
+def SetNeuronPtArrayParam(node_pt, n_nodes, param_name, params_list):
     "Set neuron list vector parameter value"
     c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
     vect_size = len(params_list)
     array_float_type = ctypes.c_float * vect_size
-    ret = NeuralGPU_SetNeuronPtVectParam(ctypes.c_void_p(node_pt),
+    ret = NeuralGPU_SetNeuronPtArrayParam(ctypes.c_void_p(node_pt),
                                          ctypes.c_int(n_nodes),
                                          c_param_name,
                                          array_float_type(*params_list),
@@ -305,13 +298,24 @@ def IsNeuronScalParam(i_node, param_name):
     return ret
 
 
-NeuralGPU_IsNeuronVectParam = _neuralgpu.NeuralGPU_IsNeuronVectParam
-NeuralGPU_IsNeuronVectParam.argtypes = (ctypes.c_int, c_char_p)
-NeuralGPU_IsNeuronVectParam.restype = ctypes.c_int
-def IsNeuronVectParam(i_node, param_name):
+NeuralGPU_IsNeuronPortParam = _neuralgpu.NeuralGPU_IsNeuronPortParam
+NeuralGPU_IsNeuronPortParam.argtypes = (ctypes.c_int, c_char_p)
+NeuralGPU_IsNeuronPortParam.restype = ctypes.c_int
+def IsNeuronPortParam(i_node, param_name):
     "Check name of neuron scalar parameter"
     c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
-    ret = (NeuralGPU_IsNeuronVectParam(ctypes.c_int(i_node), c_param_name)!= 0) 
+    ret = (NeuralGPU_IsNeuronPortParam(ctypes.c_int(i_node), c_param_name)!= 0) 
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+NeuralGPU_IsNeuronArrayParam = _neuralgpu.NeuralGPU_IsNeuronArrayParam
+NeuralGPU_IsNeuronArrayParam.argtypes = (ctypes.c_int, c_char_p)
+NeuralGPU_IsNeuronArrayParam.restype = ctypes.c_int
+def IsNeuronArrayParam(i_node, param_name):
+    "Check name of neuron scalar parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name), len(param_name)+1)
+    ret = (NeuralGPU_IsNeuronArrayParam(ctypes.c_int(i_node), c_param_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
@@ -327,8 +331,9 @@ def SetNeuronParam(nodes, param_name, val):
     if type(nodes)==NodeSeq:
         if IsNeuronScalParam(nodes.i0, param_name):
             SetNeuronScalParam(nodes.i0, nodes.n, param_name, val)
-        elif IsNeuronVectParam(nodes.i0, param_name):
-            SetNeuronVectParam(nodes.i0, nodes.n, param_name, val)
+        elif (IsNeuronPortParam(nodes.i0, param_name) |
+              IsNeuronArrayParam(nodes.i0, param_name)):
+            SetNeuronArrayParam(nodes.i0, nodes.n, param_name, val)
         else:
             raise ValueError("Unknown neuron parameter")
     else:
@@ -338,32 +343,18 @@ def SetNeuronParam(nodes, param_name, val):
         if IsNeuronScalParam(nodes[0], param_name):
             NeuralGPU_SetNeuronPtScalParam(node_arr_pt, len(nodes),
                                            c_param_name, val)
-        elif IsNeuronVectParam(nodes[0], param_name):
-            vect_size = len(val)
+        elif (IsNeuronPortParam(nodes[0], param_name) |
+              IsNeuronArrayParam(nodes.i0, param_name)):
+            array_size = len(val)
             array_float_type = ctypes.c_float * vect_size
-            NeuralGPU_SetNeuronPtVectParam(node_arr_pt, len(nodes),
+            NeuralGPU_SetNeuronPtArrayParam(node_arr_pt, len(nodes),
                                            c_param_name,
                                            array_float_type(*val),
-                                           ctypes.c_int(vect_size))
+                                           ctypes.c_int(array_size))
         else:
             raise ValueError("Unknown neuron parameter")
 
     
-NeuralGPU_SetSpikeGenerator = _neuralgpu.NeuralGPU_SetSpikeGenerator
-NeuralGPU_SetSpikeGenerator.argtypes = (ctypes.c_int, ctypes.c_int, c_float_p,
-                                        c_float_p)
-NeuralGPU_SetSpikeGenerator.restype = ctypes.c_int
-def SetSpikeGenerator(i_node, spike_time_list, spike_height_list):
-    "Set spike generator spike times and heights"
-    n_spikes = len(spike_time_list)
-    array_float_type = ctypes.c_float * n_spikes
-    ret = NeuralGPU_SetSpikeGenerator(ctypes.c_int(i_node),
-                                      ctypes.c_int(n_spikes),
-                                      array_float_type(*spike_time_list),
-                                      array_float_type(*spike_height_list)) 
-    if GetErrorCode() != 0:
-        raise ValueError(GetErrorMessage())
-    return ret
 
 
 NeuralGPU_Calibrate = _neuralgpu.NeuralGPU_Calibrate

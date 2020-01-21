@@ -71,7 +71,7 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
 __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
 			  float *port_weight_arr,
 			  int port_weight_arr_step,
-			  int port_weight_port_step, //float *y_arr)
+			  int port_weight_port_step,
 			  float *port_input_arr,
 			  int port_input_arr_step,
 			  int port_input_port_step)
@@ -80,23 +80,14 @@ __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
   if (i_array < array_size*n_ports) {
      int i_target = i_array % array_size;
      int i_port = i_array / array_size;
-     //int i = i_target*n_var + N_SCAL_VAR + N_VECT_VAR*i_port + i_g1; // g1(i)
      int i_port_input = i_target*port_input_arr_step
        + port_input_port_step*i_port;
      int i_port_weight = i_target*port_weight_arr_step
        + port_weight_port_step*i_port;
-     //if (i_array==0) {
-     //  printf("npar, irw, rw %d %d %f\n",
-     // N_SCAL_PARAMS + N_VECT_PARAMS*n_ports,
-     //	      i_port_weight,
-     //	      NodeGroupArray[i_group].port_weight_arr_
-     //	      [i_port_weight]);
-     //     }
-     double d_val = (double)port_input_arr[i_port_input] // (double)y_arr[i]
+     double d_val = (double)port_input_arr[i_port_input]
        + NodeGroupArray[i_group].get_spike_array_[i_array]
        * port_weight_arr[i_port_weight];
 
-     //y_arr[i] =
      port_input_arr[i_port_input] = (float)d_val;
   }
 }

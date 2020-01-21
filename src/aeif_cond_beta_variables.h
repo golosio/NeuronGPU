@@ -29,10 +29,10 @@ enum ScalVarIndexes {
   N_SCAL_VAR
 };
 
-enum VectVarIndexes {
+enum PortVarIndexes {
   i_g = 0,
   i_g1,
-  N_VECT_VAR
+  N_PORT_VAR
 };
 
 enum ScalParamIndexes {
@@ -52,12 +52,12 @@ enum ScalParamIndexes {
   N_SCAL_PARAMS
 };
 
-enum VectParamIndexes {
+enum PortParamIndexes {
   i_E_rev = 0,
   i_taus_rise,
   i_taus_decay,
   i_g0,
-  N_VECT_PARAMS
+  N_PORT_PARAMS
 };
 
 const std::string aeif_cond_beta_scal_var_name[N_SCAL_VAR] = {
@@ -65,7 +65,7 @@ const std::string aeif_cond_beta_scal_var_name[N_SCAL_VAR] = {
   "w"
 };
 
-const std::string aeif_cond_beta_vect_var_name[N_VECT_VAR] = {
+const std::string aeif_cond_beta_port_var_name[N_PORT_VAR] = {
   "g",
   "g1"
 };
@@ -86,7 +86,7 @@ const std::string aeif_cond_beta_scal_param_name[N_SCAL_PARAMS] = {
   "refractory_step"
 };
 
-const std::string aeif_cond_beta_vect_param_name[N_VECT_PARAMS] = {
+const std::string aeif_cond_beta_port_param_name[N_PORT_PARAMS] = {
   "E_rev",
   "taus_rise",
   "taus_decay",
@@ -100,13 +100,13 @@ const std::string aeif_cond_beta_vect_param_name[N_VECT_PARAMS] = {
 //
 #define V_m y[i_V_m]
 #define w y[i_w]
-#define g(i) y[N_SCAL_VAR + N_VECT_VAR*i + i_g]
-#define g1(i) y[N_SCAL_VAR + N_VECT_VAR*i + i_g1]
+#define g(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_g]
+#define g1(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_g1]
 
 #define dVdt dydx[i_V_m]
 #define dwdt dydx[i_w]
-#define dgdt(i) dydx[N_SCAL_VAR + N_VECT_VAR*i + i_g]
-#define dg1dt(i) dydx[N_SCAL_VAR + N_VECT_VAR*i + i_g1]
+#define dgdt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g]
+#define dg1dt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g1]
 
 #define V_th params[i_V_th]
 #define Delta_T params[i_Delta_T]
@@ -122,10 +122,10 @@ const std::string aeif_cond_beta_vect_param_name[N_VECT_PARAMS] = {
 #define n_refractory_steps params[i_n_refractory_steps]
 #define refractory_step params[i_refractory_step]
 
-#define E_rev(i) params[N_SCAL_PARAMS + N_VECT_PARAMS*i + i_E_rev]
-#define taus_rise(i) params[N_SCAL_PARAMS + N_VECT_PARAMS*i + i_taus_rise]
-#define taus_decay(i) params[N_SCAL_PARAMS + N_VECT_PARAMS*i + i_taus_decay]
-#define g0(i) params[N_SCAL_PARAMS + N_VECT_PARAMS*i + i_g0]
+#define E_rev(i) params[N_SCAL_PARAMS + N_PORT_PARAMS*i + i_E_rev]
+#define taus_rise(i) params[N_SCAL_PARAMS + N_PORT_PARAMS*i + i_taus_rise]
+#define taus_decay(i) params[N_SCAL_PARAMS + N_PORT_PARAMS*i + i_taus_decay]
+#define g0(i) params[N_SCAL_PARAMS + N_PORT_PARAMS*i + i_g0]
 
 
 template<int NVAR, int NPARAMS, class DataStruct>
@@ -133,7 +133,7 @@ __device__
     void aeif_cond_beta_Derivatives(float x, float *y, float *dydx, float *params,
 		     DataStruct data_struct)
 {
-  enum { n_ports = (NVAR-N_SCAL_VAR)/N_VECT_VAR };
+  enum { n_ports = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
   float I_syn = 0.0;
 
   float V = ( refractory_step > 0 ) ? V_reset :  MIN(V_m, V_peak);
@@ -194,7 +194,7 @@ void aeif_cond_beta_NodeInit(int n_var, int n_params, float x, float *y, float *
 		  DataStruct data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  int n_ports = (n_var-N_SCAL_VAR)/N_VECT_VAR;
+  int n_ports = (n_var-N_SCAL_VAR)/N_PORT_VAR;
 
   V_th = -50.4;
   Delta_T = 2.0;
@@ -227,7 +227,7 @@ void aeif_cond_beta_NodeCalibrate(int n_var, int n_params, float x, float *y,
 		       float *params, DataStruct data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  int n_ports = (n_var-N_SCAL_VAR)/N_VECT_VAR;
+  int n_ports = (n_var-N_SCAL_VAR)/N_PORT_VAR;
 
   V_m = E_L;
   w = 0;
@@ -264,8 +264,8 @@ template<int N_PORTS>
 int aeif_cond_beta::UpdateNR(int it, float t1)
 {
   if (N_PORTS == n_ports_) {
-    const int NVAR = N_SCAL_VAR + N_VECT_VAR*N_PORTS;
-    const int NPARAMS = N_SCAL_PARAMS + N_VECT_PARAMS*N_PORTS;
+    const int NVAR = N_SCAL_VAR + N_PORT_VAR*N_PORTS;
+    const int NPARAMS = N_SCAL_PARAMS + N_PORT_PARAMS*N_PORTS;
 
     rk5_.Update<NVAR, NPARAMS>(t1, h_min_, rk5_data_struct_);
   }

@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -12,55 +12,57 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <math.h>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <cuda.h>
+//#include <stdio.h>
+
+#include "neuralgpu.h"
+#include "neuron_models.h"
 #include "spike_generator.h"
 #include "spike_buffer.h"
 #include "cuda_error.h"
-
-using namespace std;
-
-__device__ int *SpikeGeneratorSpikeNum;
-
-__device__ int *SpikeGeneratorSpikeIdx;
-
-__device__ int **SpikeGeneratorTimeIdx;
-
-__device__ float **SpikeGeneratorHeight;
+//#include "spike_generator_variables.h"
+const int N_SPIKE_GEN_SCAL_PARAMS = 0;
+const std::string *spike_gen_scal_param_name = NULL;
 
 __global__
-void SpikeGeneratorUpdate(int i_node_0, int n_nodes, int i_time)
+void spike_generatorUpdate(int i_node_0, int n_nodes, int i_time,
+			  int *n_spikes, int *i_spike, int **spike_time_idx,
+			  float **spike_height)
 {
-  int i_node = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i_node < n_nodes) {
-    if (SpikeGeneratorSpikeNum[i_node] > 0) { 
-      int i_spike = SpikeGeneratorSpikeIdx[i_node];
-      if (i_spike<SpikeGeneratorSpikeNum[i_node]
-          && SpikeGeneratorTimeIdx[i_node][i_spike]==i_time) {
-	int i_node_abs = i_node_0 + i_node;
-	float height = SpikeGeneratorHeight[i_node][i_spike];
-	PushSpike(i_node_abs, height);
-	SpikeGeneratorSpikeIdx[i_node]++;
+  int irel_node = threadIdx.x + blockIdx.x * blockDim.x;
+  if (irel_node < n_nodes) {
+    if (n_spikes[irel_node] > 0) {
+      int is = i_spike[irel_node];
+      if (is<n_spikes[irel_node]
+          && spike_time_idx[irel_node][is]==i_time) {
+	int i_node = i_node_0 + irel_node;
+	float height = spike_height[irel_node][is];
+	PushSpike(i_node, height);
+	i_spike[irel_node]++;
       }
     }
   }
 }
 
-__global__
-void DeviceSpikeGeneratorInit(int *d_n_spikes, int *d_i_spike,
-			      int **d_spike_time_idx,
-			      float **d_spike_height)
+int spike_generator::Init(int i_node_0, int n_nodes, int /*n_ports*/,
+			  int i_group, unsigned long long *seed)
 {
-  SpikeGeneratorSpikeNum = d_n_spikes;
-  SpikeGeneratorSpikeIdx = d_i_spike;
-  SpikeGeneratorTimeIdx = d_spike_time_idx;
-  SpikeGeneratorHeight = d_spike_height;
-}
+  BaseNeuron::Init(i_node_0, n_nodes, 0 /*n_ports*/, i_group, seed);
+  node_type_ = i_spike_generator_model;
+  n_scal_params_ = N_SPIKE_GEN_SCAL_PARAMS;
+  n_params_ = n_scal_params_;
+  scal_param_name_ = spike_gen_scal_param_name;
+  std::vector<float> empty_vect;
+  spike_time_vect_.clear();
+  spike_time_vect_.insert(spike_time_vect_.begin(), n_nodes, empty_vect);
+  spike_height_vect_.clear();
+  spike_height_vect_.insert(spike_height_vect_.begin(), n_nodes, empty_vect);
+  
+  gpuErrchk(cudaMalloc(&params_arr_, n_nodes_*n_params_*sizeof(float)));
 
-int SpikeGenerator::Init()
-{
+  //SetScalParam(0, n_nodes, "origin", 0.0);
+  
   h_spike_time_idx_ = new int*[n_nodes_];
   h_spike_height_ = new float*[n_nodes_];
   for (int i_node=0; i_node<n_nodes_; i_node++) {
@@ -78,15 +80,14 @@ int SpikeGenerator::Init()
   gpuErrchk(cudaMemset(d_spike_time_idx_, 0, n_nodes_*sizeof(int*)));
   gpuErrchk(cudaMemset(d_spike_height_, 0, n_nodes_*sizeof(float*)));
   
-  DeviceSpikeGeneratorInit<<<1,1>>>(d_n_spikes_, d_i_spike_, d_spike_time_idx_,
-			   d_spike_height_);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
   
   return 0;
 }
 
-int SpikeGenerator::Free()
+
+int spike_generator::Free()
 {
   for (int i_node=0; i_node<n_nodes_; i_node++) {
     if(h_spike_time_idx_[i_node] != 0) {
@@ -105,81 +106,148 @@ int SpikeGenerator::Free()
   return 0;
 }
 
-SpikeGenerator::~SpikeGenerator()
+spike_generator::~spike_generator()
 {
   if (n_nodes_>0) {
     Free();
   }
 }
 
-SpikeGenerator::SpikeGenerator()
+int spike_generator::Update(int i_time, float /*t1*/)
 {
-  n_nodes_ = 0;
-}
-
-int SpikeGenerator::Create(int i_node_0, int n_nodes, float time_min,
-   float time_resolution)
-{
-  i_node_0_ = i_node_0;
-  n_nodes_ = n_nodes;
-  time_min_ = time_min;
-  time_resolution_ = time_resolution;
-  
-  Init();
-       
-  return 0;
-}
-
-int SpikeGenerator::Update(int i_time)
-{
-   SpikeGeneratorUpdate<<<(n_nodes_+1023)/1024, 1024>>>(i_node_0_, n_nodes_,
-                        i_time);
+  spike_generatorUpdate<<<(n_nodes_+1023)/1024, 1024>>>
+    (i_node_0_, n_nodes_, i_time, d_n_spikes_, d_i_spike_, d_spike_time_idx_,
+     d_spike_height_);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 
   return 0;
 }
 
-int SpikeGenerator::Set(int i_node, int n_spikes, float *spike_time,
-      float *spike_height)
+bool spike_generator::IsArrayParam(std::string param_name)
+{
+  if (param_name=="spike_time" || param_name=="spike_height") {
+    return true;
+  }
+  return false;
+}
+
+int spike_generator::SetArrayParam(int i_neuron, int n_neurons,
+				   std::string param_name, float *array,
+				   int array_size)
+{
+  CheckNeuronIdx(i_neuron);
+  CheckNeuronIdx(i_neuron + n_neurons - 1);
+
+  if (param_name=="spike_time") {
+    for (int in=i_neuron; in<i_neuron+n_neurons; in++) {
+      spike_time_vect_[in] = std::vector<float>(array, array+array_size);
+    }
+  }
+  else if (param_name=="spike_height") {
+    for (int in=i_neuron; in<i_neuron+n_neurons; in++) {
+      spike_height_vect_[in] = std::vector<float>(array, array+array_size);
+    }
+  }
+  else {
+    throw ngpu_exception(std::string("Unrecognized array parameter ")
+			 + param_name);
+  }
+
+  return 0;
+}
+  
+int spike_generator::SetArrayParam(int *i_neuron, int n_neurons,
+				   std::string param_name, float *array,
+				   int array_size)
+{
+  if (param_name=="spike_time") {
+    for (int i=0; i<n_neurons; i++) {
+      int in = i_neuron[i];
+      CheckNeuronIdx(in);
+      spike_time_vect_[in] = std::vector<float>(array, array+array_size);
+    }
+  }
+  else if (param_name=="spike_height") {
+    for (int i=0; i<n_neurons; i++) {
+      int in = i_neuron[i];
+      CheckNeuronIdx(in);      
+      spike_height_vect_[in] = std::vector<float>(array, array+array_size);
+    }
+  }
+  else {
+    throw ngpu_exception(std::string("Unrecognized array parameter ")
+			 + param_name);
+  }
+
+  return 0;
+}
+
+int spike_generator::Calibrate(float time_min, float time_resolution)
+{
+  for (int in=0; in<n_nodes_; in++) {
+    unsigned int n_spikes = spike_time_vect_[in].size();
+    if (n_spikes>0) {
+      if (spike_height_vect_[in].size()==0) {
+	spike_height_vect_[in].insert(spike_height_vect_[in].begin(),
+				      n_spikes, 1.0);
+      }
+      else if (spike_height_vect_[in].size()!=n_spikes) {
+	throw ngpu_exception("spike time array and spike height array "
+			     "must have the same size in spike generator");
+      }
+      SetSpikes(in, n_spikes, spike_time_vect_[in].data(),
+		spike_height_vect_[in].data(), time_min, time_resolution);
+    }
+  }
+  
+  return 0;
+}
+  
+
+
+int spike_generator::SetSpikes(int irel_node, int n_spikes, float *spike_time,
+			       float *spike_height, float time_min,
+			       float time_resolution)
 {
   if (n_spikes <=0) {
     throw ngpu_exception("Number of spikes must be greater than 0 "
 			 "in spike generator setting");
   }
   
-  cudaMemcpy(&d_n_spikes_[i_node], &n_spikes, sizeof(int),
+  cudaMemcpy(&d_n_spikes_[irel_node], &n_spikes, sizeof(int),
 	     cudaMemcpyHostToDevice);
-  if (h_spike_time_idx_[i_node] != 0) {
-    gpuErrchk(cudaFree(h_spike_time_idx_[i_node]));
-    gpuErrchk(cudaFree(h_spike_height_[i_node]));
+  if (h_spike_time_idx_[irel_node] != 0) {
+    gpuErrchk(cudaFree(h_spike_time_idx_[irel_node]));
+    gpuErrchk(cudaFree(h_spike_height_[irel_node]));
   }
-  gpuErrchk(cudaMalloc(&h_spike_time_idx_[i_node], n_spikes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&h_spike_height_[i_node], n_spikes*sizeof(float)));
+  gpuErrchk(cudaMalloc(&h_spike_time_idx_[irel_node], n_spikes*sizeof(int)));
+  gpuErrchk(cudaMalloc(&h_spike_height_[irel_node], n_spikes*sizeof(float)));
 
-  cudaMemcpy(&d_spike_time_idx_[i_node], &h_spike_time_idx_[i_node],
+  cudaMemcpy(&d_spike_time_idx_[irel_node], &h_spike_time_idx_[irel_node],
 	     sizeof(int*), cudaMemcpyHostToDevice);
-  cudaMemcpy(&d_spike_height_[i_node], &h_spike_height_[i_node], sizeof(float*),
+  cudaMemcpy(&d_spike_height_[irel_node], &h_spike_height_[irel_node], sizeof(float*),
 	     cudaMemcpyHostToDevice);
 
   int *spike_time_idx = new int[n_spikes];
   for(int i=0; i<n_spikes; i++) {
-    spike_time_idx[i] = (int)round((spike_time[i] - time_min_)
-				   /time_resolution_);
+    spike_time_idx[i] = (int)round((spike_time[i] - time_min)
+				   /time_resolution);
     if (i>0 && spike_time_idx[i]<=spike_time_idx[i-1]) {
       throw ngpu_exception("Spike times must be ordered, and the difference "
 			   "between\nconsecutive spikes must be >= the "
 			   "time resolution");
     }
     //cout << "ti " << spike_time_idx[i] << endl;
-    //cout << spike_time[i] << " " << time_min_ << endl;
+    //cout << spike_time[i] << " " << time_min << endl;
       
   }
   
-  cudaMemcpy(h_spike_time_idx_[i_node], spike_time_idx, n_spikes*sizeof(int),
+  cudaMemcpy(h_spike_time_idx_[irel_node], spike_time_idx, n_spikes*sizeof(int),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(h_spike_height_[i_node], spike_height, n_spikes*sizeof(float),
+  cudaMemcpy(h_spike_height_[irel_node], spike_height, n_spikes*sizeof(float),
 	     cudaMemcpyHostToDevice);
 
   return 0;
 }
+

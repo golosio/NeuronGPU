@@ -42,7 +42,7 @@ class poiss_gen : public BaseNeuron
   int Init(int i_node_0, int n_nodes, int n_ports, int i_group,
 	   unsigned long long *seed);
 
-  int Calibrate(float);
+  int Calibrate(float, float);
 		
   int Update(int it, float t1);
   int SendDirectSpikes(float t, float time_step);

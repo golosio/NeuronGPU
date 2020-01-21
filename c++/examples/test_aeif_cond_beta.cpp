@@ -25,8 +25,6 @@ int main(int argc, char *argv[])
   NeuralGPU ngpu;
   cout << "Building ...\n";
   
-  //ngpu.SetSimTime(300.0); // simulation time in ms
-  
   srand(12345);
   int n_neurons = 10000;
   
@@ -44,18 +42,15 @@ int main(int argc, char *argv[])
   ngpu.SetNeuronParam(neuron, "b", 80.5);
   ngpu.SetNeuronParam(neuron, "E_L", -70.6);
   ngpu.SetNeuronParam(neuron, "g_L", 300.0);
-  std::cout << "ok0\n";
+
   NodeSeq sg = ngpu.Create("spike_generator"); // create spike generator
 
   float spike_time[] = {10.0, 400.0};
   float spike_height[] = {1.0, 0.5};
   int n_spikes = 2;
   // set spike times and height
-  std::cout << "ok00\n";
   ngpu.SetNeuronParam(sg, "spike_time", spike_time, n_spikes);
-  std::cout << "ok01\n";
   ngpu.SetNeuronParam(sg, "spike_height", spike_height, n_spikes);
-  std::cout << "ok1\n";
   
   float delay[] = {1.0, 100.0, 130.0};
   float weight[] = {0.1, 0.2, 0.15};
@@ -65,13 +60,12 @@ int main(int argc, char *argv[])
     SynSpec syn_spec(STANDARD_SYNAPSE, weight[i_port], delay[i_port], i_port);
     ngpu.Connect(sg, neuron, conn_spec, syn_spec);
   }
-  std::cout << "ok2\n";
   string filename = "test_aeif_cond_beta.dat";
   int i_neuron[] = {neuron[rand()%n_neurons]}; // any set of neuron indexes
   string var_name[] = {"V_m"};
   // create multimeter record of V_m
   ngpu.CreateRecord(filename, var_name, i_neuron, 1);
-  std::cout << "ok3\n";
+
   ngpu.Simulate(800.0);
 
   return 0;

@@ -1,0 +1,11 @@
+data=load('test_setvar.dat');
+t=data(:,1);
+V0=data(:,2);
+V1=data(:,3);
+V2=data(:,4);
+figure(1);
+plot(t,V0);
+figure(2);
+plot(t,V1);
+figure(3);
+plot(t,V2);

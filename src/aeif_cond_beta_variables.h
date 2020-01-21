@@ -229,12 +229,8 @@ void aeif_cond_beta_NodeCalibrate(int n_var, int n_params, float x, float *y,
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_ports = (n_var-N_SCAL_VAR)/N_PORT_VAR;
 
-  V_m = E_L;
-  w = 0;
   refractory_step = 0;
   for (int i = 0; i<n_ports; i++) {
-    g(i) = 0;
-    g1(i) = 0;
     // denominator is computed here to check that it is != 0
     float denom1 = taus_decay(i) - taus_rise(i);
     float denom2 = 0;

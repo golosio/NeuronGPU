@@ -1,5 +1,3 @@
-Extend SetStatus to variables
-
 Implement GetStatus?
 
 Implement read connections based on connect class print method

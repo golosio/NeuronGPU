@@ -618,6 +618,14 @@ int NeuralGPU::IsNeuronPortVar(int i_node, std::string var_name)
   return node_vect_[i_group]->IsPortVar(var_name);
 }
 
+int NeuralGPU::IsNeuronArrayVar(int i_node, std::string var_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  
+  return node_vect_[i_group]->IsArrayVar(var_name);
+}
+
 int NeuralGPU::ConnectMpiInit(int argc, char *argv[])
 {
   CheckUncalibrated("MPI connections cannot be initialized after calibration");

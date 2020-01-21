@@ -169,14 +169,16 @@ int BaseNeuron::SetArrayParam(int i_neuron, int n_neurons,
 			      std::string param_name, float *array,
 			      int array_size)
 {
-  throw ngpu_exception("This neuron group does not have array parameters");  
+  throw ngpu_exception(std::string("Unrecognized parameter ")
+		       + param_name);
 }
 
 int BaseNeuron::SetArrayParam(int *i_neuron, int n_neurons,
 			      std::string param_name, float *array,
 			      int array_size)
 {
-  throw ngpu_exception("This neuron group does not have array parameters");  
+  throw ngpu_exception(std::string("Unrecognized parameter ")
+		       + param_name);
 }
 
 

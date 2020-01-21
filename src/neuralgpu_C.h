@@ -69,6 +69,28 @@ extern "C" {
 
   int NeuralGPU_IsNeuronArrayParam(int i_node, char *param_name);
   
+
+  int NeuralGPU_SetNeuronScalVar(int i_node, int n_neurons, char *var_name,
+				   float val);
+
+  int NeuralGPU_SetNeuronArrayVar(int i_node, int n_neurons,
+				    char *var_name, float *vars,
+				    int array_size);
+
+  int NeuralGPU_SetNeuronPtScalVar(int *i_node, int n_neurons,
+				     char *var_name, float val);
+
+  int NeuralGPU_SetNeuronPtArrayVar(int *i_node, int n_neurons,
+				      char *var_name, float *vars,
+				      int array_size);
+  
+  int NeuralGPU_IsNeuronScalVar(int i_node, char *var_name);
+  
+  int NeuralGPU_IsNeuronPortVar(int i_node, char *var_name);
+
+  int NeuralGPU_IsNeuronArrayVar(int i_node, char *var_name);
+
+  
   int NeuralGPU_Calibrate();
 
   int NeuralGPU_Simulate();

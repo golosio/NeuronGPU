@@ -90,6 +90,26 @@ class BaseNeuron
 			   std::string param_name, float *array,
 			   int array_size);
 
+  virtual int SetScalVar(int i_neuron, int n_neurons, std::string var_name, 
+			   float val);
+
+  virtual int SetScalVar(int *i_neuron, int n_neurons, std::string var_name,
+			   float val);
+  
+  virtual int SetPortVar(int i_neuron, int n_neurons, std::string var_name,
+			   float *vars, int vect_size);
+  
+  virtual int SetPortVar(int *i_neuron, int n_neurons,
+			   std::string var_name, float *vars,
+			   int vect_size);
+
+  virtual int SetArrayVar(int i_neuron, int n_neurons, std::string var_name,
+			   float *array, int array_size);
+  
+  virtual int SetArrayVar(int *i_neuron, int n_neurons,
+			   std::string var_name, float *array,
+			   int array_size);
+
   virtual int GetScalVarIdx(std::string var_name);
 
   virtual int GetPortVarIdx(std::string var_name);
@@ -106,6 +126,8 @@ class BaseNeuron
 
   virtual bool IsPortVar(std::string var_name);
 
+  virtual bool IsArrayVar(std::string var_name);
+  
   virtual bool IsScalParam(std::string param_name);
 
   virtual bool IsPortParam(std::string param_name);

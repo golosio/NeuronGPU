@@ -197,6 +197,65 @@ extern "C" {
     ret = NeuralGPU_instance->IsNeuronArrayParam(i_node, param_name_str);
   } END_ERR_PROP return ret; }
   
+
+  int NeuralGPU_SetNeuronScalVar(int i_node, int n_neurons, char *var_name,
+				   float val)
+  { int ret; BEGIN_ERR_PROP {
+    
+    std::string var_name_str = std::string(var_name);
+    ret = NeuralGPU_instance->SetNeuronVar(i_node, n_neurons,
+					     var_name_str, val);
+  } END_ERR_PROP return ret; }
+
+  int NeuralGPU_SetNeuronArrayVar(int i_node, int n_neurons,
+				    char *var_name, float *vars,
+				    int array_size)
+  { int ret; BEGIN_ERR_PROP {
+      std::string var_name_str = std::string(var_name);    
+      ret = NeuralGPU_instance->SetNeuronVar(i_node, n_neurons,
+					       var_name_str, vars,
+					       array_size);
+  } END_ERR_PROP return ret; }
+
+  int NeuralGPU_SetNeuronPtScalVar(int *i_node, int n_neurons,
+				     char *var_name,float val)
+  { int ret; BEGIN_ERR_PROP {
+    std::string var_name_str = std::string(var_name);
+    ret = NeuralGPU_instance->SetNeuronVar(i_node, n_neurons,
+					     var_name_str, val);
+  } END_ERR_PROP return ret; }
+
+  int NeuralGPU_SetNeuronPtArrayVar(int *i_node, int n_neurons,
+				     char *var_name, float *vars,
+				     int array_size)
+  { int ret; BEGIN_ERR_PROP {
+    std::string var_name_str = std::string(var_name);    
+    ret = NeuralGPU_instance->SetNeuronVar(i_node, n_neurons,
+					     var_name_str, vars,
+					     array_size);
+  } END_ERR_PROP return ret; }
+  
+  int NeuralGPU_IsNeuronScalVar(int i_node, char *var_name)
+  { int ret; BEGIN_ERR_PROP {
+    std::string var_name_str = std::string(var_name);
+    
+    ret = NeuralGPU_instance->IsNeuronScalVar(i_node, var_name_str);
+  } END_ERR_PROP return ret; }
+  
+  int NeuralGPU_IsNeuronPortVar(int i_node, char *var_name)
+  { int ret; BEGIN_ERR_PROP {
+    std::string var_name_str = std::string(var_name);
+    
+    ret = NeuralGPU_instance->IsNeuronPortVar(i_node, var_name_str);
+  } END_ERR_PROP return ret; }
+  
+  int NeuralGPU_IsNeuronArrayVar(int i_node, char *var_name)
+  { int ret; BEGIN_ERR_PROP {
+    std::string var_name_str = std::string(var_name);
+    
+    ret = NeuralGPU_instance->IsNeuronArrayVar(i_node, var_name_str);
+  } END_ERR_PROP return ret; }
+  
   int NeuralGPU_Calibrate()
   { int ret; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Calibrate();

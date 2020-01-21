@@ -551,6 +551,73 @@ int NeuralGPU::IsNeuronArrayParam(int i_node, std::string param_name)
   return node_vect_[i_group]->IsArrayParam(param_name);
 }
 
+int NeuralGPU::SetNeuronVar(int i_node, int n_nodes,
+			      std::string var_name, float val)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_nodes, i_group);
+  
+  return node_vect_[i_group]->SetScalVar(i_neuron, n_nodes, var_name, val);
+}
+
+int NeuralGPU::SetNeuronVar(int *i_node, int n_nodes,
+			      std::string var_name, float val)
+{
+  int i_group;
+  std::vector<int> nodes = GetNodeArrayWithOffset(i_node, n_nodes,
+						  i_group);
+  return node_vect_[i_group]->SetScalVar(nodes.data(), n_nodes,
+					   var_name, val);
+}
+
+int NeuralGPU::SetNeuronVar(int i_node, int n_nodes, std::string var_name,
+			      float *vars, int vect_size)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_nodes, i_group);
+  if (node_vect_[i_group]->IsPortVar(var_name)) {
+      return node_vect_[i_group]->SetPortVar(i_neuron, n_nodes, var_name,
+					       vars, vect_size);
+  }
+  else {
+    return node_vect_[i_group]->SetArrayVar(i_neuron, n_nodes, var_name,
+					      vars, vect_size);
+  }
+}
+
+int NeuralGPU::SetNeuronVar( int *i_node, int n_nodes,
+			       std::string var_name, float *vars,
+			       int vect_size)
+{
+  int i_group;
+  std::vector<int> node_vect = GetNodeArrayWithOffset(i_node, n_nodes,
+						      i_group);
+  if (node_vect_[i_group]->IsPortVar(var_name)) {  
+    return node_vect_[i_group]->SetPortVar(node_vect.data(), n_nodes,
+					     var_name, vars, vect_size);
+  }
+  else {
+    return node_vect_[i_group]->SetArrayVar(node_vect.data(), n_nodes,
+					      var_name, vars, vect_size);
+  }    
+}
+
+int NeuralGPU::IsNeuronScalVar(int i_node, std::string var_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  
+  return node_vect_[i_group]->IsScalVar(var_name);
+}
+
+int NeuralGPU::IsNeuronPortVar(int i_node, std::string var_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  
+  return node_vect_[i_group]->IsPortVar(var_name);
+}
+
 int NeuralGPU::ConnectMpiInit(int argc, char *argv[])
 {
   CheckUncalibrated("MPI connections cannot be initialized after calibration");

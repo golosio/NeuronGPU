@@ -257,6 +257,38 @@ class NeuralGPU
 			  vect_size);
   }
 
+  int SetNeuronVar(int i_node, int n_neurons, std::string var_name,
+		     float val);
+
+  int SetNeuronVar(int *i_node, int n_neurons, std::string var_name,
+		     float val);
+
+  int SetNeuronVar(int i_node, int n_neurons, std::string var_name,
+		     float *vars, int vect_size);
+
+  int SetNeuronVar(int *i_node, int n_neurons, std::string var_name,
+		     float *vars, int vect_size);
+
+  int SetNeuronVar(NodeSeq nodes, std::string var_name, float val) {
+    return SetNeuronVar(nodes.i0, nodes.n, var_name, val);
+  }
+
+  int SetNeuronVar(NodeSeq nodes, std::string var_name, float *vars,
+		      int vect_size) {
+    return SetNeuronVar(nodes.i0, nodes.n, var_name, vars, vect_size);
+  }
+  
+  int SetNeuronVar(std::vector<int> nodes, std::string var_name,
+		     float val) {
+    return SetNeuronVar(nodes.data(), nodes.size(), var_name, val);
+  }
+
+  int SetNeuronVar(std::vector<int> nodes, std::string var_name,
+		     float *vars, int vect_size) {
+    return SetNeuronVar(nodes.data(), nodes.size(), var_name, vars,
+			  vect_size);
+  }
+
   int GetNodeSequenceOffset(int i_node, int n_nodes, int &i_group);
 
   std::vector<int> GetNodeArrayWithOffset(int *i_node, int n_nodes,
@@ -268,6 +300,12 @@ class NeuralGPU
 
   int IsNeuronArrayParam(int i_node, std::string param_name);
 
+  int IsNeuronScalVar(int i_node, std::string var_name);
+
+  int IsNeuronPortVar(int i_node, std::string var_name);
+
+  int IsNeuronArrayVar(int i_node, std::string var_name);
+  
   int SetSpikeGenerator(int i_node, int n_spikes, float *spike_time,
 			float *spike_height);
 

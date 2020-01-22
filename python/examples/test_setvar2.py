@@ -1,21 +1,25 @@
 import sys
 import neuralgpu as ngpu
 
-n_neurons = 3
+n_neurons = 6
 
 # create n_neurons neurons with 2 receptor ports
 neuron = ngpu.Create('aeif_cond_beta', n_neurons, 2)
-ngpu.SetStatus(neuron, {'taus_decay':[60.0, 10.0],
-                        'taus_rise':[40.0, 5.0]})
+neuron_even = [neuron[0], neuron[2], neuron[4]]
+neuron_odd = [neuron[3], neuron[5], neuron[1]]
+ngpu.SetStatus(neuron_even, {'taus_decay':[80.0, 40.0],
+                             'taus_rise':[60.0, 20.0]})
+ngpu.SetStatus(neuron_odd, {'taus_decay':[70.0, 30.0],
+                            'taus_rise':[50.0, 10.0]})
 
-neuron0 = neuron[0:0]
-neuron1 = neuron[1:1]
-neuron2 = neuron[2:2]
-  
-ngpu.SetStatus(neuron0, {'V_m':-80.0})
-ngpu.SetStatus(neuron1, {'g1':[0.0, 0.1]})
-ngpu.SetStatus(neuron2, {'g1':[0.1, 0.0]})
+ngpu.SetStatus(neuron_even, {'V_m':-80.0})
+ngpu.SetStatus(neuron_odd, {'V_m':-90.0})
 
+ngpu.SetStatus(neuron_even, {'g1':[0.4, 0.2]})
+ngpu.SetStatus(neuron_odd, {'g1':[0.3, 0.1]})
+
+ngpu.SetStatus(neuron_even, {'V_th':-40.0})
+ngpu.SetStatus(neuron_odd, {'V_th':-30.0})
 
 # reading parameters and variables test
 read_td = ngpu.GetNeuronStatus(neuron, "taus_decay")
@@ -31,7 +35,8 @@ print("read_Vth", read_Vth)
 print("read_g1", read_g1)
 
 # reading parameters and variables from neuron list test
-neuron_list = [neuron[1], neuron[2], neuron[0]]
+neuron_list = [neuron[0], neuron[2], neuron[4], neuron[1], neuron[3],
+               neuron[5]]
 read1_td = ngpu.GetNeuronStatus(neuron_list, "taus_decay")
 read1_tr = ngpu.GetNeuronStatus(neuron_list, "taus_rise")
 read1_Vm = ngpu.GetNeuronStatus(neuron_list, "V_m")
@@ -44,32 +49,3 @@ print("read1_Vm", read1_Vm)
 print("read1_Vth", read1_Vth)
 print("read1_g1", read1_g1)
 
-i_neuron_arr = [neuron[0], neuron[1], neuron[2]]
-i_receptor_arr = [0, 0, 0]
-# create multimeter record of V_m
-var_name_arr = ["V_m", "V_m", "V_m"]
-record = ngpu.CreateRecord("", var_name_arr, i_neuron_arr,
-                           i_receptor_arr)
-
-ngpu.Simulate(800.0)
-
-data_list = ngpu.GetRecordData(record)
-t=[row[0] for row in data_list]
-V1=[row[1] for row in data_list]
-V2=[row[2] for row in data_list]
-V3=[row[3] for row in data_list]
-
-import matplotlib.pyplot as plt
-
-plt.figure(1)
-plt.plot(t, V1)
-
-plt.figure(2)
-plt.plot(t, V2)
-
-plt.figure(3)
-plt.plot(t, V3)
-
-plt.draw()
-plt.pause(0.5)
-raw_input("<Hit Enter To Close>")

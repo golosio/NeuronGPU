@@ -288,6 +288,10 @@ class NeuralGPU
 			  array_size);
   }
 
+  int GetNeuronParamSize(int i_node, std::string param_name);
+
+  int GetNeuronVarSize(int i_node, std::string var_name);
+
   float *GetNeuronParam(int i_node, int n_neurons, std::string param_name);
 
   float *GetNeuronParam(int *i_node, int n_neurons, std::string param_name);

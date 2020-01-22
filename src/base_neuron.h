@@ -158,6 +158,14 @@ class BaseNeuron
 
   virtual float *GetParamArr();
 
+  virtual int GetArrayVarSize(int i_neuron, std::string var_name);
+  
+  virtual int GetArrayParamSize(int i_neuron, std::string param_name);
+
+  virtual int GetVarSize(std::string var_name);
+
+  virtual int GetParamSize(std::string param_name);
+
   virtual bool IsScalVar(std::string var_name);
 
   virtual bool IsPortVar(std::string var_name);

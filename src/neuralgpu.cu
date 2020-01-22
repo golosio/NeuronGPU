@@ -626,6 +626,32 @@ int NeuralGPU::IsNeuronArrayVar(int i_node, std::string var_name)
   return node_vect_[i_group]->IsArrayVar(var_name);
 }
 
+
+int NeuralGPU::GetNeuronParamSize(int i_node, std::string param_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  if (node_vect_[i_group]->IsArrayParam(param_name)!=0) {
+    return node_vect_[i_group]->GetArrayParamSize(i_neuron, param_name);
+  }
+  else {
+    return node_vect_[i_group]->GetParamSize(param_name);
+  }
+}
+
+int NeuralGPU::GetNeuronVarSize(int i_node, std::string var_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  if (node_vect_[i_group]->IsArrayVar(var_name)!=0) {
+    return node_vect_[i_group]->GetArrayVarSize(i_neuron, var_name);
+  }
+  else {
+    return node_vect_[i_group]->GetVarSize(var_name);
+  }
+}
+
+
 float *NeuralGPU::GetNeuronParam(int i_node, int n_nodes,
 				 std::string param_name)
 {

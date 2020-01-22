@@ -256,6 +256,61 @@ extern "C" {
     ret = NeuralGPU_instance->IsNeuronArrayVar(i_node, var_name_str);
   } END_ERR_PROP return ret; }
   
+
+  int NeuralGPU_GetNeuronParamSize(int i_node, char *param_name)
+  { int ret; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuralGPU_instance->GetNeuronParamSize(i_node, param_name_str);
+  } END_ERR_PROP return ret; }
+  
+  
+  int NeuralGPU_GetNeuronVarSize(int i_node, char *var_name)
+  { int ret; BEGIN_ERR_PROP {
+    std::string var_name_str = std::string(var_name);
+    
+    ret = NeuralGPU_instance->GetNeuronVarSize(i_node, var_name_str);
+  } END_ERR_PROP return ret; }
+  
+  
+  float *NeuralGPU_GetNeuronParam(int i_node, int n_neurons,
+				  char *param_name)
+  { float *ret; BEGIN_ERR_PROP {
+    
+    std::string param_name_str = std::string(param_name);
+    ret = NeuralGPU_instance->GetNeuronParam(i_node, n_neurons,
+					     param_name_str);
+  } END_ERR_PROP return ret; }
+
+
+  float *NeuralGPU_GetNeuronPtParam(int *i_node, int n_neurons,
+				 char *param_name)
+  { float *ret; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    ret = NeuralGPU_instance->GetNeuronParam(i_node, n_neurons,
+					     param_name_str);
+  } END_ERR_PROP return ret; }
+
+
+  float *NeuralGPU_GetNeuronVar(int i_node, int n_neurons,
+				char *param_name)
+  { float *ret; BEGIN_ERR_PROP {
+    
+    std::string param_name_str = std::string(param_name);
+    ret = NeuralGPU_instance->GetNeuronVar(i_node, n_neurons,
+					   param_name_str);
+  } END_ERR_PROP return ret; }
+
+
+  float *NeuralGPU_GetNeuronPtVar(int *i_node, int n_neurons,
+				 char *param_name)
+  { float *ret; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    ret = NeuralGPU_instance->GetNeuronVar(i_node, n_neurons,
+					   param_name_str);
+  } END_ERR_PROP return ret; }
+
+
   int NeuralGPU_Calibrate()
   { int ret; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Calibrate();

@@ -414,7 +414,8 @@ float *BaseNeuron::GetPortParam(int *i_neuron, int n_neurons,
   for (int i_port=0; i_port<n_ports_; i_port++) {
     float *param_pt = GetParamPt(0, param_name, i_port);
     BaseNeuronGetFloatPtArray<<<(n_neurons+1023)/1024, 1024>>>
-      (param_pt, d_param_arr, d_i_neuron, n_neurons, n_params_, n_ports_);
+      (param_pt, d_param_arr+i_port, d_i_neuron, n_neurons, n_params_,
+       n_ports_);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   }
@@ -548,7 +549,7 @@ float *BaseNeuron::GetPortVar(int *i_neuron, int n_neurons,
   for (int i_port=0; i_port<n_ports_; i_port++) {
     float *var_pt = GetVarPt(0, var_name, i_port);
     BaseNeuronGetFloatPtArray<<<(n_neurons+1023)/1024, 1024>>>
-      (var_pt, d_var_arr, d_i_neuron, n_neurons, n_var_, n_ports_);
+      (var_pt, d_var_arr+i_port, d_i_neuron, n_neurons, n_var_, n_ports_);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   }
@@ -641,6 +642,58 @@ float *BaseNeuron::GetParamArr()
 {
   return params_arr_;
 }
+
+
+int BaseNeuron::GetArrayVarSize(int i_neuron, std::string var_name)
+{
+  throw ngpu_exception(std::string("Unrecognized variable ")
+		       + var_name);
+
+}
+  
+int BaseNeuron::GetArrayParamSize(int i_neuron, std::string param_name)
+{
+  throw ngpu_exception(std::string("Unrecognized parameter ")
+		       + param_name);
+
+}
+
+int BaseNeuron::GetVarSize(std::string var_name)
+{
+  if (IsScalVar(var_name)) {
+    return 1;
+  }
+  else if (IsPortVar(var_name)) {
+    return n_ports_;
+  }
+  else if (IsArrayVar(var_name)) {
+    throw ngpu_exception(std::string("Node index must be specified to get "
+				     "array variable size for ")+ var_name);
+  }
+  else {
+    throw ngpu_exception(std::string("Unrecognized variable ")
+			 + var_name);
+  }
+}
+
+int BaseNeuron::GetParamSize(std::string param_name)
+{
+  if (IsScalParam(param_name)) {
+    return 1;
+  }
+  else if (IsPortParam(param_name)) {
+    return n_ports_;
+  }
+  else if (IsArrayParam(param_name)) {
+    throw ngpu_exception(std::string("Node index must be specified to get "
+				     "array parameter size for ")+ param_name);
+  }
+  else {
+    throw ngpu_exception(std::string("Unrecognized parameter ")
+			 + param_name);
+  }
+}
+
 
 bool BaseNeuron::IsScalVar(std::string var_name)
 {

@@ -496,34 +496,34 @@ int NeuralGPU::SetNeuronParam(int *i_node, int n_nodes,
 }
 
 int NeuralGPU::SetNeuronParam(int i_node, int n_nodes, std::string param_name,
-			      float *params, int vect_size)
+			      float *params, int array_size)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_nodes, i_group);
   if (node_vect_[i_group]->IsPortParam(param_name)) {
       return node_vect_[i_group]->SetPortParam(i_neuron, n_nodes, param_name,
-					       params, vect_size);
+					       params, array_size);
   }
   else {
     return node_vect_[i_group]->SetArrayParam(i_neuron, n_nodes, param_name,
-					      params, vect_size);
+					      params, array_size);
   }
 }
 
 int NeuralGPU::SetNeuronParam( int *i_node, int n_nodes,
 			       std::string param_name, float *params,
-			       int vect_size)
+			       int array_size)
 {
   int i_group;
-  std::vector<int> node_vect = GetNodeArrayWithOffset(i_node, n_nodes,
-						      i_group);
+  std::vector<int> nodes = GetNodeArrayWithOffset(i_node, n_nodes,
+						  i_group);
   if (node_vect_[i_group]->IsPortParam(param_name)) {  
-    return node_vect_[i_group]->SetPortParam(node_vect.data(), n_nodes,
-					     param_name, params, vect_size);
+    return node_vect_[i_group]->SetPortParam(nodes.data(), n_nodes,
+					     param_name, params, array_size);
   }
   else {
-    return node_vect_[i_group]->SetArrayParam(node_vect.data(), n_nodes,
-					      param_name, params, vect_size);
+    return node_vect_[i_group]->SetArrayParam(nodes.data(), n_nodes,
+					      param_name, params, array_size);
   }    
 }
 
@@ -571,34 +571,34 @@ int NeuralGPU::SetNeuronVar(int *i_node, int n_nodes,
 }
 
 int NeuralGPU::SetNeuronVar(int i_node, int n_nodes, std::string var_name,
-			      float *vars, int vect_size)
+			      float *vars, int array_size)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_nodes, i_group);
   if (node_vect_[i_group]->IsPortVar(var_name)) {
       return node_vect_[i_group]->SetPortVar(i_neuron, n_nodes, var_name,
-					       vars, vect_size);
+					       vars, array_size);
   }
   else {
     return node_vect_[i_group]->SetArrayVar(i_neuron, n_nodes, var_name,
-					      vars, vect_size);
+					      vars, array_size);
   }
 }
 
 int NeuralGPU::SetNeuronVar( int *i_node, int n_nodes,
 			       std::string var_name, float *vars,
-			       int vect_size)
+			       int array_size)
 {
   int i_group;
-  std::vector<int> node_vect = GetNodeArrayWithOffset(i_node, n_nodes,
-						      i_group);
+  std::vector<int> nodes = GetNodeArrayWithOffset(i_node, n_nodes,
+						  i_group);
   if (node_vect_[i_group]->IsPortVar(var_name)) {  
-    return node_vect_[i_group]->SetPortVar(node_vect.data(), n_nodes,
-					     var_name, vars, vect_size);
+    return node_vect_[i_group]->SetPortVar(nodes.data(), n_nodes,
+					   var_name, vars, array_size);
   }
   else {
-    return node_vect_[i_group]->SetArrayVar(node_vect.data(), n_nodes,
-					      var_name, vars, vect_size);
+    return node_vect_[i_group]->SetArrayVar(nodes.data(), n_nodes,
+					    var_name, vars, array_size);
   }    
 }
 
@@ -624,6 +624,78 @@ int NeuralGPU::IsNeuronArrayVar(int i_node, std::string var_name)
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
   
   return node_vect_[i_group]->IsArrayVar(var_name);
+}
+
+float *NeuralGPU::GetNeuronParam(int i_node, int n_nodes,
+				 std::string param_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_nodes, i_group);
+  if (node_vect_[i_group]->IsScalParam(param_name)) {
+    return node_vect_[i_group]->GetScalParam(i_neuron, n_nodes, param_name);
+  }
+  else if (node_vect_[i_group]->IsPortParam(param_name)) {
+    return node_vect_[i_group]->GetPortParam(i_neuron, n_nodes, param_name);
+  }
+  else {
+    return node_vect_[i_group]->GetArrayParam(i_neuron, n_nodes, param_name);
+  }
+}
+
+float *NeuralGPU::GetNeuronParam( int *i_node, int n_nodes,
+				  std::string param_name)
+{
+  int i_group;
+  std::vector<int> nodes = GetNodeArrayWithOffset(i_node, n_nodes,
+						  i_group);
+  if (node_vect_[i_group]->IsScalParam(param_name)) {
+    return node_vect_[i_group]->GetScalParam(nodes.data(), n_nodes,
+					     param_name);
+  }
+  else if (node_vect_[i_group]->IsPortParam(param_name)) {  
+    return node_vect_[i_group]->GetPortParam(nodes.data(), n_nodes,
+					     param_name);
+  }
+  else {
+    return node_vect_[i_group]->GetArrayParam(nodes.data(), n_nodes,
+					      param_name);
+  }    
+}
+
+float *NeuralGPU::GetNeuronVar(int i_node, int n_nodes,
+			       std::string var_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_nodes, i_group);
+  if (node_vect_[i_group]->IsScalVar(var_name)) {
+    return node_vect_[i_group]->GetScalVar(i_neuron, n_nodes, var_name);
+  }
+  else if (node_vect_[i_group]->IsPortVar(var_name)) {
+    return node_vect_[i_group]->GetPortVar(i_neuron, n_nodes, var_name);
+  }
+  else {
+    return node_vect_[i_group]->GetArrayVar(i_neuron, n_nodes, var_name);
+  }
+}
+
+float *NeuralGPU::GetNeuronVar( int *i_node, int n_nodes,
+				std::string var_name)
+{
+  int i_group;
+  std::vector<int> nodes = GetNodeArrayWithOffset(i_node, n_nodes,
+						  i_group);
+  if (node_vect_[i_group]->IsScalVar(var_name)) {
+    return node_vect_[i_group]->GetScalVar(nodes.data(), n_nodes,
+					     var_name);
+  }
+  else if (node_vect_[i_group]->IsPortVar(var_name)) {  
+    return node_vect_[i_group]->GetPortVar(nodes.data(), n_nodes,
+					   var_name);
+  }
+  else {
+    return node_vect_[i_group]->GetArrayVar(nodes.data(), n_nodes,
+					    var_name);
+  }    
 }
 
 int NeuralGPU::ConnectMpiInit(int argc, char *argv[])

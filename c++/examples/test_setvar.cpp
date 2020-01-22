@@ -45,7 +45,26 @@ int main(int argc, char *argv[])
   ngpu.SetNeuronVar(neuron0, "V_m", -80.0);
   ngpu.SetNeuronVar(neuron1, "g1", g11, 2);
   ngpu.SetNeuronVar(neuron2, "g1", g12, 2);
-  
+
+  // reading parameters and variables test
+  float *read_td = ngpu.GetNeuronParam(neuron, "taus_decay");
+  float *read_tr = ngpu.GetNeuronParam(neuron, "taus_rise");
+  float *read_Vm = ngpu.GetNeuronVar(neuron, "V_m");
+  float *read_Vth = ngpu.GetNeuronParam(neuron, "V_th");
+  float *read_g1 = ngpu.GetNeuronVar(neuron, "g1");
+
+  for (int in=0; in<3; in++) {
+    printf("Neuron n. %d\n", in);
+    printf("\tV_m: %f\n", read_Vm[in]);
+    printf("\tV_th: %f\n", read_Vth[in]); 
+    for (int ip=0; ip<2; ip++) {
+      printf("\tg1: %f\n", read_g1[in*2+ip]);
+      printf("\ttaus_rise: %f\n", read_tr[in*2+ip]);
+      printf("\ttaus_decay: %f\n", read_td[in*2+ip]); 
+    }
+    printf("\n");
+  }
+
   string filename = "test_setvar.dat";
   int i_neurons[] = {neuron[0], neuron[1], neuron[2]};
   string var_name[] = {"V_m", "V_m", "V_m"};

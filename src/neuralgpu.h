@@ -92,7 +92,6 @@ class NeuralGPU
   NetConnection *net_connection_;
   ConnectMpi *connect_mpi_;
 
-  //std::vector<NodeGroup> node_group_vect_; RIMOSSO
   std::vector<signed char> node_group_map_;
   signed char *d_node_group_map_;
 
@@ -232,18 +231,18 @@ class NeuralGPU
 		     float val);
 
   int SetNeuronParam(int i_node, int n_neurons, std::string param_name,
-		     float *params, int vect_size);
+		     float *params, int array_size);
 
   int SetNeuronParam(int *i_node, int n_neurons, std::string param_name,
-		     float *params, int vect_size);
+		     float *params, int array_size);
 
   int SetNeuronParam(NodeSeq nodes, std::string param_name, float val) {
     return SetNeuronParam(nodes.i0, nodes.n, param_name, val);
   }
 
   int SetNeuronParam(NodeSeq nodes, std::string param_name, float *params,
-		      int vect_size) {
-    return SetNeuronParam(nodes.i0, nodes.n, param_name, params, vect_size);
+		      int array_size) {
+    return SetNeuronParam(nodes.i0, nodes.n, param_name, params, array_size);
   }
   
   int SetNeuronParam(std::vector<int> nodes, std::string param_name,
@@ -252,9 +251,9 @@ class NeuralGPU
   }
 
   int SetNeuronParam(std::vector<int> nodes, std::string param_name,
-		     float *params, int vect_size) {
+		     float *params, int array_size) {
     return SetNeuronParam(nodes.data(), nodes.size(), param_name, params,
-			  vect_size);
+			  array_size);
   }
 
   int SetNeuronVar(int i_node, int n_neurons, std::string var_name,
@@ -264,18 +263,18 @@ class NeuralGPU
 		     float val);
 
   int SetNeuronVar(int i_node, int n_neurons, std::string var_name,
-		     float *vars, int vect_size);
+		     float *vars, int array_size);
 
   int SetNeuronVar(int *i_node, int n_neurons, std::string var_name,
-		     float *vars, int vect_size);
+		     float *vars, int array_size);
 
   int SetNeuronVar(NodeSeq nodes, std::string var_name, float val) {
     return SetNeuronVar(nodes.i0, nodes.n, var_name, val);
   }
 
   int SetNeuronVar(NodeSeq nodes, std::string var_name, float *vars,
-		      int vect_size) {
-    return SetNeuronVar(nodes.i0, nodes.n, var_name, vars, vect_size);
+		      int array_size) {
+    return SetNeuronVar(nodes.i0, nodes.n, var_name, vars, array_size);
   }
   
   int SetNeuronVar(std::vector<int> nodes, std::string var_name,
@@ -284,9 +283,33 @@ class NeuralGPU
   }
 
   int SetNeuronVar(std::vector<int> nodes, std::string var_name,
-		     float *vars, int vect_size) {
+		     float *vars, int array_size) {
     return SetNeuronVar(nodes.data(), nodes.size(), var_name, vars,
-			  vect_size);
+			  array_size);
+  }
+
+  float *GetNeuronParam(int i_node, int n_neurons, std::string param_name);
+
+  float *GetNeuronParam(int *i_node, int n_neurons, std::string param_name);
+
+  float *GetNeuronParam(NodeSeq nodes, std::string param_name) {
+    return GetNeuronParam(nodes.i0, nodes.n, param_name);
+  }
+  
+  float *GetNeuronParam(std::vector<int> nodes, std::string param_name) {
+    return GetNeuronParam(nodes.data(), nodes.size(), param_name);
+  }
+
+  float *GetNeuronVar(int i_node, int n_neurons, std::string var_name);
+
+  float *GetNeuronVar(int *i_node, int n_neurons, std::string var_name);
+
+  float *GetNeuronVar(NodeSeq nodes, std::string var_name) {
+    return GetNeuronVar(nodes.i0, nodes.n, var_name);
+  }
+  
+  float *GetNeuronVar(std::vector<int> nodes, std::string var_name) {
+    return GetNeuronVar(nodes.data(), nodes.size(), var_name);
   }
 
   int GetNodeSequenceOffset(int i_node, int n_nodes, int &i_group);

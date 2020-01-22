@@ -35,6 +35,24 @@ __global__ void BaseNeuronSetFloatPtArray(float *arr, int *pos, int n_elems,
   }
 }
 
+__global__ void BaseNeuronGetFloatArray(float *arr1, float *arr2, int n_elems,
+					int step1, int step2)
+{
+  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (array_idx<n_elems) {
+    arr2[array_idx*step2] = arr1[array_idx*step1];
+  }
+}
+
+__global__ void BaseNeuronGetFloatPtArray(float *arr1, float *arr2, int *pos,
+					  int n_elems, int step1, int step2)
+{
+  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (array_idx<n_elems) {
+    arr2[array_idx*step2] = arr1[pos[array_idx]*step1];
+  }
+}
+
 int BaseNeuron::Init(int i_node_0, int n_nodes, int n_ports,
 		     int i_group, unsigned long long *seed)
 {
@@ -90,8 +108,8 @@ int BaseNeuron::SetScalParam(int i_neuron, int n_neurons,
   return 0;
 }
 
-int BaseNeuron::SetScalParam( int *i_neuron, int n_neurons,
-			      std::string param_name, float val)
+int BaseNeuron::SetScalParam(int *i_neuron, int n_neurons,
+			     std::string param_name, float val)
 {
   if (!IsScalParam(param_name)) {
     throw ngpu_exception(std::string("Unrecognized scalar parameter ")
@@ -111,9 +129,9 @@ int BaseNeuron::SetScalParam( int *i_neuron, int n_neurons,
   return 0;
 }
 
-int BaseNeuron::SetPortParam( int i_neuron, int n_neurons,
-			      std::string param_name, float *params,
-			      int vect_size)
+int BaseNeuron::SetPortParam(int i_neuron, int n_neurons,
+			     std::string param_name, float *params,
+			     int vect_size)
 {
   if (!IsPortParam(param_name)) {
     throw ngpu_exception(std::string("Unrecognized port parameter ")
@@ -137,9 +155,9 @@ int BaseNeuron::SetPortParam( int i_neuron, int n_neurons,
   return 0;
 }
 
-int BaseNeuron::SetPortParam( int *i_neuron, int n_neurons,
-			      std::string param_name, float *params,
-			      int vect_size)
+int BaseNeuron::SetPortParam(int *i_neuron, int n_neurons,
+			     std::string param_name, float *params,
+			     int vect_size)
 {
   if (!IsPortParam(param_name)) {
     throw ngpu_exception(std::string("Unrecognized port parameter ")
@@ -199,8 +217,8 @@ int BaseNeuron::SetScalVar(int i_neuron, int n_neurons,
   return 0;
 }
 
-int BaseNeuron::SetScalVar( int *i_neuron, int n_neurons,
-			      std::string var_name, float val)
+int BaseNeuron::SetScalVar(int *i_neuron, int n_neurons,
+			   std::string var_name, float val)
 {
   if (!IsScalVar(var_name)) {
     throw ngpu_exception(std::string("Unrecognized scalar variable ")
@@ -220,9 +238,9 @@ int BaseNeuron::SetScalVar( int *i_neuron, int n_neurons,
   return 0;
 }
 
-int BaseNeuron::SetPortVar( int i_neuron, int n_neurons,
-			      std::string var_name, float *vars,
-			      int vect_size)
+int BaseNeuron::SetPortVar(int i_neuron, int n_neurons,
+			   std::string var_name, float *vars,
+			   int vect_size)
 {
   if (!IsPortVar(var_name)) {
     throw ngpu_exception(std::string("Unrecognized port variable ")
@@ -246,9 +264,9 @@ int BaseNeuron::SetPortVar( int i_neuron, int n_neurons,
   return 0;
 }
 
-int BaseNeuron::SetPortVar( int *i_neuron, int n_neurons,
-			      std::string var_name, float *vars,
-			      int vect_size)
+int BaseNeuron::SetPortVar(int *i_neuron, int n_neurons,
+			   std::string var_name, float *vars,
+			   int vect_size)
 {
   if (!IsPortVar(var_name)) {
     throw ngpu_exception(std::string("Unrecognized port variable ")
@@ -289,6 +307,274 @@ int BaseNeuron::SetArrayVar(int *i_neuron, int n_neurons,
   throw ngpu_exception(std::string("Unrecognized variable ")
 		       + var_name);
 }
+
+float *BaseNeuron::GetScalParam(int i_neuron, int n_neurons,
+				std::string param_name)
+{
+  if (!IsScalParam(param_name)) {
+    throw ngpu_exception(std::string("Unrecognized scalar parameter ")
+			 + param_name);
+  }
+  CheckNeuronIdx(i_neuron);
+  CheckNeuronIdx(i_neuron + n_neurons - 1);
+  float *param_pt = GetParamPt(i_neuron, param_name);
+
+  float *d_param_arr;
+  gpuErrchk(cudaMalloc(&d_param_arr, n_neurons*sizeof(float)));
+  float *h_param_arr = (float*)malloc(n_neurons*sizeof(float));
+
+  BaseNeuronGetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
+    (param_pt, d_param_arr, n_neurons, n_params_, 1);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  
+  gpuErrchk(cudaMemcpy(h_param_arr, d_param_arr, n_neurons*sizeof(float),
+		       cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_param_arr));
+  
+  return h_param_arr;
+}
+
+float *BaseNeuron::GetScalParam(int *i_neuron, int n_neurons,
+				std::string param_name)
+{
+  if (!IsScalParam(param_name)) {
+    throw ngpu_exception(std::string("Unrecognized scalar parameter ")
+				     + param_name);
+  }
+  int *d_i_neuron;
+  gpuErrchk(cudaMalloc(&d_i_neuron, n_neurons*sizeof(int)));
+  gpuErrchk(cudaMemcpy(d_i_neuron, i_neuron, n_neurons*sizeof(int),
+		       cudaMemcpyHostToDevice));
+  float *param_pt = GetParamPt(0, param_name);
+
+  float *d_param_arr;
+  gpuErrchk(cudaMalloc(&d_param_arr, n_neurons*sizeof(float)));
+  float *h_param_arr = (float*)malloc(n_neurons*sizeof(float));
+  
+  BaseNeuronGetFloatPtArray<<<(n_neurons+1023)/1024, 1024>>>
+    (param_pt, d_param_arr, d_i_neuron, n_neurons, n_params_, 1);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  gpuErrchk(cudaFree(d_i_neuron));
+
+  gpuErrchk(cudaMemcpy(h_param_arr, d_param_arr, n_neurons*sizeof(float),
+		       cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_param_arr));
+
+  return h_param_arr;
+}
+
+float *BaseNeuron::GetPortParam(int i_neuron, int n_neurons,
+			      std::string param_name)
+{
+  if (!IsPortParam(param_name)) {
+    throw ngpu_exception(std::string("Unrecognized port parameter ")
+			 + param_name);
+  }
+  CheckNeuronIdx(i_neuron);
+  CheckNeuronIdx(i_neuron + n_neurons - 1);
+  float *param_pt;
+
+  float *d_param_arr;
+  gpuErrchk(cudaMalloc(&d_param_arr, n_neurons*n_ports_*sizeof(float)));
+  float *h_param_arr = (float*)malloc(n_neurons*n_ports_*sizeof(float));
+  
+  for (int i_port=0; i_port<n_ports_; i_port++) {
+    param_pt = GetParamPt(i_neuron, param_name, i_port);
+    BaseNeuronGetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
+      (param_pt, d_param_arr + i_port, n_neurons, n_params_, n_ports_);
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+  }
+
+  gpuErrchk(cudaMemcpy(h_param_arr, d_param_arr, n_neurons*n_ports_
+		       *sizeof(float), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_param_arr));
+  
+  return h_param_arr;
+}
+
+float *BaseNeuron::GetPortParam(int *i_neuron, int n_neurons,
+				std::string param_name)
+{
+  if (!IsPortParam(param_name)) {
+    throw ngpu_exception(std::string("Unrecognized port parameter ")
+			 + param_name);
+  }
+  int *d_i_neuron;
+  gpuErrchk(cudaMalloc(&d_i_neuron, n_neurons*sizeof(int)));
+  gpuErrchk(cudaMemcpy(d_i_neuron, i_neuron, n_neurons*sizeof(int),
+		       cudaMemcpyHostToDevice));
+
+  float *d_param_arr;
+  gpuErrchk(cudaMalloc(&d_param_arr, n_neurons*n_ports_*sizeof(float)));
+  float *h_param_arr = (float*)malloc(n_neurons*n_ports_*sizeof(float));
+    
+  for (int i_port=0; i_port<n_ports_; i_port++) {
+    float *param_pt = GetParamPt(0, param_name, i_port);
+    BaseNeuronGetFloatPtArray<<<(n_neurons+1023)/1024, 1024>>>
+      (param_pt, d_param_arr, d_i_neuron, n_neurons, n_params_, n_ports_);
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+  }
+  gpuErrchk(cudaFree(d_i_neuron));
+  
+  gpuErrchk(cudaMemcpy(h_param_arr, d_param_arr, n_neurons*n_ports_
+		       *sizeof(float), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_param_arr));
+  
+  return h_param_arr;
+}
+
+float *BaseNeuron::GetArrayParam(int i_neuron, int n_neurons,
+			      std::string param_name)
+{
+  throw ngpu_exception(std::string("Unrecognized parameter ")
+		       + param_name);
+}
+
+float *BaseNeuron::GetArrayParam(int *i_neuron, int n_neurons,
+			      std::string param_name)
+{
+  throw ngpu_exception(std::string("Unrecognized parameter ")
+		       + param_name);
+}
+
+
+float *BaseNeuron::GetScalVar(int i_neuron, int n_neurons,
+				std::string var_name)
+{
+  if (!IsScalVar(var_name)) {
+    throw ngpu_exception(std::string("Unrecognized scalar variable ")
+			 + var_name);
+  }
+  CheckNeuronIdx(i_neuron);
+  CheckNeuronIdx(i_neuron + n_neurons - 1);
+  float *var_pt = GetVarPt(i_neuron, var_name);
+
+  float *d_var_arr;
+  gpuErrchk(cudaMalloc(&d_var_arr, n_neurons*sizeof(float)));
+  float *h_var_arr = (float*)malloc(n_neurons*sizeof(float));
+
+  BaseNeuronGetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
+    (var_pt, d_var_arr, n_neurons, n_var_, 1);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  
+  gpuErrchk(cudaMemcpy(h_var_arr, d_var_arr, n_neurons*sizeof(float),
+		       cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_var_arr));
+  
+  return h_var_arr;
+}
+
+float *BaseNeuron::GetScalVar(int *i_neuron, int n_neurons,
+				std::string var_name)
+{
+  if (!IsScalVar(var_name)) {
+    throw ngpu_exception(std::string("Unrecognized scalar variable ")
+				     + var_name);
+  }
+  int *d_i_neuron;
+  gpuErrchk(cudaMalloc(&d_i_neuron, n_neurons*sizeof(int)));
+  gpuErrchk(cudaMemcpy(d_i_neuron, i_neuron, n_neurons*sizeof(int),
+		       cudaMemcpyHostToDevice));
+  float *var_pt = GetVarPt(0, var_name);
+
+  float *d_var_arr;
+  gpuErrchk(cudaMalloc(&d_var_arr, n_neurons*sizeof(float)));
+  float *h_var_arr = (float*)malloc(n_neurons*sizeof(float));
+  
+  BaseNeuronGetFloatPtArray<<<(n_neurons+1023)/1024, 1024>>>
+    (var_pt, d_var_arr, d_i_neuron, n_neurons, n_var_, 1);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  gpuErrchk(cudaFree(d_i_neuron));
+
+  gpuErrchk(cudaMemcpy(h_var_arr, d_var_arr, n_neurons*sizeof(float),
+		       cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_var_arr));
+
+  return h_var_arr;
+}
+
+float *BaseNeuron::GetPortVar(int i_neuron, int n_neurons,
+			      std::string var_name)
+{
+  if (!IsPortVar(var_name)) {
+    throw ngpu_exception(std::string("Unrecognized port variable ")
+			 + var_name);
+  }
+  CheckNeuronIdx(i_neuron);
+  CheckNeuronIdx(i_neuron + n_neurons - 1);
+  float *var_pt;
+
+  float *d_var_arr;
+  gpuErrchk(cudaMalloc(&d_var_arr, n_neurons*n_ports_*sizeof(float)));
+  float *h_var_arr = (float*)malloc(n_neurons*n_ports_*sizeof(float));
+  
+  for (int i_port=0; i_port<n_ports_; i_port++) {
+    var_pt = GetVarPt(i_neuron, var_name, i_port);
+    BaseNeuronGetFloatArray<<<(n_neurons+1023)/1024, 1024>>>
+      (var_pt, d_var_arr + i_port, n_neurons, n_var_, n_ports_);
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+  }
+
+  gpuErrchk(cudaMemcpy(h_var_arr, d_var_arr, n_neurons*n_ports_
+		       *sizeof(float), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_var_arr));
+  
+  return h_var_arr;
+}
+
+float *BaseNeuron::GetPortVar(int *i_neuron, int n_neurons,
+			      std::string var_name)
+{
+  if (!IsPortVar(var_name)) {
+    throw ngpu_exception(std::string("Unrecognized port variable ")
+			 + var_name);
+  }
+  int *d_i_neuron;
+  gpuErrchk(cudaMalloc(&d_i_neuron, n_neurons*sizeof(int)));
+  gpuErrchk(cudaMemcpy(d_i_neuron, i_neuron, n_neurons*sizeof(int),
+		       cudaMemcpyHostToDevice));
+
+  float *d_var_arr;
+  gpuErrchk(cudaMalloc(&d_var_arr, n_neurons*n_ports_*sizeof(float)));
+  float *h_var_arr = (float*)malloc(n_neurons*n_ports_*sizeof(float));
+    
+  for (int i_port=0; i_port<n_ports_; i_port++) {
+    float *var_pt = GetVarPt(0, var_name, i_port);
+    BaseNeuronGetFloatPtArray<<<(n_neurons+1023)/1024, 1024>>>
+      (var_pt, d_var_arr, d_i_neuron, n_neurons, n_var_, n_ports_);
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+  }
+  gpuErrchk(cudaFree(d_i_neuron));
+  
+  gpuErrchk(cudaMemcpy(h_var_arr, d_var_arr, n_neurons*n_ports_
+		       *sizeof(float), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_var_arr));
+  
+  return h_var_arr;
+}
+
+float *BaseNeuron::GetArrayVar(int i_neuron, int n_neurons,
+			      std::string var_name)
+{
+  throw ngpu_exception(std::string("Unrecognized variable ")
+		       + var_name);
+}
+
+float *BaseNeuron::GetArrayVar(int *i_neuron, int n_neurons,
+			      std::string var_name)
+{
+  throw ngpu_exception(std::string("Unrecognized variable ")
+		       + var_name);
+}
+
 
 int BaseNeuron::GetScalVarIdx(std::string var_name)
 {

@@ -21,8 +21,8 @@ struct NodeGroupStruct
 {
   int node_type_;
   int i_node_0_;
-  int n_nodes_;
-  int n_ports_;
+  int n_node_;
+  int n_port_;
   double *get_spike_array_;
 };
 

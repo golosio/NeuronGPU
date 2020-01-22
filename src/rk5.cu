@@ -59,10 +59,10 @@ __constant__ float coeff = 0.9;
 __constant__ float alpha = 0.2;
 
 
-__global__ void SetFloatArray(float *arr, int n_elems, int step, float val)
+__global__ void SetFloatArray(float *arr, int n_elem, int step, float val)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (array_idx<n_elems) {
+  if (array_idx<n_elem) {
     arr[array_idx*step] = val;
   }
 }

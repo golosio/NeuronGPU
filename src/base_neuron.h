@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BASENEURONH
 
 #include <string>
+#include <vector>
 #include "dir_connect.h"
 
 class NeuralGPU;
@@ -26,17 +27,17 @@ class BaseNeuron
   friend class NeuralGPU;
   int node_type_;
   int i_node_0_;
-  int n_nodes_;
-  int n_ports_;
+  int n_node_;
+  int n_port_;
   int i_group_;
   unsigned long long *seed_;  
 
   int n_scal_var_;
   int n_port_var_;
-  int n_scal_params_;
-  int n_port_params_;
+  int n_scal_param_;
+  int n_port_param_;
   int n_var_;
-  int n_params_;
+  int n_param_;
 
   double *get_spike_array_;
   float *port_weight_arr_;
@@ -46,7 +47,7 @@ class BaseNeuron
   int port_input_arr_step_;
   int port_input_port_step_;
   float *var_arr_;
-  float *params_arr_;
+  float *param_arr_;
   const std::string *scal_var_name_;
   const std::string *port_var_name_;
   const std::string *scal_param_name_;
@@ -59,91 +60,91 @@ class BaseNeuron
  public:
   virtual ~BaseNeuron() {}
   
-  virtual int Init(int i_node_0, int n_neurons, int n_ports,
+  virtual int Init(int i_node_0, int n_neuron, int n_port,
 		   int i_neuron_group, unsigned long long *seed);
 
   virtual int Calibrate(float time_min, float time_resolution) {return 0;}
 		
   virtual int Update(int it, float t1) {return 0;}
   
-  virtual int GetX(int i_neuron, int n_neurons, float *x) {return 0;}
+  virtual int GetX(int i_neuron, int n_neuron, float *x) {return 0;}
   
-  virtual int GetY(int i_var, int i_neuron, int n_neurons, float *y) {return 0;}
+  virtual int GetY(int i_var, int i_neuron, int n_neuron, float *y) {return 0;}
   
-  virtual int SetScalParam(int i_neuron, int n_neurons, std::string param_name, 
+  virtual int SetScalParam(int i_neuron, int n_neuron, std::string param_name, 
 			   float val);
 
-  virtual int SetScalParam(int *i_neuron, int n_neurons, std::string param_name,
+  virtual int SetScalParam(int *i_neuron, int n_neuron, std::string param_name,
 			   float val);
   
-  virtual int SetPortParam(int i_neuron, int n_neurons, std::string param_name,
-			   float *params, int vect_size);
+  virtual int SetPortParam(int i_neuron, int n_neuron, std::string param_name,
+			   float *param, int vect_size);
   
-  virtual int SetPortParam(int *i_neuron, int n_neurons,
-			   std::string param_name, float *params,
+  virtual int SetPortParam(int *i_neuron, int n_neuron,
+			   std::string param_name, float *param,
 			   int vect_size);
 
-  virtual int SetArrayParam(int i_neuron, int n_neurons, std::string param_name,
+  virtual int SetArrayParam(int i_neuron, int n_neuron, std::string param_name,
 			   float *array, int array_size);
   
-  virtual int SetArrayParam(int *i_neuron, int n_neurons,
+  virtual int SetArrayParam(int *i_neuron, int n_neuron,
 			   std::string param_name, float *array,
 			   int array_size);
 
-  virtual int SetScalVar(int i_neuron, int n_neurons, std::string var_name, 
+  virtual int SetScalVar(int i_neuron, int n_neuron, std::string var_name, 
 			   float val);
 
-  virtual int SetScalVar(int *i_neuron, int n_neurons, std::string var_name,
+  virtual int SetScalVar(int *i_neuron, int n_neuron, std::string var_name,
 			   float val);
   
-  virtual int SetPortVar(int i_neuron, int n_neurons, std::string var_name,
-			   float *vars, int vect_size);
+  virtual int SetPortVar(int i_neuron, int n_neuron, std::string var_name,
+			   float *var, int vect_size);
   
-  virtual int SetPortVar(int *i_neuron, int n_neurons,
-			   std::string var_name, float *vars,
+  virtual int SetPortVar(int *i_neuron, int n_neuron,
+			   std::string var_name, float *var,
 			   int vect_size);
 
-  virtual int SetArrayVar(int i_neuron, int n_neurons, std::string var_name,
+  virtual int SetArrayVar(int i_neuron, int n_neuron, std::string var_name,
 			   float *array, int array_size);
   
-  virtual int SetArrayVar(int *i_neuron, int n_neurons,
+  virtual int SetArrayVar(int *i_neuron, int n_neuron,
 			   std::string var_name, float *array,
 			   int array_size);
 
-  virtual float *GetScalParam(int i_neuron, int n_neurons,
+  virtual float *GetScalParam(int i_neuron, int n_neuron,
 			      std::string param_name);
 
-  virtual float *GetScalParam(int *i_neuron, int n_neurons,
+  virtual float *GetScalParam(int *i_neuron, int n_neuron,
 		    std::string param_name);
 
-  virtual float *GetPortParam(int i_neuron, int n_neurons,
+  virtual float *GetPortParam(int i_neuron, int n_neuron,
 			      std::string param_name);
 
-  virtual float *GetPortParam(int *i_neuron, int n_neurons,
+  virtual float *GetPortParam(int *i_neuron, int n_neuron,
 			      std::string param_name);
 
-  virtual float *GetArrayParam(int i_neuron, int n_neurons,
+  virtual float *GetArrayParam(int i_neuron, int n_neuron,
 			       std::string param_name);
 
-  virtual float *GetArrayParam(int *i_neuron, int n_neurons,
+  virtual float *GetArrayParam(int *i_neuron, int n_neuron,
 			       std::string param_name);
 
-  virtual float *GetScalVar(int i_neuron, int n_neurons,
+  virtual float *GetScalVar(int i_neuron, int n_neuron,
 			    std::string var_name);
 
-  virtual float *GetScalVar(int *i_neuron, int n_neurons,
+  virtual float *GetScalVar(int *i_neuron, int n_neuron,
 			    std::string var_name);
 
-  virtual float *GetPortVar(int i_neuron, int n_neurons,
+  virtual float *GetPortVar(int i_neuron, int n_neuron,
 			    std::string var_name);
 
-  virtual float *GetPortVar(int *i_neuron, int n_neurons,
+  virtual float *GetPortVar(int *i_neuron, int n_neuron,
 			    std::string var_name);
 
-  virtual float *GetArrayVar(int i_neuron, int n_neurons,
+  virtual float *GetArrayVar(int i_neuron, int n_neuron,
 			     std::string var_name);
 
-  virtual float *GetArrayVar(int *i_neuron, int n_neurons,
+  virtual float *GetArrayVar(int *i_neuron, int n_neuron,
 			     std::string var_name);
   
   virtual int GetScalVarIdx(std::string var_name);
@@ -189,6 +190,22 @@ class BaseNeuron
   virtual float GetSpikeActivity(int i_neuron);
 
   virtual int SendDirectSpikes(float t, float time_step) {return 0;}
+
+  virtual std::vector<std::string> GetScalVarNames();
+  
+  virtual int GetNScalVar();
+
+  virtual std::vector<std::string> GetPortVarNames();
+  
+  virtual int GetNPortVar();
+
+  virtual std::vector<std::string> GetScalParamNames();
+  
+  virtual int GetNScalParam();
+
+  virtual std::vector<std::string> GetPortParamNames();
+  
+  virtual int GetNPortParam();
 
 };
 

@@ -58,7 +58,7 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
   
   /////////////////////////////////////////////////////////////////
   int i_group=NodeGroupMap[i_target];
-  int i = i_port*NodeGroupArray[i_group].n_nodes_ + i_target
+  int i = i_port*NodeGroupArray[i_group].n_node_ + i_target
     - NodeGroupArray[i_group].i_node_0_;
   double d_val = (double)(height*weight);
 
@@ -68,7 +68,7 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
 ///////////////
 
 // improve using a grid
-__global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
+__global__ void GetSpikes(int i_group, int array_size, int n_port, int n_var,
 			  float *port_weight_arr,
 			  int port_weight_arr_step,
 			  int port_weight_port_step,
@@ -77,7 +77,7 @@ __global__ void GetSpikes(int i_group, int array_size, int n_ports, int n_var,
 			  int port_input_port_step)
 {
   int i_array = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i_array < array_size*n_ports) {
+  if (i_array < array_size*n_port) {
      int i_target = i_array % array_size;
      int i_port = i_array / array_size;
      int i_port_input = i_target*port_input_arr_step
@@ -97,7 +97,7 @@ int NeuralGPU::ClearGetSpikeArrays()
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     BaseNeuron *bn = node_vect_[i];
     if (bn->get_spike_array_ != NULL) {
-      gpuErrchk(cudaMemset(bn->get_spike_array_, 0, bn->n_nodes_*bn->n_ports_
+      gpuErrchk(cudaMemset(bn->get_spike_array_, 0, bn->n_node_*bn->n_port_
 			   *sizeof(double)));
     }
   }

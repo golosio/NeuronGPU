@@ -35,13 +35,13 @@ extern "C" {
 
   int NeuralGPU_GetMaxSpikeBufferSize();
 
-  int NeuralGPU_Create(char *model_name, int n_neurons, int n_ports);
+  int NeuralGPU_Create(char *model_name, int n_neuron, int n_port);
 
-  int NeuralGPU_CreatePoissonGenerator(int n_nodes, float rate);
+  int NeuralGPU_CreatePoissonGenerator(int n_node, float rate);
   
   int NeuralGPU_CreateRecord(char *file_name, char *var_name_arr[],
 			     int *i_node_arr, int *i_port_arr,
-			     int n_nodes);
+			     int n_node);
   
   int NeuralGPU_GetRecordDataRows(int i_record);
   
@@ -49,18 +49,18 @@ extern "C" {
 
   float **NeuralGPU_GetRecordData(int i_record);
 
-  int NeuralGPU_SetNeuronScalParam(int i_node, int n_neurons, char *param_name,
+  int NeuralGPU_SetNeuronScalParam(int i_node, int n_neuron, char *param_name,
 				   float val);
 
-  int NeuralGPU_SetNeuronArrayParam(int i_node, int n_neurons,
-				    char *param_name, float *params,
+  int NeuralGPU_SetNeuronArrayParam(int i_node, int n_neuron,
+				    char *param_name, float *param,
 				    int array_size);
 
-  int NeuralGPU_SetNeuronPtScalParam(int *i_node, int n_neurons,
+  int NeuralGPU_SetNeuronPtScalParam(int *i_node, int n_neuron,
 				     char *param_name, float val);
 
-  int NeuralGPU_SetNeuronPtArrayParam(int *i_node, int n_neurons,
-				      char *param_name, float *params,
+  int NeuralGPU_SetNeuronPtArrayParam(int *i_node, int n_neuron,
+				      char *param_name, float *param,
 				      int array_size);
   
   int NeuralGPU_IsNeuronScalParam(int i_node, char *param_name);
@@ -70,18 +70,18 @@ extern "C" {
   int NeuralGPU_IsNeuronArrayParam(int i_node, char *param_name);
   
 
-  int NeuralGPU_SetNeuronScalVar(int i_node, int n_neurons, char *var_name,
+  int NeuralGPU_SetNeuronScalVar(int i_node, int n_neuron, char *var_name,
 				   float val);
 
-  int NeuralGPU_SetNeuronArrayVar(int i_node, int n_neurons,
-				    char *var_name, float *vars,
+  int NeuralGPU_SetNeuronArrayVar(int i_node, int n_neuron,
+				    char *var_name, float *var,
 				    int array_size);
 
-  int NeuralGPU_SetNeuronPtScalVar(int *i_node, int n_neurons,
+  int NeuralGPU_SetNeuronPtScalVar(int *i_node, int n_neuron,
 				     char *var_name, float val);
 
-  int NeuralGPU_SetNeuronPtArrayVar(int *i_node, int n_neurons,
-				      char *var_name, float *vars,
+  int NeuralGPU_SetNeuronPtArrayVar(int *i_node, int n_neuron,
+				      char *var_name, float *var,
 				      int array_size);
   
   int NeuralGPU_IsNeuronScalVar(int i_node, char *var_name);
@@ -94,16 +94,16 @@ extern "C" {
 
   int NeuralGPU_GetNeuronVarSize(int i_node, char *var_name);
   
-  float *NeuralGPU_GetNeuronParam(int i_node, int n_neurons,
+  float *NeuralGPU_GetNeuronParam(int i_node, int n_neuron,
 				  char *param_name);
 
-  float *NeuralGPU_GetNeuronPtParam(int *i_node, int n_neurons,
+  float *NeuralGPU_GetNeuronPtParam(int *i_node, int n_neuron,
 				    char *param_name);
 
-  float *NeuralGPU_GetNeuronVar(int i_node, int n_neurons,
+  float *NeuralGPU_GetNeuronVar(int i_node, int n_neuron,
 				char *param_name);
 
-  float *NeuralGPU_GetNeuronPtVar(int *i_node, int n_neurons,
+  float *NeuralGPU_GetNeuronPtVar(int *i_node, int n_neuron,
 				  char *param_name);
   
   int NeuralGPU_Calibrate();
@@ -166,7 +166,22 @@ extern "C" {
 				   int i_target_host, int *i_target,
 				   int n_target);
 
-
+  char **NeuralGPU_GetScalVarNames(int i_node);
+  
+  int NeuralGPU_GetNScalVar(int i_node);
+    
+  char **NeuralGPU_GetPortVarNames(int i_node);
+  
+  int NeuralGPU_GetNPortVar(int i_node);
+    
+  char **NeuralGPU_GetScalParamNames(int i_node);
+  
+  int NeuralGPU_GetNScalParam(int i_node);
+    
+  char **NeuralGPU_GetPortParamNames(int i_node);
+  
+  int NeuralGPU_GetNPortParam(int i_node);
+    
 #ifdef __cplusplus
 }
 #endif

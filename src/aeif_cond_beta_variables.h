@@ -49,7 +49,7 @@ enum ScalParamIndexes {
   i_V_reset,
   i_n_refractory_steps,
   i_refractory_step,
-  N_SCAL_PARAMS
+  N_SCAL_PARAM
 };
 
 enum PortParamIndexes {
@@ -57,7 +57,7 @@ enum PortParamIndexes {
   i_taus_rise,
   i_taus_decay,
   i_g0,
-  N_PORT_PARAMS
+  N_PORT_PARAM
 };
 
 const std::string aeif_cond_beta_scal_var_name[N_SCAL_VAR] = {
@@ -70,7 +70,7 @@ const std::string aeif_cond_beta_port_var_name[N_PORT_VAR] = {
   "g1"
 };
 
-const std::string aeif_cond_beta_scal_param_name[N_SCAL_PARAMS] = {
+const std::string aeif_cond_beta_scal_param_name[N_SCAL_PARAM] = {
   "V_th",
   "Delta_T",
   "g_L",
@@ -86,7 +86,7 @@ const std::string aeif_cond_beta_scal_param_name[N_SCAL_PARAMS] = {
   "refractory_step"
 };
 
-const std::string aeif_cond_beta_port_param_name[N_PORT_PARAMS] = {
+const std::string aeif_cond_beta_port_param_name[N_PORT_PARAM] = {
   "E_rev",
   "taus_rise",
   "taus_decay",
@@ -108,36 +108,36 @@ const std::string aeif_cond_beta_port_param_name[N_PORT_PARAMS] = {
 #define dgdt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g]
 #define dg1dt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g1]
 
-#define V_th params[i_V_th]
-#define Delta_T params[i_Delta_T]
-#define g_L params[i_g_L]
-#define E_L params[i_E_L]
-#define C_m params[i_C_m]
-#define a params[i_a]
-#define b params[i_b]
-#define tau_w params[i_tau_w]
-#define I_e params[i_I_e]
-#define V_peak params[i_V_peak]
-#define V_reset params[i_V_reset]
-#define n_refractory_steps params[i_n_refractory_steps]
-#define refractory_step params[i_refractory_step]
+#define V_th param[i_V_th]
+#define Delta_T param[i_Delta_T]
+#define g_L param[i_g_L]
+#define E_L param[i_E_L]
+#define C_m param[i_C_m]
+#define a param[i_a]
+#define b param[i_b]
+#define tau_w param[i_tau_w]
+#define I_e param[i_I_e]
+#define V_peak param[i_V_peak]
+#define V_reset param[i_V_reset]
+#define n_refractory_steps param[i_n_refractory_steps]
+#define refractory_step param[i_refractory_step]
 
-#define E_rev(i) params[N_SCAL_PARAMS + N_PORT_PARAMS*i + i_E_rev]
-#define taus_rise(i) params[N_SCAL_PARAMS + N_PORT_PARAMS*i + i_taus_rise]
-#define taus_decay(i) params[N_SCAL_PARAMS + N_PORT_PARAMS*i + i_taus_decay]
-#define g0(i) params[N_SCAL_PARAMS + N_PORT_PARAMS*i + i_g0]
+#define E_rev(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_E_rev]
+#define taus_rise(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_taus_rise]
+#define taus_decay(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_taus_decay]
+#define g0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_g0]
 
 
-template<int NVAR, int NPARAMS, class DataStruct>
+template<int NVAR, int NPARAM, class DataStruct>
 __device__
-    void aeif_cond_beta_Derivatives(float x, float *y, float *dydx, float *params,
+    void aeif_cond_beta_Derivatives(float x, float *y, float *dydx, float *param,
 		     DataStruct data_struct)
 {
-  enum { n_ports = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
+  enum { n_port = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
   float I_syn = 0.0;
 
   float V = ( refractory_step > 0 ) ? V_reset :  MIN(V_m, V_peak);
-  for (int i = 0; i<n_ports; i++) {
+  for (int i = 0; i<n_port; i++) {
     I_syn += g(i)*(E_rev(i) - V);
   }
   float V_spike = Delta_T*exp((V - V_th)/Delta_T);
@@ -146,17 +146,17 @@ __device__
     ( -g_L*(V - E_L - V_spike) + I_syn - w + I_e) / C_m;
   // Adaptation current w.
   dwdt = (a*(V - E_L) - w) / tau_w;
-  for (int i=0; i<n_ports; i++) {
+  for (int i=0; i<n_port; i++) {
     // Synaptic conductance derivative
     dg1dt(i) = -g1(i) / taus_rise(i);
     dgdt(i) = g1(i) - g(i) / taus_decay(i);
   }
 }
 
-template<int NVAR, int NPARAMS, class DataStruct>
+template<int NVAR, int NPARAM, class DataStruct>
 __device__
     void aeif_cond_beta_ExternalUpdate
-    (float x, float *y, float *params, bool end_time_step,
+    (float x, float *y, float *param, bool end_time_step,
 			RK5DataStruct data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
@@ -190,11 +190,11 @@ __device__
 
 template<class DataStruct>
 __device__
-void aeif_cond_beta_NodeInit(int n_var, int n_params, float x, float *y, float *params,
+void aeif_cond_beta_NodeInit(int n_var, int n_param, float x, float *y, float *param,
 		  DataStruct data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  int n_ports = (n_var-N_SCAL_VAR)/N_PORT_VAR;
+  int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
 
   V_th = -50.4;
   Delta_T = 2.0;
@@ -212,7 +212,7 @@ void aeif_cond_beta_NodeInit(int n_var, int n_params, float x, float *y, float *
   V_m = E_L;
   w = 0;
   refractory_step = 0;
-  for (int i = 0; i<n_ports; i++) {
+  for (int i = 0; i<n_port; i++) {
     g(i) = 0;
     g1(i) = 0;
     E_rev(i) = 0.0;
@@ -223,14 +223,14 @@ void aeif_cond_beta_NodeInit(int n_var, int n_params, float x, float *y, float *
 
 template<class DataStruct>
 __device__
-void aeif_cond_beta_NodeCalibrate(int n_var, int n_params, float x, float *y,
-		       float *params, DataStruct data_struct)
+void aeif_cond_beta_NodeCalibrate(int n_var, int n_param, float x, float *y,
+		       float *param, DataStruct data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  int n_ports = (n_var-N_SCAL_VAR)/N_PORT_VAR;
+  int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
 
   refractory_step = 0;
-  for (int i = 0; i<n_ports; i++) {
+  for (int i = 0; i<n_port; i++) {
     // denominator is computed here to check that it is != 0
     float denom1 = taus_decay(i) - taus_rise(i);
     float denom2 = 0;
@@ -256,17 +256,17 @@ void aeif_cond_beta_NodeCalibrate(int n_var, int n_params, float x, float *y,
 template <>
 int aeif_cond_beta::UpdateNR<0>(int it, float t1);
 
-template<int N_PORTS>
+template<int N_PORT>
 int aeif_cond_beta::UpdateNR(int it, float t1)
 {
-  if (N_PORTS == n_ports_) {
-    const int NVAR = N_SCAL_VAR + N_PORT_VAR*N_PORTS;
-    const int NPARAMS = N_SCAL_PARAMS + N_PORT_PARAMS*N_PORTS;
+  if (N_PORT == n_port_) {
+    const int NVAR = N_SCAL_VAR + N_PORT_VAR*N_PORT;
+    const int NPARAM = N_SCAL_PARAM + N_PORT_PARAM*N_PORT;
 
-    rk5_.Update<NVAR, NPARAMS>(t1, h_min_, rk5_data_struct_);
+    rk5_.Update<NVAR, NPARAM>(t1, h_min_, rk5_data_struct_);
   }
   else {
-    UpdateNR<N_PORTS - 1>(it, t1);
+    UpdateNR<N_PORT - 1>(it, t1);
   }
 
   return 0;

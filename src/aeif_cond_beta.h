@@ -33,22 +33,22 @@ class aeif_cond_beta : public BaseNeuron
   float h_;
   RK5DataStruct rk5_data_struct_;
     
-  int Init(int i_node_0, int n_neurons, int n_ports, int i_group,
+  int Init(int i_node_0, int n_neuron, int n_port, int i_group,
 	   unsigned long long *seed);
 
   int Calibrate(float time_min, float time_resolution);
 		
   int Update(int it, float t1);
   
-  int GetX(int i_neuron, int n_nodes, float *x) {
-    return rk5_.GetX(i_neuron, n_nodes, x);
+  int GetX(int i_neuron, int n_node, float *x) {
+    return rk5_.GetX(i_neuron, n_node, x);
   }
   
-  int GetY(int i_var, int i_neuron, int n_nodes, float *y) {
-    return rk5_.GetY(i_var, i_neuron, n_nodes, y);
+  int GetY(int i_var, int i_neuron, int n_node, float *y) {
+    return rk5_.GetY(i_var, i_neuron, n_node, y);
   }
   
-  template<int N_PORTS>
+  template<int N_PORT>
     int UpdateNR(int it, float t1);
 
 };

@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_models.h"
 
 /*
-const int N_POISS_GEN_SCAL_PARAMS = 4;
+const int N_POISS_GEN_SCAL_PARAM = 4;
 const std::string poiss_gen_scal_param_name[] = {
   "rate",
   "origin"
@@ -39,7 +39,7 @@ class poiss_gen : public BaseNeuron
   curandState *d_curand_state_;
  public:
   
-  int Init(int i_node_0, int n_nodes, int n_ports, int i_group,
+  int Init(int i_node_0, int n_node, int n_port, int i_group,
 	   unsigned long long *seed);
 
   int Calibrate(float, float);

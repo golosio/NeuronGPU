@@ -23,14 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "poiss_gen.h"
 #include "spike_generator.h"
 
-NodeSeq NeuralGPU::Create(std::string model_name, int n_nodes /*=1*/,
-			  int n_ports /*=1*/)
+NodeSeq NeuralGPU::Create(std::string model_name, int n_node /*=1*/,
+			  int n_port /*=1*/)
 {
   CheckUncalibrated("Nodes cannot be created after calibration");
-   if (n_nodes <= 0) {
+   if (n_node <= 0) {
      throw ngpu_exception("Number of nodes must be greater than zero.");
   }
-  else if (n_ports < 0) {
+  else if (n_port < 0) {
     throw ngpu_exception("Number of ports must be >= zero.");
   }
   if (model_name == neuron_model_name[i_aeif_cond_beta_model]) {
@@ -38,12 +38,12 @@ NodeSeq NeuralGPU::Create(std::string model_name, int n_nodes /*=1*/,
     node_vect_.push_back(aeif_cond_beta_group);
   }
   else if (model_name == neuron_model_name[i_poisson_generator_model]) {
-    n_ports = 0;
+    n_port = 0;
     poiss_gen *poiss_gen_group = new poiss_gen;
     node_vect_.push_back(poiss_gen_group);
   }
   else if (model_name == neuron_model_name[i_spike_generator_model]) {
-    n_ports = 0;
+    n_port = 0;
     spike_generator *spike_generator_group = new spike_generator;
     node_vect_.push_back(spike_generator_group);
   }
@@ -51,6 +51,6 @@ NodeSeq NeuralGPU::Create(std::string model_name, int n_nodes /*=1*/,
     throw ngpu_exception(std::string("Unknown neuron model name: ")
 			 + model_name);
   }
-  return NodeSeq(CreateNodeGroup(n_nodes, n_ports), n_nodes);
+  return NodeSeq(CreateNodeGroup(n_node, n_port), n_node);
 }
 

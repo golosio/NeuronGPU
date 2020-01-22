@@ -103,7 +103,7 @@ class NeuralGPU
   float t_min_;
   float neural_time_; // Neural activity time
   float sim_time_; // Simulation time in ms
-  int n_poiss_nodes_;
+  int n_poiss_node_;
 
   double start_real_time_;
   double build_real_time_;
@@ -114,9 +114,9 @@ class NeuralGPU
   unsigned char error_code_;
   int on_exception_;
   
-  int CreateNodeGroup(int n_neurons, int n_ports);
+  int CreateNodeGroup(int n_neuron, int n_port);
   int CheckUncalibrated(std::string message);
-  double *InitGetSpikeArray(int n_nodes, int n_ports);
+  double *InitGetSpikeArray(int n_node, int n_port);
   int NodeGroupArrayInit();
   int ClearGetSpikeArrays();
   int FreeGetSpikeArrays();
@@ -136,7 +136,7 @@ class NeuralGPU
 		       SynSpec &syn_spec);
 
   template <class T1, class T2>
-    int _ConnectOneToOne(T1 source, T2 target, int n_nodes, SynSpec &syn_spec);
+    int _ConnectOneToOne(T1 source, T2 target, int n_node, SynSpec &syn_spec);
 
   template <class T1, class T2>
     int _ConnectAllToAll
@@ -168,7 +168,7 @@ class NeuralGPU
   
   template <class T1, class T2>
     int _RemoteConnectOneToOne
-    (RemoteNode<T1> source, RemoteNode<T2> target, int n_nodes,
+    (RemoteNode<T1> source, RemoteNode<T2> target, int n_node,
      SynSpec &syn_spec);
   
   template <class T1, class T2>
@@ -216,33 +216,33 @@ class NeuralGPU
 
   int SetMaxSpikeBufferSize(int max_size);
   int GetMaxSpikeBufferSize();
-  NodeSeq Create(std::string model_name, int n_neurons=1, int n_ports=1);
-  NodeSeq CreatePoissonGenerator(int n_nodes, float rate);
+  NodeSeq Create(std::string model_name, int n_neuron=1, int n_port=1);
+  NodeSeq CreatePoissonGenerator(int n_node, float rate);
   int CreateRecord(std::string file_name, std::string *var_name_arr,
-		   int *i_node_arr, int n_nodes);  
+		   int *i_node_arr, int n_node);  
   int CreateRecord(std::string file_name, std::string *var_name_arr,
-		   int *i_node_arr, int *i_port_arr, int n_nodes);
+		   int *i_node_arr, int *i_port_arr, int n_node);
   std::vector<std::vector<float>> *GetRecordData(int i_record);
 
-  int SetNeuronParam(int i_node, int n_neurons, std::string param_name,
+  int SetNeuronParam(int i_node, int n_neuron, std::string param_name,
 		     float val);
 
-  int SetNeuronParam(int *i_node, int n_neurons, std::string param_name,
+  int SetNeuronParam(int *i_node, int n_neuron, std::string param_name,
 		     float val);
 
-  int SetNeuronParam(int i_node, int n_neurons, std::string param_name,
-		     float *params, int array_size);
+  int SetNeuronParam(int i_node, int n_neuron, std::string param_name,
+		     float *param, int array_size);
 
-  int SetNeuronParam(int *i_node, int n_neurons, std::string param_name,
-		     float *params, int array_size);
+  int SetNeuronParam(int *i_node, int n_neuron, std::string param_name,
+		     float *param, int array_size);
 
   int SetNeuronParam(NodeSeq nodes, std::string param_name, float val) {
     return SetNeuronParam(nodes.i0, nodes.n, param_name, val);
   }
 
-  int SetNeuronParam(NodeSeq nodes, std::string param_name, float *params,
+  int SetNeuronParam(NodeSeq nodes, std::string param_name, float *param,
 		      int array_size) {
-    return SetNeuronParam(nodes.i0, nodes.n, param_name, params, array_size);
+    return SetNeuronParam(nodes.i0, nodes.n, param_name, param, array_size);
   }
   
   int SetNeuronParam(std::vector<int> nodes, std::string param_name,
@@ -251,30 +251,30 @@ class NeuralGPU
   }
 
   int SetNeuronParam(std::vector<int> nodes, std::string param_name,
-		     float *params, int array_size) {
-    return SetNeuronParam(nodes.data(), nodes.size(), param_name, params,
+		     float *param, int array_size) {
+    return SetNeuronParam(nodes.data(), nodes.size(), param_name, param,
 			  array_size);
   }
 
-  int SetNeuronVar(int i_node, int n_neurons, std::string var_name,
+  int SetNeuronVar(int i_node, int n_neuron, std::string var_name,
 		     float val);
 
-  int SetNeuronVar(int *i_node, int n_neurons, std::string var_name,
+  int SetNeuronVar(int *i_node, int n_neuron, std::string var_name,
 		     float val);
 
-  int SetNeuronVar(int i_node, int n_neurons, std::string var_name,
-		     float *vars, int array_size);
+  int SetNeuronVar(int i_node, int n_neuron, std::string var_name,
+		     float *var, int array_size);
 
-  int SetNeuronVar(int *i_node, int n_neurons, std::string var_name,
-		     float *vars, int array_size);
+  int SetNeuronVar(int *i_node, int n_neuron, std::string var_name,
+		     float *var, int array_size);
 
   int SetNeuronVar(NodeSeq nodes, std::string var_name, float val) {
     return SetNeuronVar(nodes.i0, nodes.n, var_name, val);
   }
 
-  int SetNeuronVar(NodeSeq nodes, std::string var_name, float *vars,
+  int SetNeuronVar(NodeSeq nodes, std::string var_name, float *var,
 		      int array_size) {
-    return SetNeuronVar(nodes.i0, nodes.n, var_name, vars, array_size);
+    return SetNeuronVar(nodes.i0, nodes.n, var_name, var, array_size);
   }
   
   int SetNeuronVar(std::vector<int> nodes, std::string var_name,
@@ -283,8 +283,8 @@ class NeuralGPU
   }
 
   int SetNeuronVar(std::vector<int> nodes, std::string var_name,
-		     float *vars, int array_size) {
-    return SetNeuronVar(nodes.data(), nodes.size(), var_name, vars,
+		     float *var, int array_size) {
+    return SetNeuronVar(nodes.data(), nodes.size(), var_name, var,
 			  array_size);
   }
 
@@ -292,9 +292,9 @@ class NeuralGPU
 
   int GetNeuronVarSize(int i_node, std::string var_name);
 
-  float *GetNeuronParam(int i_node, int n_neurons, std::string param_name);
+  float *GetNeuronParam(int i_node, int n_neuron, std::string param_name);
 
-  float *GetNeuronParam(int *i_node, int n_neurons, std::string param_name);
+  float *GetNeuronParam(int *i_node, int n_neuron, std::string param_name);
 
   float *GetNeuronParam(NodeSeq nodes, std::string param_name) {
     return GetNeuronParam(nodes.i0, nodes.n, param_name);
@@ -304,9 +304,9 @@ class NeuralGPU
     return GetNeuronParam(nodes.data(), nodes.size(), param_name);
   }
 
-  float *GetNeuronVar(int i_node, int n_neurons, std::string var_name);
+  float *GetNeuronVar(int i_node, int n_neuron, std::string var_name);
 
-  float *GetNeuronVar(int *i_node, int n_neurons, std::string var_name);
+  float *GetNeuronVar(int *i_node, int n_neuron, std::string var_name);
 
   float *GetNeuronVar(NodeSeq nodes, std::string var_name) {
     return GetNeuronVar(nodes.i0, nodes.n, var_name);
@@ -316,9 +316,9 @@ class NeuralGPU
     return GetNeuronVar(nodes.data(), nodes.size(), var_name);
   }
 
-  int GetNodeSequenceOffset(int i_node, int n_nodes, int &i_group);
+  int GetNodeSequenceOffset(int i_node, int n_node, int &i_group);
 
-  std::vector<int> GetNodeArrayWithOffset(int *i_node, int n_nodes,
+  std::vector<int> GetNodeArrayWithOffset(int *i_node, int n_node,
 					  int &i_group);
 
   int IsNeuronScalParam(int i_node, std::string param_name);
@@ -439,6 +439,22 @@ class NeuralGPU
 
   int BuildDirectConnections();
 
+  std::vector<std::string> GetScalVarNames(int i_node);
+
+  int GetNScalVar(int i_node);
+  
+  std::vector<std::string> GetPortVarNames(int i_node);
+
+  int GetNPortVar(int i_node);
+  
+  std::vector<std::string> GetScalParamNames(int i_node);
+
+  int GetNScalParam(int i_node);
+  
+  std::vector<std::string> GetPortParamNames(int i_node);
+
+  int GetNPortParam(int i_node);
+  
 };
 
 

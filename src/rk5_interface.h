@@ -21,28 +21,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_models.h"
 #include "aeif_cond_beta_rk5.h"
 
-template<int NVAR, int NPARAMS, class DataStruct>
+template<int NVAR, int NPARAM, class DataStruct>
 __device__
-    void Derivatives(float x, float *y, float *dydx, float *params,
+    void Derivatives(float x, float *y, float *dydx, float *param,
 		     RK5DataStruct data_struct)
 {
   switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
-    aeif_cond_beta_Derivatives<NVAR, NPARAMS, DataStruct>(x, y, dydx, params,
+    aeif_cond_beta_Derivatives<NVAR, NPARAM, DataStruct>(x, y, dydx, param,
 						data_struct);
     break;
   }
 }
 
-template<int NVAR, int NPARAMS, class DataStruct>
+template<int NVAR, int NPARAM, class DataStruct>
 __device__
     void ExternalUpdate
-    (float x, float *y, float *params, bool end_time_step,
+    (float x, float *y, float *param, bool end_time_step,
 			RK5DataStruct data_struct)
 {
   switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
-    aeif_cond_beta_ExternalUpdate<NVAR, NPARAMS, DataStruct>(x, y, params,
+    aeif_cond_beta_ExternalUpdate<NVAR, NPARAM, DataStruct>(x, y, param,
 							     end_time_step,
 							     data_struct);
     break;
@@ -52,12 +52,12 @@ __device__
 
 template<class DataStruct>
 __device__
-void NodeInit(int n_var, int n_params, float x, float *y,
-	     float *params, DataStruct data_struct)
+void NodeInit(int n_var, int n_param, float x, float *y,
+	     float *param, DataStruct data_struct)
 {
   switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
-    aeif_cond_beta_NodeInit<DataStruct>(n_var, n_params, x, y, params,
+    aeif_cond_beta_NodeInit<DataStruct>(n_var, n_param, x, y, param,
 					data_struct);
     break;
   }
@@ -65,13 +65,13 @@ void NodeInit(int n_var, int n_params, float x, float *y,
 
 template<class DataStruct>
 __device__
-void NodeCalibrate(int n_var, int n_params, float x, float *y,
-		  float *params, DataStruct data_struct)
+void NodeCalibrate(int n_var, int n_param, float x, float *y,
+		  float *param, DataStruct data_struct)
 
 {
   switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
-    aeif_cond_beta_NodeCalibrate<DataStruct>(n_var, n_params, x, y, params, data_struct);
+    aeif_cond_beta_NodeCalibrate<DataStruct>(n_var, n_param, x, y, param, data_struct);
     break;
   }
 }

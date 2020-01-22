@@ -116,10 +116,10 @@ int NeuralGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
 
 
 template <class T1, class T2>
-int NeuralGPU::_ConnectOneToOne(T1 source, T2 target, int n_nodes,
+int NeuralGPU::_ConnectOneToOne(T1 source, T2 target, int n_node,
 				SynSpec &syn_spec)	       
 {
-  for (int in=0; in<n_nodes; in++) {
+  for (int in=0; in<n_node; in++) {
     _SingleConnect<T1, T2>(source, in, target, in, in, syn_spec);
   }
 
@@ -323,15 +323,15 @@ int NeuralGPU::_RemoteConnect(RemoteNode<T1> source, int n_source,
 
 template <class T1, class T2>
   int NeuralGPU::_RemoteConnectOneToOne
-  (RemoteNode<T1> source, RemoteNode<T2> target, int n_nodes,
+  (RemoteNode<T1> source, RemoteNode<T2> target, int n_node,
    SynSpec &syn_spec)
 {
   if (MpiId()==source.i_host_ && source.i_host_==target.i_host_) {
     return _ConnectOneToOne<T1, T2>(source.i_node_, target.i_node_,
-				    n_nodes, syn_spec);
+				    n_node, syn_spec);
   }
   else if (MpiId()==source.i_host_ || MpiId()==target.i_host_) {
-    int *i_remote_node_arr = new int[n_nodes];
+    int *i_remote_node_arr = new int[n_node];
     int i_new_remote_node;
     if (MpiId() == target.i_host_) {
       i_new_remote_node = net_connection_->connection_.size();
@@ -340,15 +340,15 @@ template <class T1, class T2>
 
       BaseNeuron *bn = new BaseNeuron;
       node_vect_.push_back(bn);
-      int n_remote_nodes = i_new_remote_node
+      int n_remote_node = i_new_remote_node
 	- net_connection_->connection_.size();
 
-      CreateNodeGroup(n_remote_nodes, 0);	
+      CreateNodeGroup(n_remote_node, 0);	
       
-      connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_nodes,
+      connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_node,
 				 source.i_host_);
 
-      for (int in=0; in<n_nodes; in++) {
+      for (int in=0; in<n_node; in++) {
 	int i_remote_node = i_remote_node_arr[in];
 	_SingleConnect<int,T2>(i_remote_node, 0, target.i_node_, in,
 			       in, syn_spec);
@@ -356,7 +356,7 @@ template <class T1, class T2>
     }
     else if (MpiId() == source.i_host_) {
       connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, target.i_host_);
-      for (int in=0; in<n_nodes; in++) {
+      for (int in=0; in<n_node; in++) {
 	int i_source_node = source.GetINode(in);
 	int i_remote_node = -1;
 	for (std::vector<ExternalConnectionNode >::iterator it =
@@ -377,7 +377,7 @@ template <class T1, class T2>
 	i_remote_node_arr[in] = i_remote_node;
       }
       connect_mpi_->MPI_Send_int(&i_new_remote_node, 1, target.i_host_);
-      connect_mpi_->MPI_Send_int(i_remote_node_arr, n_nodes, target.i_host_);
+      connect_mpi_->MPI_Send_int(i_remote_node_arr, n_node, target.i_host_);
     }
     delete[] i_remote_node_arr;
   }
@@ -406,10 +406,10 @@ template <class T1, class T2>
 
       BaseNeuron *bn = new BaseNeuron;
       node_vect_.push_back(bn);
-      int n_remote_nodes = i_new_remote_node
+      int n_remote_node = i_new_remote_node
 	- net_connection_->connection_.size();
 
-      CreateNodeGroup(n_remote_nodes, 0);	
+      CreateNodeGroup(n_remote_node, 0);	
       
       connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_target*n_source,
 				 source.i_host_);
@@ -477,10 +477,10 @@ template <class T1, class T2>
       connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, source.i_host_);
       BaseNeuron *bn = new BaseNeuron;
       node_vect_.push_back(bn);
-      int n_remote_nodes = i_new_remote_node
+      int n_remote_node = i_new_remote_node
 	- net_connection_->connection_.size();
 
-      CreateNodeGroup(n_remote_nodes, 0);	
+      CreateNodeGroup(n_remote_node, 0);	
       
       connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_conn,
 				 source.i_host_);
@@ -545,9 +545,9 @@ template <class T1, class T2>
 
       BaseNeuron *bn = new BaseNeuron;
       node_vect_.push_back(bn);
-      int n_remote_nodes = i_new_remote_node
+      int n_remote_node = i_new_remote_node
 	- net_connection_->connection_.size();
-      CreateNodeGroup(n_remote_nodes, 0);	
+      CreateNodeGroup(n_remote_node, 0);	
       
       connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_target*indegree,
 				 source.i_host_);
@@ -628,9 +628,9 @@ template <class T1, class T2>
       connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, source.i_host_);
       BaseNeuron *bn = new BaseNeuron;
       node_vect_.push_back(bn);
-      int n_remote_nodes = i_new_remote_node
+      int n_remote_node = i_new_remote_node
 	- net_connection_->connection_.size();
-      CreateNodeGroup(n_remote_nodes, 0);	
+      CreateNodeGroup(n_remote_node, 0);	
       
       connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_source,
 				 source.i_host_);

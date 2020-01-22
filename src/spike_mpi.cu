@@ -102,12 +102,12 @@ __global__ void ExternalSpikeReset()
   }
 }
 
-int ConnectMpi::ExternalSpikeInit(int n_nodes, int max_spike_num, int n_hosts,
+int ConnectMpi::ExternalSpikeInit(int n_node, int max_spike_num, int n_hosts,
 				  int max_spike_per_host)
 {
-  int *h_NExternalNodeTargetHost = new int[n_nodes];
-  int **h_ExternalNodeTargetHostId = new int*[n_nodes];
-  int **h_ExternalNodeId = new int*[n_nodes];
+  int *h_NExternalNodeTargetHost = new int[n_node];
+  int **h_ExternalNodeTargetHostId = new int*[n_node];
+  int **h_ExternalNodeId = new int*[n_node];
   
   h_ExternalSpikeNodeId = new int[max_spike_num];
 
@@ -128,11 +128,11 @@ int ConnectMpi::ExternalSpikeInit(int n_nodes, int max_spike_num, int n_hosts,
   gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeHeight, //n_hosts*
 		       max_spike_per_host*sizeof(float)));
 	    
-  gpuErrchk(cudaMalloc(&d_NExternalNodeTargetHost, n_nodes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_ExternalNodeTargetHostId, n_nodes*sizeof(int*)));
-  gpuErrchk(cudaMalloc(&d_ExternalNodeId, n_nodes*sizeof(int*)));
+  gpuErrchk(cudaMalloc(&d_NExternalNodeTargetHost, n_node*sizeof(int)));
+  gpuErrchk(cudaMalloc(&d_ExternalNodeTargetHostId, n_node*sizeof(int*)));
+  gpuErrchk(cudaMalloc(&d_ExternalNodeId, n_node*sizeof(int*)));
  
-  for (int i_source=0; i_source<n_nodes; i_source++) {
+  for (int i_source=0; i_source<n_node; i_source++) {
     vector< ExternalConnectionNode > *conn = &extern_connection_[i_source];
     int Nth = conn->size();
     h_NExternalNodeTargetHost[i_source] = Nth;
@@ -155,11 +155,11 @@ int ConnectMpi::ExternalSpikeInit(int n_nodes, int max_spike_num, int n_hosts,
      }
   }
   cudaMemcpy(d_NExternalNodeTargetHost, h_NExternalNodeTargetHost,
-	     n_nodes*sizeof(int), cudaMemcpyHostToDevice);
+	     n_node*sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(d_ExternalNodeTargetHostId, h_ExternalNodeTargetHostId,
-	     n_nodes*sizeof(int*), cudaMemcpyHostToDevice);
+	     n_node*sizeof(int*), cudaMemcpyHostToDevice);
   cudaMemcpy(d_ExternalNodeId, h_ExternalNodeId,
-	     n_nodes*sizeof(int*), cudaMemcpyHostToDevice);
+	     n_node*sizeof(int*), cudaMemcpyHostToDevice);
 
   DeviceExternalSpikeInit<<<1,1>>>(n_hosts, max_spike_per_host,
 				   d_ExternalSpikeNum,

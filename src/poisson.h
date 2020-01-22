@@ -36,7 +36,7 @@ class PoissonGenerator
 
  public:
   curandGenerator_t *random_generator_;
-  int n_nodes_;
+  int n_node_;
     
   PoissonGenerator();
 
@@ -45,7 +45,7 @@ class PoissonGenerator
   int Free();
   
   int Create(curandGenerator_t *random_generator,
-	     int i_node_0, int n_nodes, float lambda);
+	     int i_node_0, int n_node, float lambda);
   
   int Generate();
 

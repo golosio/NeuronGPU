@@ -54,7 +54,7 @@ class ConnectMpi
   
   bool ProcMaster();
   
-  int ExternalSpikeInit(int n_nodes, int max_spike_num, int n_hosts,
+  int ExternalSpikeInit(int n_node, int max_spike_num, int n_hosts,
 			int max_spike_per_host);
 
   int SendSpikeToRemote(int n_hosts, int max_spike_per_host);

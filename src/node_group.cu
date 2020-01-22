@@ -37,8 +37,8 @@ int NeuralGPU::NodeGroupArrayInit()
     NodeGroupStruct ngs;
     ngs.node_type_ = node_vect_[i]->node_type_;
     ngs.i_node_0_ = node_vect_[i]->i_node_0_;
-    ngs.n_nodes_ = node_vect_[i]->n_nodes_;
-    ngs.n_ports_ = node_vect_[i]->n_ports_;
+    ngs.n_node_ = node_vect_[i]->n_node_;
+    ngs.n_port_ = node_vect_[i]->n_port_;
     ngs.get_spike_array_ = node_vect_[i]->get_spike_array_;
     ngs_vect.push_back(ngs);
   }
@@ -53,11 +53,11 @@ int NeuralGPU::NodeGroupArrayInit()
   return 0;
 }
 
-double *NeuralGPU::InitGetSpikeArray (int n_nodes, int n_ports)
+double *NeuralGPU::InitGetSpikeArray (int n_node, int n_port)
 {
   double *d_get_spike_array = NULL;
-  if (n_nodes*n_ports > 0) {
-    gpuErrchk(cudaMalloc(&d_get_spike_array, n_nodes*n_ports
+  if (n_node*n_port > 0) {
+    gpuErrchk(cudaMalloc(&d_get_spike_array, n_node*n_port
 			 *sizeof(double)));
   }
   

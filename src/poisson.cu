@@ -28,10 +28,10 @@ __global__ void PoissonUpdate(unsigned int *poisson_data)
 }
 
 __global__
-void PoissonSendSpikes(int i_node_0, int n_nodes)
+void PoissonSendSpikes(int i_node_0, int n_node)
 {
   int i_node = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i_node < n_nodes) {
+  if (i_node < n_node) {
     int i_node_abs = i_node_0 + i_node;
     unsigned int height = PoissonData[i_node];
     if (height>0) {
@@ -77,10 +77,10 @@ int PoissonGenerator::Generate(int max_n_steps)
   }
   // Generate N floats on device
   CURAND_CALL(curandGeneratePoisson(*random_generator_, dev_poisson_data_,
-				    n_nodes_*more_steps_, lambda_));
+				    n_node_*more_steps_, lambda_));
   cudaDeviceSynchronize();
-  FixPoissonGenerator<<<(n_nodes_+1023)/1024, 1024>>>
-    (dev_poisson_data_,n_nodes_*more_steps_, lambda_);
+  FixPoissonGenerator<<<(n_node_+1023)/1024, 1024>>>
+    (dev_poisson_data_,n_node_*more_steps_, lambda_);
   cudaDeviceSynchronize();
 
   return 0;
@@ -101,20 +101,20 @@ PoissonGenerator::~PoissonGenerator()
 PoissonGenerator::PoissonGenerator()
 {
   buffer_size_ = 100000;
-  n_nodes_ = 0;
+  n_node_ = 0;
 }
 
 int PoissonGenerator::Create(curandGenerator_t *random_generator,
-			     int i_node_0, int n_nodes, float lambda)
+			     int i_node_0, int n_node, float lambda)
 {
   i_node_0_ = i_node_0;
-  n_nodes_ = n_nodes;
+  n_node_ = n_node;
   lambda_ = lambda;
   
-  n_steps_ = (buffer_size_ - 1)/n_nodes + 1;
+  n_steps_ = (buffer_size_ - 1)/n_node + 1;
   // with the above formula:
-  // buffer_size <= n_nodes*n_steps <= buffer_size + n_nodes - 1
-  Init(random_generator, n_nodes_*n_steps_);
+  // buffer_size <= n_node*n_steps <= buffer_size + n_node - 1
+  Init(random_generator, n_node_*n_steps_);
   i_step_ = 0;
        
   return 0;
@@ -131,11 +131,11 @@ int PoissonGenerator::Update(int max_n_steps)
 			 "in poisson generator");
   }
   
-  PoissonUpdate<<<1, 1>>>(&dev_poisson_data_[i_step_*n_nodes_]);
+  PoissonUpdate<<<1, 1>>>(&dev_poisson_data_[i_step_*n_node_]);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 
-  PoissonSendSpikes<<<(n_nodes_+1023)/1024, 1024>>>(i_node_0_, n_nodes_);
+  PoissonSendSpikes<<<(n_node_+1023)/1024, 1024>>>(i_node_0_, n_node_);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 

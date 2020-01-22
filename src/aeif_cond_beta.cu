@@ -19,19 +19,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "aeif_cond_beta.h"
 
 
-int aeif_cond_beta::Init(int i_node_0, int n_nodes, int n_ports,
+int aeif_cond_beta::Init(int i_node_0, int n_node, int n_port,
 			 int i_group, unsigned long long *seed) {
-  BaseNeuron::Init(i_node_0, n_nodes, n_ports, i_group, seed);
+  BaseNeuron::Init(i_node_0, n_node, n_port, i_group, seed);
   h_min_=1.0e-4;
   h_ = 1.0e-2;
   node_type_ = i_aeif_cond_beta_model;
   n_scal_var_ = N_SCAL_VAR;
   n_port_var_ = N_PORT_VAR;
-  n_scal_params_ = N_SCAL_PARAMS;
-  n_port_params_ = N_PORT_PARAMS;
+  n_scal_param_ = N_SCAL_PARAM;
+  n_port_param_ = N_PORT_PARAM;
 
-  n_var_ = n_scal_var_ + n_port_var_*n_ports;
-  n_params_ = n_scal_params_ + n_port_params_*n_ports;
+  n_var_ = n_scal_var_ + n_port_var_*n_port;
+  n_param_ = n_scal_param_ + n_port_param_*n_port;
 
   scal_var_name_ = aeif_cond_beta_scal_var_name;
   port_var_name_= aeif_cond_beta_port_var_name;
@@ -40,14 +40,14 @@ int aeif_cond_beta::Init(int i_node_0, int n_nodes, int n_ports,
   rk5_data_struct_.node_type_ = i_aeif_cond_beta_model;
   rk5_data_struct_.i_node_0_ = i_node_0_;
 
-  rk5_.Init(n_nodes, n_var_, n_params_, 0.0, h_, rk5_data_struct_);
+  rk5_.Init(n_node, n_var_, n_param_, 0.0, h_, rk5_data_struct_);
   var_arr_ = rk5_.GetYArr();
-  params_arr_ = rk5_.GetParamArr();
+  param_arr_ = rk5_.GetParamArr();
 
-  port_weight_arr_ = GetParamArr() + n_scal_params_
+  port_weight_arr_ = GetParamArr() + n_scal_param_
     + GetPortParamIdx("g0");
-  port_weight_arr_step_ = n_params_;
-  port_weight_port_step_ = n_port_params_;
+  port_weight_arr_step_ = n_param_;
+  port_weight_port_step_ = n_port_param_;
 
   port_input_arr_ = GetVarArr() + n_scal_var_
     + GetPortVarIdx("g1");

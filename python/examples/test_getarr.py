@@ -24,21 +24,26 @@ ngpu.SetStatus(spike1, {"spike_time": spike_time1,
 ngpu.SetStatus(spike2, {"spike_time": spike_time2,
                         "spike_height":spike_height2})
 
-print(ngpu.GetNeuronStatus(spike0, "spike_time"))
-print(ngpu.GetNeuronStatus(spike0, "spike_height"))
+print(ngpu.GetStatus(spike0, "spike_time"))
+print(ngpu.GetStatus(spike0, "spike_height"))
 print()
-print(ngpu.GetNeuronStatus(spike1, "spike_time"))
-print(ngpu.GetNeuronStatus(spike1, "spike_height"))
+print(ngpu.GetStatus(spike1, "spike_time"))
+print(ngpu.GetStatus(spike1, "spike_height"))
 print()
-print(ngpu.GetNeuronStatus(spike2, "spike_time"))
-print(ngpu.GetNeuronStatus(spike2, "spike_height"))
+print(ngpu.GetStatus(spike2, "spike_time"))
+print(ngpu.GetStatus(spike2, "spike_height"))
 
 print()
 print()
 neuron_list = [spike[2], spike[3], spike[0], spike[1]]
-print(ngpu.GetNeuronStatus(neuron_list, "spike_time"))
-print(ngpu.GetNeuronStatus(neuron_list, "spike_height"))
-
+print(ngpu.GetStatus(neuron_list, "spike_time"))
+print(ngpu.GetStatus(neuron_list, "spike_height"))
+print()
+print()
+print(ngpu.GetStatus(spike1))
+print()
+print()
+print(ngpu.GetStatus(neuron_list))
 
 
       

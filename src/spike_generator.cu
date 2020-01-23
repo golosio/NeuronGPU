@@ -24,6 +24,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#include "spike_generator_variables.h"
 const int N_SPIKE_GEN_SCAL_PARAM = 0;
 const std::string *spike_gen_scal_param_name = NULL;
+enum {
+  i_SPIKE_TIME_ARRAY_PARAM=0,
+  i_SPIKE_HEIGHT_ARRAY_PARAM,
+  N_SPIKE_GEN_ARRAY_PARAM
+};
+
+const std::string spike_gen_array_param_name[N_SPIKE_GEN_ARRAY_PARAM]
+= {"spike_time", "spike_height"};
 
 __global__
 void spike_generatorUpdate(int i_node_0, int n_node, int i_time,
@@ -53,6 +61,10 @@ int spike_generator::Init(int i_node_0, int n_node, int /*n_port*/,
   n_scal_param_ = N_SPIKE_GEN_SCAL_PARAM;
   n_param_ = n_scal_param_;
   scal_param_name_ = spike_gen_scal_param_name;
+
+  n_array_param_ = N_SPIKE_GEN_ARRAY_PARAM;
+  array_param_name_ = spike_gen_array_param_name;
+
   std::vector<float> empty_vect;
   spike_time_vect_.clear();
   spike_time_vect_.insert(spike_time_vect_.begin(), n_node, empty_vect);
@@ -124,14 +136,6 @@ int spike_generator::Update(int i_time, float /*t1*/)
   return 0;
 }
 
-bool spike_generator::IsArrayParam(std::string param_name)
-{
-  if (param_name=="spike_time" || param_name=="spike_height") {
-    return true;
-  }
-  return false;
-}
-
 int spike_generator::SetArrayParam(int i_neuron, int n_neuron,
 				   std::string param_name, float *array,
 				   int array_size)
@@ -139,12 +143,12 @@ int spike_generator::SetArrayParam(int i_neuron, int n_neuron,
   CheckNeuronIdx(i_neuron);
   CheckNeuronIdx(i_neuron + n_neuron - 1);
 
-  if (param_name=="spike_time") {
+  if (param_name==array_param_name_[i_SPIKE_TIME_ARRAY_PARAM]) {
     for (int in=i_neuron; in<i_neuron+n_neuron; in++) {
       spike_time_vect_[in] = std::vector<float>(array, array+array_size);
     }
   }
-  else if (param_name=="spike_height") {
+  else if (param_name==array_param_name_[i_SPIKE_HEIGHT_ARRAY_PARAM]) {
     for (int in=i_neuron; in<i_neuron+n_neuron; in++) {
       spike_height_vect_[in] = std::vector<float>(array, array+array_size);
     }
@@ -161,14 +165,14 @@ int spike_generator::SetArrayParam(int *i_neuron, int n_neuron,
 				   std::string param_name, float *array,
 				   int array_size)
 {
-  if (param_name=="spike_time") {
+  if (param_name==array_param_name_[i_SPIKE_TIME_ARRAY_PARAM]) {
     for (int i=0; i<n_neuron; i++) {
       int in = i_neuron[i];
       CheckNeuronIdx(in);
       spike_time_vect_[in] = std::vector<float>(array, array+array_size);
     }
   }
-  else if (param_name=="spike_height") {
+  else if (param_name==array_param_name_[i_SPIKE_HEIGHT_ARRAY_PARAM]) {
     for (int i=0; i<n_neuron; i++) {
       int in = i_neuron[i];
       CheckNeuronIdx(in);      
@@ -253,10 +257,10 @@ int spike_generator::SetSpikes(int irel_node, int n_spikes, float *spike_time,
 
 int spike_generator::GetArrayParamSize(int i_neuron, std::string param_name)
 {
-  if (param_name=="spike_time") {
+  if (param_name==array_param_name_[i_SPIKE_TIME_ARRAY_PARAM]) {
     return spike_time_vect_[i_neuron].size();
   }
-  else if (param_name=="spike_height") {
+  else if (param_name==array_param_name_[i_SPIKE_HEIGHT_ARRAY_PARAM]) {
     return spike_height_vect_[i_neuron].size();
   }
   else {
@@ -267,10 +271,10 @@ int spike_generator::GetArrayParamSize(int i_neuron, std::string param_name)
 
 float *spike_generator::GetArrayParam(int i_neuron, std::string param_name)
 {
-  if (param_name=="spike_time") {
+  if (param_name==array_param_name_[i_SPIKE_TIME_ARRAY_PARAM]) {
     return spike_time_vect_[i_neuron].data();
   }
-  else if (param_name=="spike_height") {
+  else if (param_name==array_param_name_[i_SPIKE_HEIGHT_ARRAY_PARAM]) {
     return spike_height_vect_[i_neuron].data();
   }
   else {

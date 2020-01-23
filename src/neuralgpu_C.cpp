@@ -527,15 +527,13 @@ extern "C" {
     
   } END_ERR_PROP return ret; }
 
+  
   int NeuralGPU_GetNPortVar(int i_node)
   { int ret; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetNPortVar(i_node);
   } END_ERR_PROP return ret; }
 
-
-
-
-
+  
   char **NeuralGPU_GetScalParamNames(int i_node)
   { char **ret; BEGIN_ERR_PROP {
     std::vector<std::string> var_name_vect =
@@ -553,6 +551,7 @@ extern "C" {
     
   } END_ERR_PROP return ret; }
 
+  
   int NeuralGPU_GetNScalParam(int i_node)
   { int ret; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetNScalParam(i_node);
@@ -576,11 +575,57 @@ extern "C" {
     
   } END_ERR_PROP return ret; }
 
+  
   int NeuralGPU_GetNPortParam(int i_node)
   { int ret; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetNPortParam(i_node);
   } END_ERR_PROP return ret; }
 
+
+  char **NeuralGPU_GetArrayParamNames(int i_node)
+  { char **ret; BEGIN_ERR_PROP {
+    std::vector<std::string> var_name_vect =
+      NeuralGPU_instance->GetArrayParamNames(i_node);
+    char **var_name_array = (char**)malloc(var_name_vect.size()
+					   *sizeof(char*));
+    for (unsigned int i=0; i<var_name_vect.size(); i++) {
+      char *var_name = (char*)malloc((var_name_vect[i].length() + 1)
+				      *sizeof(char));
+      
+      strcpy(var_name, var_name_vect[i].c_str());
+      var_name_array[i] = var_name;
+    }
+    ret = var_name_array;
+    
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuralGPU_GetNArrayParam(int i_node)
+  { int ret; BEGIN_ERR_PROP {
+    ret = NeuralGPU_instance->GetNArrayParam(i_node);
+  } END_ERR_PROP return ret; }
+
+  char **NeuralGPU_GetArrayVarNames(int i_node)
+  { char **ret; BEGIN_ERR_PROP {
+    std::vector<std::string> var_name_vect =
+      NeuralGPU_instance->GetArrayVarNames(i_node);
+    char **var_name_array = (char**)malloc(var_name_vect.size()
+					   *sizeof(char*));
+    for (unsigned int i=0; i<var_name_vect.size(); i++) {
+      char *var_name = (char*)malloc((var_name_vect[i].length() + 1)
+				      *sizeof(char));
+      
+      strcpy(var_name, var_name_vect[i].c_str());
+      var_name_array[i] = var_name;
+    }
+    ret = var_name_array;
+    
+  } END_ERR_PROP return ret; }
+
+  int NeuralGPU_GetNArrayVar(int i_node)
+  { int ret; BEGIN_ERR_PROP {
+    ret = NeuralGPU_instance->GetNArrayVar(i_node);
+  } END_ERR_PROP return ret; }
 
   
 }

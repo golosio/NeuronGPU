@@ -459,6 +459,14 @@ class NeuralGPU
 
   int GetNPortParam(int i_node);
   
+  std::vector<std::string> GetArrayParamNames(int i_node);
+
+  int GetNArrayParam(int i_node);
+
+  std::vector<std::string> GetArrayVarNames(int i_node);
+
+  int GetNArrayVar(int i_node);
+  
 };
 
 

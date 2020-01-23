@@ -185,7 +185,16 @@ extern "C" {
   char **NeuralGPU_GetPortParamNames(int i_node);
   
   int NeuralGPU_GetNPortParam(int i_node);
+
+  char **NeuralGPU_GetArrayParamNames(int i_node);
+  
+  int NeuralGPU_GetNArrayParam(int i_node);
+
+  char **NeuralGPU_GetArrayVarNames(int i_node);
+  
+  int NeuralGPU_GetNArrayVar(int i_node);
     
+
 #ifdef __cplusplus
 }
 #endif

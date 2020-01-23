@@ -38,7 +38,9 @@ class BaseNeuron
   int n_port_param_;
   int n_var_;
   int n_param_;
-
+  int n_array_var_;
+  int n_array_param_;
+  
   double *get_spike_array_;
   float *port_weight_arr_;
   int port_weight_arr_step_;
@@ -52,7 +54,9 @@ class BaseNeuron
   const std::string *port_var_name_;
   const std::string *scal_param_name_;
   const std::string *port_param_name_;
-
+  const std::string *array_var_name_;
+  const std::string *array_param_name_;
+  
   DirectConnection *d_dir_conn_array_;
   long n_dir_conn_; // = 0;
   bool has_dir_conn_; // = false;
@@ -198,6 +202,15 @@ class BaseNeuron
   virtual std::vector<std::string> GetPortParamNames();
   
   virtual int GetNPortParam();
+
+  virtual std::vector<std::string> GetArrayVarNames();
+  
+  virtual int GetNArrayVar();
+
+  virtual std::vector<std::string> GetArrayParamNames();
+  
+  virtual int GetNArrayParam();
+
 
 };
 

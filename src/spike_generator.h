@@ -22,16 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "base_neuron.h"
 #include "neuron_models.h"
 
-/*
-const int N_POISS_GEN_SCAL_PARAM = 4;
-const std::string poiss_gen_scal_param_name[] = {
-  "rate",
-  "origin"
-  "start",
-  "stop",
-};
-*/
-
 class spike_generator : public BaseNeuron
 {
   int *d_n_spikes_;
@@ -57,8 +47,6 @@ class spike_generator : public BaseNeuron
   int Update(int i_time, float t1);
 
   int Calibrate(float time_min, float time_resolution);
-
-  bool IsArrayParam(std::string param_name);
 
   int SetArrayParam(int i_neuron, int n_neuron, std::string param_name,
 		    float *array, int array_size);

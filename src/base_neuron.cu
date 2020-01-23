@@ -69,6 +69,8 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
   n_port_param_ = 0;
   n_var_ = 0;
   n_param_ = 0;
+  n_array_var_ = 0;
+  n_array_param_ = 0;
 
   get_spike_array_ = NULL;
   port_weight_arr_ = NULL;
@@ -83,6 +85,9 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
   port_var_name_= NULL;
   scal_param_name_ = NULL;
   port_param_name_ = NULL;
+  array_var_name_= NULL;
+  array_param_name_ = NULL;
+
   d_dir_conn_array_ = NULL;
   n_dir_conn_ = 0;
   has_dir_conn_ = false;
@@ -696,7 +701,11 @@ bool BaseNeuron::IsPortVar(std::string var_name)
 }
 
 bool BaseNeuron::IsArrayVar(std::string var_name)
-{  
+{
+  int i_var;
+  for (i_var=0; i_var<n_array_var_; i_var++) {
+    if (var_name == array_var_name_[i_var]) return true;
+  }
   return false;
 }
 
@@ -720,6 +729,10 @@ bool BaseNeuron::IsPortParam(std::string param_name)
 
 bool BaseNeuron::IsArrayParam(std::string param_name)
 {
+  int i_param;
+  for (i_param=0; i_param<n_array_param_; i_param++) {
+    if (param_name == array_param_name_[i_param]) return true;
+  }
   return false;
 }
 
@@ -873,3 +886,33 @@ int BaseNeuron::GetNPortParam()
   return n_port_param_;
 }
 
+
+std::vector<std::string> BaseNeuron::GetArrayVarNames()
+{
+  std::vector<std::string> var_name_vect;
+  for (int i=0; i<n_array_var_; i++) {
+    var_name_vect.push_back(array_var_name_[i]);
+  }
+  
+  return var_name_vect;
+}
+  
+int BaseNeuron::GetNArrayVar()
+{
+  return n_array_var_;
+}
+
+std::vector<std::string> BaseNeuron::GetArrayParamNames()
+{
+  std::vector<std::string> param_name_vect;
+  for (int i=0; i<n_array_param_; i++) {
+    param_name_vect.push_back(array_param_name_[i]);
+  }
+  
+  return param_name_vect;
+}
+  
+int BaseNeuron::GetNArrayParam()
+{
+  return n_array_param_;
+}

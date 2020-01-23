@@ -1,4 +1,4 @@
-""" Python wrapper for the shared library neuralgpu"""
+""" Python interface for NeuralGPU"""
 import sys, platform
 import ctypes, ctypes.util
 
@@ -808,6 +808,66 @@ def GetPortParamNames(i_node):
     return param_name_list
 
 
+NeuralGPU_GetNArrayParam = _neuralgpu.NeuralGPU_GetNArrayParam
+NeuralGPU_GetNArrayParam.argtypes = (ctypes.c_int,)
+NeuralGPU_GetNArrayParam.restype = ctypes.c_int
+def GetNArrayParam(i_node):
+    "Get number of scalar parameters for a given node"
+    ret = NeuralGPU_GetNArrayParam(ctypes.c_int(i_node))
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+NeuralGPU_GetArrayParamNames = _neuralgpu.NeuralGPU_GetArrayParamNames
+NeuralGPU_GetArrayParamNames.argtypes = (ctypes.c_int,)
+NeuralGPU_GetArrayParamNames.restype = ctypes.POINTER(c_char_p)
+def GetArrayParamNames(i_node):
+    "Get list of scalar parameter names"
+    n_param = GetNArrayParam(i_node)
+    param_name_pp = ctypes.cast(NeuralGPU_GetArrayParamNames(
+        ctypes.c_int(i_node)), ctypes.POINTER(c_char_p))
+    param_name_list = []
+    for i in range(n_param):
+        param_name_p = param_name_pp[i]
+        param_name = ctypes.cast(param_name_p, ctypes.c_char_p).value
+        param_name_list.append(param_name)
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return param_name_list
+
+
+NeuralGPU_GetNArrayVar = _neuralgpu.NeuralGPU_GetNArrayVar
+NeuralGPU_GetNArrayVar.argtypes = (ctypes.c_int,)
+NeuralGPU_GetNArrayVar.restype = ctypes.c_int
+def GetNArrayVar(i_node):
+    "Get number of scalar variables for a given node"
+    ret = NeuralGPU_GetNArrayVar(ctypes.c_int(i_node))
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+NeuralGPU_GetArrayVarNames = _neuralgpu.NeuralGPU_GetArrayVarNames
+NeuralGPU_GetArrayVarNames.argtypes = (ctypes.c_int,)
+NeuralGPU_GetArrayVarNames.restype = ctypes.POINTER(c_char_p)
+def GetArrayVarNames(i_node):
+    "Get list of scalar variable names"
+    n_var = GetNArrayVar(i_node)
+    var_name_pp = ctypes.cast(NeuralGPU_GetArrayVarNames(ctypes.c_int(i_node)),
+                               ctypes.POINTER(c_char_p))
+    var_name_list = []
+    for i in range(n_var):
+        var_name_p = var_name_pp[i]
+        var_name = ctypes.cast(var_name_p, ctypes.c_char_p).value
+        var_name_list.append(var_name)
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return var_name_list
+
+
+
+
 def SetNeuronStatus(nodes, var_name, val):
     "Set neuron group scalar or array variable or parameter"
     if (type(nodes)!=list) & (type(nodes)!=tuple) & (type(nodes)!=NodeSeq):
@@ -1382,7 +1442,7 @@ def GetStatus(nodes, var_name=None):
     dict_list = []
     for i_node in nodes:
         status_dict = {}
-        name_list = GetScalVarNames(i_node) + GetScalParamNames(i_node) + GetPortVarNames(i_node) + GetPortParamNames(i_node)
+        name_list = GetScalVarNames(i_node) + GetScalParamNames(i_node) + GetPortVarNames(i_node) + GetPortParamNames(i_node) + GetArrayVarNames(i_node) + GetArrayParamNames(i_node)
         for var_name in name_list:
             val = GetNeuronStatus([i_node], var_name)[0]
             status_dict[var_name] = val

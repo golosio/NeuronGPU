@@ -976,3 +976,48 @@ int NeuralGPU::GetNPortParam(int i_node)
   
   return node_vect_[i_group]->GetNPortParam();
 }
+
+
+std::vector<std::string> NeuralGPU::GetArrayParamNames(int i_node)
+{
+  if (i_node<0 || i_node>(int)node_group_map_.size()) {
+    throw ngpu_exception("Unrecognized node in reading array parameter names");
+  }
+  int i_group = node_group_map_[i_node];
+  
+  return node_vect_[i_group]->GetArrayParamNames();
+}
+
+int NeuralGPU::GetNArrayParam(int i_node)
+{
+  if (i_node<0 || i_node>(int)node_group_map_.size()) {
+    throw ngpu_exception("Unrecognized node in reading number of array "
+			 "parameters");
+  }
+  int i_group = node_group_map_[i_node];
+  
+  return node_vect_[i_group]->GetNArrayParam();
+}
+
+
+std::vector<std::string> NeuralGPU::GetArrayVarNames(int i_node)
+{
+  if (i_node<0 || i_node>(int)node_group_map_.size()) {
+    throw ngpu_exception("Unrecognized node in reading array variable names");
+  }
+  int i_group = node_group_map_[i_node];
+  
+  return node_vect_[i_group]->GetArrayVarNames();
+}
+
+int NeuralGPU::GetNArrayVar(int i_node)
+{
+  if (i_node<0 || i_node>(int)node_group_map_.size()) {
+    throw ngpu_exception("Unrecognized node in reading number of array "
+			 "variables");
+  }
+  int i_group = node_group_map_[i_node];
+  
+  return node_vect_[i_group]->GetNArrayVar();
+}
+

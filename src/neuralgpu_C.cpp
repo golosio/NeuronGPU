@@ -293,6 +293,14 @@ extern "C" {
   } END_ERR_PROP return ret; }
 
 
+  float *NeuralGPU_GetArrayParam(int i_node, char *param_name)
+  { float *ret; BEGIN_ERR_PROP {
+    
+    std::string param_name_str = std::string(param_name);
+    ret = NeuralGPU_instance->GetArrayParam(i_node, param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
   float *NeuralGPU_GetNeuronVar(int i_node, int n_neuron,
 				char *param_name)
   { float *ret; BEGIN_ERR_PROP {
@@ -309,6 +317,13 @@ extern "C" {
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->GetNeuronVar(i_node, n_neuron,
 					   param_name_str);
+  } END_ERR_PROP return ret; }
+
+  float *NeuralGPU_GetArrayVar(int i_node, char *var_name)
+  { float *ret; BEGIN_ERR_PROP {
+    
+    std::string var_name_str = std::string(var_name);
+    ret = NeuralGPU_instance->GetArrayVar(i_node, var_name_str);
   } END_ERR_PROP return ret; }
 
 

@@ -123,11 +123,7 @@ class BaseNeuron
   virtual float *GetPortParam(int *i_neuron, int n_neuron,
 			      std::string param_name);
 
-  virtual float *GetArrayParam(int i_neuron, int n_neuron,
-			       std::string param_name);
-
-  virtual float *GetArrayParam(int *i_neuron, int n_neuron,
-			       std::string param_name);
+  virtual float *GetArrayParam(int i_neuron, std::string param_name);
 
   virtual float *GetScalVar(int i_neuron, int n_neuron,
 			    std::string var_name);
@@ -141,12 +137,8 @@ class BaseNeuron
   virtual float *GetPortVar(int *i_neuron, int n_neuron,
 			    std::string var_name);
 
-  virtual float *GetArrayVar(int i_neuron, int n_neuron,
-			     std::string var_name);
+  virtual float *GetArrayVar(int i_neuron, std::string var_name);
 
-  virtual float *GetArrayVar(int *i_neuron, int n_neuron,
-			     std::string var_name);
-  
   virtual int GetScalVarIdx(std::string var_name);
 
   virtual int GetPortVarIdx(std::string var_name);

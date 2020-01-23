@@ -663,8 +663,16 @@ float *NeuralGPU::GetNeuronParam(int i_node, int n_node,
   else if (node_vect_[i_group]->IsPortParam(param_name)) {
     return node_vect_[i_group]->GetPortParam(i_neuron, n_node, param_name);
   }
+  else if (node_vect_[i_group]->IsArrayParam(param_name)) {
+    if (n_node != 1) {
+      throw ngpu_exception("Cannot get array parameters for more than one node"
+			   "at a time");
+    }
+    return node_vect_[i_group]->GetArrayParam(i_neuron, param_name);
+  }
   else {
-    return node_vect_[i_group]->GetArrayParam(i_neuron, n_node, param_name);
+    throw ngpu_exception(std::string("Unrecognized parameter ")
+			 + param_name);
   }
 }
 
@@ -682,10 +690,25 @@ float *NeuralGPU::GetNeuronParam( int *i_node, int n_node,
     return node_vect_[i_group]->GetPortParam(nodes.data(), n_node,
 					     param_name);
   }
+  else if (node_vect_[i_group]->IsArrayParam(param_name)) {
+    if (n_node != 1) {
+      throw ngpu_exception("Cannot get array parameters for more than one node"
+			   "at a time");
+    }
+    return node_vect_[i_group]->GetArrayParam(nodes[0], param_name);
+  }
   else {
-    return node_vect_[i_group]->GetArrayParam(nodes.data(), n_node,
-					      param_name);
-  }    
+    throw ngpu_exception(std::string("Unrecognized parameter ")
+			 + param_name);
+  }
+}
+
+float *NeuralGPU::GetArrayParam(int i_node, std::string param_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+
+  return node_vect_[i_group]->GetArrayParam(i_neuron, param_name);
 }
 
 float *NeuralGPU::GetNeuronVar(int i_node, int n_node,
@@ -699,13 +722,21 @@ float *NeuralGPU::GetNeuronVar(int i_node, int n_node,
   else if (node_vect_[i_group]->IsPortVar(var_name)) {
     return node_vect_[i_group]->GetPortVar(i_neuron, n_node, var_name);
   }
+  else if (node_vect_[i_group]->IsArrayVar(var_name)) {
+    if (n_node != 1) {
+      throw ngpu_exception("Cannot get array variables for more than one node"
+			   "at a time");
+    }
+    return node_vect_[i_group]->GetArrayVar(i_neuron, var_name);
+  }
   else {
-    return node_vect_[i_group]->GetArrayVar(i_neuron, n_node, var_name);
+    throw ngpu_exception(std::string("Unrecognized variable ")
+			 + var_name);
   }
 }
 
-float *NeuralGPU::GetNeuronVar( int *i_node, int n_node,
-				std::string var_name)
+float *NeuralGPU::GetNeuronVar(int *i_node, int n_node,
+			       std::string var_name)
 {
   int i_group;
   std::vector<int> nodes = GetNodeArrayWithOffset(i_node, n_node,
@@ -718,10 +749,25 @@ float *NeuralGPU::GetNeuronVar( int *i_node, int n_node,
     return node_vect_[i_group]->GetPortVar(nodes.data(), n_node,
 					   var_name);
   }
+  else if (node_vect_[i_group]->IsArrayVar(var_name)) {
+    if (n_node != 1) {
+      throw ngpu_exception("Cannot get array variables for more than one node"
+			   "at a time");
+    }
+    return node_vect_[i_group]->GetArrayVar(nodes[0], var_name);
+  }
   else {
-    return node_vect_[i_group]->GetArrayVar(nodes.data(), n_node,
-					    var_name);
-  }    
+    throw ngpu_exception(std::string("Unrecognized variable ")
+			 + var_name);
+  }
+}
+
+float *NeuralGPU::GetArrayVar(int i_node, std::string var_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+
+  return node_vect_[i_group]->GetArrayVar(i_neuron, var_name);
 }
 
 int NeuralGPU::ConnectMpiInit(int argc, char *argv[])

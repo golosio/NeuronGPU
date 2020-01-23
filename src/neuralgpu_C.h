@@ -100,11 +100,15 @@ extern "C" {
   float *NeuralGPU_GetNeuronPtParam(int *i_node, int n_neuron,
 				    char *param_name);
 
+  float *NeuralGPU_GetArrayParam(int i_node, char *param_name);
+
   float *NeuralGPU_GetNeuronVar(int i_node, int n_neuron,
 				char *param_name);
 
   float *NeuralGPU_GetNeuronPtVar(int *i_node, int n_neuron,
 				  char *param_name);
+  
+  float *NeuralGPU_GetArrayVar(int i_node, char *var_name);
   
   int NeuralGPU_Calibrate();
 

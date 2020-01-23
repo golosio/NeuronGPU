@@ -304,6 +304,8 @@ class NeuralGPU
     return GetNeuronParam(nodes.data(), nodes.size(), param_name);
   }
 
+  float *GetArrayParam(int i_node, std::string param_name);
+  
   float *GetNeuronVar(int i_node, int n_neuron, std::string var_name);
 
   float *GetNeuronVar(int *i_node, int n_neuron, std::string var_name);
@@ -316,6 +318,8 @@ class NeuralGPU
     return GetNeuronVar(nodes.data(), nodes.size(), var_name);
   }
 
+  float *GetArrayVar(int i_node, std::string param_name);
+  
   int GetNodeSequenceOffset(int i_node, int n_node, int &i_group);
 
   std::vector<int> GetNodeArrayWithOffset(int *i_node, int n_node,

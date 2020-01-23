@@ -65,6 +65,10 @@ class spike_generator : public BaseNeuron
   
   int SetArrayParam(int *i_neuron, int n_neuron, std::string param_name,
 		    float *array, int array_size);
+  
+  int GetArrayParamSize(int i_neuron, std::string param_name);
+
+  float *GetArrayParam(int i_neuron, std::string param_name);
 
 };
 

@@ -251,3 +251,30 @@ int spike_generator::SetSpikes(int irel_node, int n_spikes, float *spike_time,
   return 0;
 }
 
+int spike_generator::GetArrayParamSize(int i_neuron, std::string param_name)
+{
+  if (param_name=="spike_time") {
+    return spike_time_vect_[i_neuron].size();
+  }
+  else if (param_name=="spike_height") {
+    return spike_height_vect_[i_neuron].size();
+  }
+  else {
+    throw ngpu_exception(std::string("Unrecognized parameter ")
+			 + param_name);
+  }
+}
+
+float *spike_generator::GetArrayParam(int i_neuron, std::string param_name)
+{
+  if (param_name=="spike_time") {
+    return spike_time_vect_[i_neuron].data();
+  }
+  else if (param_name=="spike_height") {
+    return spike_height_vect_[i_neuron].data();
+  }
+  else {
+    throw ngpu_exception(std::string("Unrecognized parameter ")
+			 + param_name);
+  }
+}

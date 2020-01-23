@@ -428,20 +428,11 @@ float *BaseNeuron::GetPortParam(int *i_neuron, int n_neuron,
   return h_param_arr;
 }
 
-float *BaseNeuron::GetArrayParam(int i_neuron, int n_neuron,
-			      std::string param_name)
+float *BaseNeuron::GetArrayParam(int i_neuron, std::string param_name)
 {
   throw ngpu_exception(std::string("Unrecognized parameter ")
 		       + param_name);
 }
-
-float *BaseNeuron::GetArrayParam(int *i_neuron, int n_neuron,
-			      std::string param_name)
-{
-  throw ngpu_exception(std::string("Unrecognized parameter ")
-		       + param_name);
-}
-
 
 float *BaseNeuron::GetScalVar(int i_neuron, int n_neuron,
 				std::string var_name)
@@ -562,20 +553,11 @@ float *BaseNeuron::GetPortVar(int *i_neuron, int n_neuron,
   return h_var_arr;
 }
 
-float *BaseNeuron::GetArrayVar(int i_neuron, int n_neuron,
-			      std::string var_name)
+float *BaseNeuron::GetArrayVar(int i_neuron, std::string var_name)
 {
   throw ngpu_exception(std::string("Unrecognized variable ")
 		       + var_name);
 }
-
-float *BaseNeuron::GetArrayVar(int *i_neuron, int n_neuron,
-			      std::string var_name)
-{
-  throw ngpu_exception(std::string("Unrecognized variable ")
-		       + var_name);
-}
-
 
 int BaseNeuron::GetScalVarIdx(std::string var_name)
 {
@@ -737,7 +719,7 @@ bool BaseNeuron::IsPortParam(std::string param_name)
 }
 
 bool BaseNeuron::IsArrayParam(std::string param_name)
-{  
+{
   return false;
 }
 

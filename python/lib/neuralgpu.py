@@ -439,7 +439,6 @@ def IsNeuronArrayVar(i_node, var_name):
         raise ValueError(GetErrorMessage())
     return ret
 
-#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 NeuralGPU_GetNeuronParamSize = _neuralgpu.NeuralGPU_GetNeuronParamSize
 NeuralGPU_GetNeuronParamSize.argtypes = (ctypes.c_int, c_char_p)
@@ -507,6 +506,47 @@ def GetNeuronPtParam(nodes, param_name):
         raise ValueError(GetErrorMessage())
     return ret
 
+NeuralGPU_GetArrayParam = _neuralgpu.NeuralGPU_GetArrayParam
+NeuralGPU_GetArrayParam.argtypes = (ctypes.c_int, c_char_p)
+NeuralGPU_GetArrayParam.restype = c_float_p
+def GetArrayParam(i_node, n_node, param_name):
+    "Get neuron array parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name),
+                                               len(param_name)+1)
+    data_list = []
+    for j_node in range(n_node):
+        i_node1 = i_node + j_node
+        row_list = []
+        data_pt = NeuralGPU_GetArrayParam(ctypes.c_int(i_node1), c_param_name)
+        array_size = GetNeuronParamSize(i_node1, param_name)
+        for i in range(array_size):
+            row_list.append(data_pt[i])
+        data_list.append(row_list)
+        
+    ret = data_list
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+def GetNeuronListArrayParam(node_list, param_name):
+    "Get neuron array parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name),
+                                               len(param_name)+1)
+    data_list = []
+    for i_node in node_list:
+        row_list = []
+        data_pt = NeuralGPU_GetArrayParam(ctypes.c_int(i_node), c_param_name)
+        array_size = GetNeuronParamSize(i_node, param_name)
+        for i in range(array_size):
+            row_list.append(data_pt[i])
+        data_list.append(row_list)
+        
+    ret = data_list
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
 
 #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 NeuralGPU_GetNeuronVarSize = _neuralgpu.NeuralGPU_GetNeuronVarSize
@@ -576,6 +616,48 @@ def GetNeuronPtVar(nodes, var_name):
         raise ValueError(GetErrorMessage())
     return ret
 
+NeuralGPU_GetArrayVar = _neuralgpu.NeuralGPU_GetArrayVar
+NeuralGPU_GetArrayVar.argtypes = (ctypes.c_int, c_char_p)
+NeuralGPU_GetArrayVar.restype = c_float_p
+def GetArrayVar(i_node, n_node, var_name):
+    "Get neuron array variable"
+    c_var_name = ctypes.create_string_buffer(str.encode(var_name),
+                                               len(var_name)+1)
+    data_list = []
+    for j_node in range(n_node):
+        i_node1 = i_node + j_node
+        row_list = []
+        data_pt = NeuralGPU_GetArrayVar(ctypes.c_int(i_node1), c_var_name)
+        array_size = GetNeuronVarSize(i_node1, var_name)
+        for i in range(array_size):
+            row_list.append(data_pt[i])
+        data_list.append(row_list)
+        
+    ret = data_list
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
+def GetNeuronListArrayVar(node_list, var_name):
+    "Get neuron array variable"
+    c_var_name = ctypes.create_string_buffer(str.encode(var_name),
+                                               len(var_name)+1)
+    data_list = []
+    for i_node in node_list:
+        row_list = []
+        data_pt = NeuralGPU_GetArrayVar(ctypes.c_int(i_node), c_var_name)
+        array_size = GetNeuronVarSize(i_node, var_name)
+        for i in range(array_size):
+            row_list.append(data_pt[i])
+        data_list.append(row_list)
+        
+    ret = data_list
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
 
 def GetNeuronStatus(nodes, var_name):
     "Get neuron group scalar or array variable or parameter"
@@ -588,14 +670,12 @@ def GetNeuronStatus(nodes, var_name):
             IsNeuronPortParam(nodes.i0, var_name)):
             ret = GetNeuronParam(nodes.i0, nodes.n, var_name)
         elif IsNeuronArrayParam(nodes.i0, var_name):
-            #GetNeuronArrayParam(nodes.i0, nodes.n, var_name, val)
-            raise ValueError("Get array parameter not yet implemented")
+            ret = GetArrayParam(nodes.i0, nodes.n, var_name)
         elif (IsNeuronScalVar(nodes.i0, var_name) |
               IsNeuronPortVar(nodes.i0, var_name)):
             ret = GetNeuronVar(nodes.i0, nodes.n, var_name)
         elif IsNeuronArrayVar(nodes.i0, var_name):
-            raise ValueError("Get array parameter not yet implemented")
-            #SetNeuronArrayVar(nodes.i0, nodes.n, var_name, val)
+            ret = GetArrayVar(nodes.i0, nodes.n, var_name)
         else:
             raise ValueError("Unknown neuron variable or parameter")
     else:
@@ -603,24 +683,12 @@ def GetNeuronStatus(nodes, var_name):
             IsNeuronPortParam(nodes[0], var_name)):
             ret = GetNeuronPtParam(nodes, var_name)
         elif IsNeuronArrayParam(nodes[0], var_name):
-            raise ValueError("Get array parameter not yet implemented")
-            #array_size = len(val)
-            #array_float_type = ctypes.c_float * array_size
-            #NeuralGPU_SetNeuronPtArrayParam(node_arr_pt, len(nodes),
-            #                                c_var_name,
-            #                                array_float_type(*val),
-            #                                ctypes.c_int(array_size))
+            ret = GetNeuronListArrayParam(nodes, var_name)
         elif (IsNeuronScalVar(nodes[0], var_name) |
               IsNeuronPortVar(nodes[0], var_name)):
             ret = GetNeuronPtVar(nodes, var_name)
         elif IsNeuronArrayVar(nodes[0], var_name):
-            raise ValueError("Get array parameter not yet implemented")
-            #array_size = len(val)
-            #array_float_type = ctypes.c_float * array_size
-            #NeuralGPU_SetNeuronPtArrayVar(node_arr_pt, len(nodes),
-            #                              c_var_name,
-            #                              array_float_type(*val),
-            #                              ctypes.c_int(array_size))
+            ret = GetNeuronListArrayVar(nodes, var_name)
         else:
             raise ValueError("Unknown neuron variable or parameter")
     return ret

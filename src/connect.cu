@@ -107,3 +107,48 @@ int NetConnection::NConnections()
   
   return n_conn;
 }
+
+template<>
+int GetINode<int>(int i_node, int in)
+{
+  return i_node + in;
+}
+
+template<>
+int GetINode<int*>(int* i_node, int in)
+{
+  return *(i_node + in);
+}
+
+ConnectionStatus NetConnection::GetConnectionStatus(ConnectionId conn_id)
+{
+  int i_source = conn_id.i_source_;
+  int i_group = conn_id.i_group_;
+  int i_conn = conn_id.i_conn_;
+  vector<ConnGroup> &conn = connection_[i_source];
+  std::vector<TargetSyn> tv = conn[i_group].target_vect;
+  
+  ConnectionStatus conn_stat;
+  conn_stat.i_source = i_source;
+  conn_stat.i_target = tv[i_conn].node;
+  conn_stat.i_port = tv[i_conn].port;
+  conn_stat.i_syn = 0;
+  conn_stat.delay = time_resolution_*(conn[i_group].delay + 1);
+  conn_stat.weight = tv[i_conn].weight;
+
+  return conn_stat;
+}
+
+std::vector<ConnectionStatus> NetConnection::GetConnectionStatus
+  (std::vector<ConnectionId> &conn_id_vect)
+{
+  std::vector<ConnectionStatus> conn_stat_vect;
+  
+  for (unsigned int i=0; i<conn_id_vect.size(); i++) {
+    ConnectionId conn_id = conn_id_vect[i];
+    ConnectionStatus conn_stat = GetConnectionStatus(conn_id);
+    conn_stat_vect.push_back(conn_stat);
+  }
+  
+  return conn_stat_vect;
+}

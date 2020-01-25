@@ -1251,14 +1251,25 @@ def SetSynParamFromArray(param_name, par_dict, array_size):
 
     
 
-NeuralGPU_ConnectSeq = _neuralgpu.NeuralGPU_ConnectSeq
-NeuralGPU_ConnectSeq.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
-NeuralGPU_ConnectSeq.restype = ctypes.c_int
+NeuralGPU_ConnectSeqSeq = _neuralgpu.NeuralGPU_ConnectSeqSeq
+NeuralGPU_ConnectSeqSeq.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                    ctypes.c_int)
+NeuralGPU_ConnectSeqSeq.restype = ctypes.c_int
 
-NeuralGPU_ConnectGroup = _neuralgpu.NeuralGPU_ConnectGroup
-NeuralGPU_ConnectGroup.argtypes = (ctypes.c_void_p, ctypes.c_int,
-                                   ctypes.c_void_p, ctypes.c_int)
-NeuralGPU_ConnectGroup.restype = ctypes.c_int
+NeuralGPU_ConnectSeqGroup = _neuralgpu.NeuralGPU_ConnectSeqGroup
+NeuralGPU_ConnectSeqGroup.argtypes = (ctypes.c_int, ctypes.c_int,
+                                      ctypes.c_void_p, ctypes.c_int)
+NeuralGPU_ConnectSeqGroup.restype = ctypes.c_int
+
+NeuralGPU_ConnectGroupSeq = _neuralgpu.NeuralGPU_ConnectGroupSeq
+NeuralGPU_ConnectGroupSeq.argtypes = (ctypes.c_void_p, ctypes.c_int,
+                                      ctypes.c_int, ctypes.c_int)
+NeuralGPU_ConnectGroupSeq.restype = ctypes.c_int
+
+NeuralGPU_ConnectGroupGroup = _neuralgpu.NeuralGPU_ConnectGroupGroup
+NeuralGPU_ConnectGroupGroup.argtypes = (ctypes.c_void_p, ctypes.c_int,
+                                        ctypes.c_void_p, ctypes.c_int)
+NeuralGPU_ConnectGroupGroup.restype = ctypes.c_int
 
 def Connect(source, target, conn_dict, syn_dict): 
     "Connect two node groups"
@@ -1300,42 +1311,51 @@ def Connect(source, target, conn_dict, syn_dict):
         else:
             raise ValueError("Unknown synapse parameter")
     if (type(source)==NodeSeq) & (type(target)==NodeSeq) :
-        ret = NeuralGPU_ConnectSeq(source.i0, source.n, target.i0, target.n)
-
+        ret = NeuralGPU_ConnectSeqSeq(source.i0, source.n, target.i0, target.n)
     else:
-        if type(source)==NodeSeq:
-            source_list = source.ToList()
+        if type(source)!=NodeSeq:
+            source_arr = (ctypes.c_int * len(source))(*source) 
+            source_arr_pt = ctypes.cast(source_arr, ctypes.c_void_p)    
+        if type(target)!=NodeSeq:
+            target_arr = (ctypes.c_int * len(target))(*target) 
+            target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
+        if (type(source)==NodeSeq) & (type(target)!=NodeSeq):
+            ret = NeuralGPU_ConnectSeqGroup(source.i0, source.n, target_arr_pt,
+                                            len(target))
+        elif (type(source)!=NodeSeq) & (type(target)==NodeSeq):
+            ret = NeuralGPU_ConnectGroupSeq(source_arr_pt, len(source),
+                                            target.i0, target.n)
         else:
-            source_list = source
-            
-        if type(target)==NodeSeq:
-            target_list = target.ToList()
-        else:
-            target_list = target
-
-        source_arr = (ctypes.c_int * len(source_list))(*source_list) 
-        source_arr_pt = ctypes.cast(source_arr, ctypes.c_void_p)    
-        target_arr = (ctypes.c_int * len(target_list))(*target_list) 
-        target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
-
-        ret = NeuralGPU_ConnectGroup(source_arr_pt, len(source_list),
-                                      target_arr_pt, len(target_list))
+            ret = NeuralGPU_ConnectGroupGroup(source_arr_pt, len(source),
+                                              target_arr_pt, len(target))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuralGPU_RemoteConnectSeq = _neuralgpu.NeuralGPU_RemoteConnectSeq
-NeuralGPU_RemoteConnectSeq.argtypes = (ctypes.c_int, ctypes.c_int,
-                                       ctypes.c_int, ctypes.c_int,
-                                       ctypes.c_int, ctypes.c_int)
-NeuralGPU_RemoteConnectSeq.restype = ctypes.c_int
+NeuralGPU_RemoteConnectSeqSeq = _neuralgpu.NeuralGPU_RemoteConnectSeqSeq
+NeuralGPU_RemoteConnectSeqSeq.argtypes = (ctypes.c_int, ctypes.c_int,
+                                          ctypes.c_int, ctypes.c_int,
+                                          ctypes.c_int, ctypes.c_int)
+NeuralGPU_RemoteConnectSeqSeq.restype = ctypes.c_int
 
-NeuralGPU_RemoteConnectGroup = _neuralgpu.NeuralGPU_RemoteConnectGroup
-NeuralGPU_RemoteConnectGroup.argtypes = (ctypes.c_int, ctypes.c_void_p,
-                                         ctypes.c_int, ctypes.c_int,
-                                         ctypes.c_void_p, ctypes.c_int)
-NeuralGPU_RemoteConnectGroup.restype = ctypes.c_int
+NeuralGPU_RemoteConnectSeqGroup = _neuralgpu.NeuralGPU_RemoteConnectSeqGroup
+NeuralGPU_RemoteConnectSeqGroup.argtypes = (ctypes.c_int, ctypes.c_int,
+                                            ctypes.c_int, ctypes.c_int,
+                                            ctypes.c_void_p, ctypes.c_int)
+NeuralGPU_RemoteConnectSeqGroup.restype = ctypes.c_int
+
+NeuralGPU_RemoteConnectGroupSeq = _neuralgpu.NeuralGPU_RemoteConnectGroupSeq
+NeuralGPU_RemoteConnectGroupSeq.argtypes = (ctypes.c_int, ctypes.c_void_p,
+                                            ctypes.c_int, ctypes.c_int,
+                                            ctypes.c_int, ctypes.c_int)
+NeuralGPU_RemoteConnectGroupSeq.restype = ctypes.c_int
+
+NeuralGPU_RemoteConnectGroupGroup = _neuralgpu.NeuralGPU_RemoteConnectGroupGroup
+NeuralGPU_RemoteConnectGroupGroup.argtypes = (ctypes.c_int, ctypes.c_void_p,
+                                              ctypes.c_int, ctypes.c_int,
+                                              ctypes.c_void_p, ctypes.c_int)
+NeuralGPU_RemoteConnectGroupGroup.restype = ctypes.c_int
 
 def RemoteConnect(i_source_host, source, i_target_host, target,
                   conn_dict, syn_dict): 
@@ -1381,32 +1401,35 @@ def RemoteConnect(i_source_host, source, i_target_host, target,
         else:
             raise ValueError("Unknown synapse parameter")
     if (type(source)==NodeSeq) & (type(target)==NodeSeq) :
-        ret = NeuralGPU_RemoteConnectSeq(i_source_host, source.i0, source.n,
-                                          i_target_host, target.i0, target.n)
+        ret = NeuralGPU_RemoteConnectSeqSeq(i_source_host, source.i0, source.n,
+                                            i_target_host, target.i0, target.n)
+
     else:
-        if type(source)==NodeSeq:
-            source_list = source.ToList()
+        if type(source)!=NodeSeq:
+            source_arr = (ctypes.c_int * len(source))(*source) 
+            source_arr_pt = ctypes.cast(source_arr, ctypes.c_void_p)    
+        if type(target)!=NodeSeq:
+            target_arr = (ctypes.c_int * len(target))(*target) 
+            target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
+        if (type(source)==NodeSeq) & (type(target)!=NodeSeq):
+            ret = NeuralGPU_RemoteConnectSeqGroup(i_source_host, source.i0,
+                                                  source.n, i_target_host,
+                                                  target_arr_pt, len(target))
+        elif (type(source)!=NodeSeq) & (type(target)==NodeSeq):
+            ret = NeuralGPU_RemoteConnectGroupSeq(i_source_host, source_arr_pt,
+                                                  len(source_list),
+                                                  i_target_host, target.i0,
+                                                  target.n)
         else:
-            source_list = source
-            
-        if type(target)==NodeSeq:
-            target_list = target.ToList()
-        else:
-            target_list = target
-
-        source_arr = (ctypes.c_int * len(source_list))(*source_list) 
-        source_arr_pt = ctypes.cast(source_arr, ctypes.c_void_p)    
-        target_arr = (ctypes.c_int * len(target_list))(*target_list) 
-        target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
-
-        ret = NeuralGPU_RemoteConnectGroup(i_source_host, source_arr_pt,
-                                            len(source_list),
-                                            i_target_host, target_arr_pt,
-                                            len(target_list))
+            ret = NeuralGPU_RemoteConnectGroupGroup(i_source_host,
+                                                    source_arr_pt,
+                                                    len(source_list),
+                                                    i_target_host,
+                                                    target_arr_pt,
+                                                    len(target_list))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
-
 
 
 def SetStatus(nodes, params, val=None):
@@ -1450,6 +1473,83 @@ def GetStatus(nodes, var_name=None):
     return dict_list
 
 
+
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+NeuralGPU_GetSeqSeqConnections = _neuralgpu.NeuralGPU_GetSeqSeqConnections
+NeuralGPU_GetSeqSeqConnections.argtypes = (ctypes.c_int, ctypes.c_int,
+                                           ctypes.c_int, ctypes.c_int,
+                                           ctypes.c_int, c_int_p)
+NeuralGPU_GetSeqSeqConnections.restype = c_int_p
+
+NeuralGPU_GetSeqGroupConnections = _neuralgpu.NeuralGPU_GetSeqGroupConnections
+NeuralGPU_GetSeqGroupConnections.argtypes = (ctypes.c_int, ctypes.c_int,
+                                             c_void_p, ctypes.c_int,
+                                             ctypes.c_int, c_int_p)
+NeuralGPU_GetSeqGroupConnections.restype = c_int_p
+
+NeuralGPU_GetGroupSeqConnections = _neuralgpu.NeuralGPU_GetGroupSeqConnections
+NeuralGPU_GetGroupSeqConnections.argtypes = (c_void_p, ctypes.c_int,
+                                             ctypes.c_int, ctypes.c_int,
+                                             ctypes.c_int, c_int_p)
+NeuralGPU_GetGroupSeqConnections.restype = c_int_p
+
+NeuralGPU_GetGroupGroupConnections = _neuralgpu.NeuralGPU_GetGroupGroupConnections
+NeuralGPU_GetGroupGroupConnections.argtypes = (c_void_p, ctypes.c_int,
+                                               c_void_p, ctypes.c_int,
+                                               ctypes.c_int, c_int_p)
+NeuralGPU_GetGroupGroupConnections.restype = c_int_p
+
+def GetConnections(source=None, target=None, syn_type=0): 
+    "Get connections between two node groups"
+    if (type(source)!=list) & (type(source)!=tuple) & (type(source)!=NodeSeq):
+        raise ValueError("Unknown source type")
+    if (type(target)!=list) & (type(target)!=tuple) & (type(target)!=NodeSeq):
+        raise ValueError("Unknown target type")
     
+    n_conn = ctypes.c_int(0)
+    if (type(source)==NodeSeq) & (type(target)==NodeSeq) :
+        conn_arr = NeuralGPU_GetSeqSeqConnections(source.i0, source.n,
+                                                  target.i0, target.n, syn_type,
+                                                  ctypes.byref(n_conn))
+    else:
+        if type(source)!=NodeSeq:
+            source_arr = (ctypes.c_int * len(source))(*source) 
+            source_arr_pt = ctypes.cast(source_arr, ctypes.c_void_p)    
+        if type(target)!=NodeSeq:
+            target_arr = (ctypes.c_int * len(target))(*target) 
+            target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
+        if (type(source)==NodeSeq) & (type(target)!=NodeSeq):
+            conn_arr = NeuralGPU_GetSeqGroupConnections(source.i0, source.n,
+                                                        target_arr_pt,
+                                                        len(target),
+                                                        syn_type,
+                                                        c_types.byref(n_conn))
+        elif (type(source)!=NodeSeq) & (type(target)==NodeSeq):
+            conn_arr = NeuralGPU_GetGroupSeqConnections(source_arr_pt,
+                                                        len(source),
+                                                        target.i0, target.n,
+                                                        syn_type,
+                                                        ctypes.byref(n_conn))
+        else:
+            conn_arr = NeuralGPU_GetGroupGroupConnections(source_arr_pt,
+                                                          len(source),
+                                                          target_arr_pt,
+                                                          len(target),
+                                                          syn_type,
+                                                          ctypes.byref(n_conn))
+
+    conn_list = []
+    for i_conn in range(n_conn.value):
+        conn_id = [conn_arr[i_conn*3], conn_arr[i_conn*3 + 1],
+                   conn_arr[i_conn*3 + 2]]
+        conn_list.append(conn_id)
+        
+    ret = conn_list
+
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
     
 

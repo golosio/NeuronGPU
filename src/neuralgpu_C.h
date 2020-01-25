@@ -156,19 +156,33 @@ extern "C" {
 
   int NeuralGPU_SynSpecIsFloatPtParam(char *param_name);
 
-  int NeuralGPU_ConnectSeq(int i_source, int n_source, int i_target,
-			   int n_target);
+  int NeuralGPU_ConnectSeqSeq(int i_source, int n_source, int i_target,
+			      int n_target);
 
-  int NeuralGPU_ConnectGroup(int *i_source, int n_source, int *i_target,
-			     int n_target);
+  int NeuralGPU_ConnectSeqGroup(int i_source, int n_source, int *i_target,
+				int n_target);
 
-  int NeuralGPU_RemoteConnectSeq(int i_source_host, int i_source, int n_source,
-				 int i_target_host, int i_target, int n_target);
+  int NeuralGPU_ConnectGroupSeq(int *i_source, int n_source, int i_target,
+				int n_target);
 
-  int NeuralGPU_RemoteConnectGroup(int i_source_host, int *i_source,
-				   int n_source,
-				   int i_target_host, int *i_target,
-				   int n_target);
+  int NeuralGPU_ConnectGroupGroup(int *i_source, int n_source, int *i_target,
+				  int n_target);
+
+  int NeuralGPU_RemoteConnectSeqSeq(int i_source_host, int i_source,
+				    int n_source, int i_target_host,
+				    int i_target, int n_target);
+
+  int NeuralGPU_RemoteConnectSeqGroup(int i_source_host, int i_source,
+				      int n_source, int i_target_host,
+				      int *i_target, int n_target);
+
+  int NeuralGPU_RemoteConnectGroupSeq(int i_source_host, int *i_source,
+				      int n_source, int i_target_host,
+				      int i_target, int n_target);
+
+  int NeuralGPU_RemoteConnectGroupGroup(int i_source_host, int *i_source,
+					int n_source, int i_target_host,
+					int *i_target, int n_target);
 
   char **NeuralGPU_GetScalVarNames(int i_node);
   
@@ -194,6 +208,20 @@ extern "C" {
   
   int NeuralGPU_GetNArrayVar(int i_node);
     
+  int *NeuralGPU_GetSeqSeqConnections(int i_source, int n_source, int i_target,
+				      int n_target, int syn_type, int *n_conn);
+
+  int *NeuralGPU_GetSeqGroupConnections(int i_source, int n_source,
+					int *i_target, int n_target,
+					int syn_type, int *n_conn);
+
+  int *NeuralGPU_GetGroupSeqConnections(int *i_source, int n_source,
+					int i_target, int n_target,
+					int syn_type, int *n_conn);
+
+  int *NeuralGPU_GetGroupGroupConnections(int *i_source, int n_source,
+					  int *i_target, int n_target,
+					  int syn_type, int *n_conn);
 
 #ifdef __cplusplus
 }

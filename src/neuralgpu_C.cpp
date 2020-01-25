@@ -448,42 +448,73 @@ extern "C" {
     ret = SynSpec_instance.IsFloatPtParam(param_name_str);
   } END_ERR_PROP return ret; }
 
-  int NeuralGPU_ConnectSeq(int i_source, int n_source, int i_target,
-			   int n_target)
+  int NeuralGPU_ConnectSeqSeq(int i_source, int n_source, int i_target,
+			      int n_target)
   { int ret; BEGIN_ERR_PROP {
-    ret = NeuralGPU_instance->Connect(
-				      i_source, n_source, i_target, n_target,
+    ret = NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
 				      ConnSpec_instance, SynSpec_instance); 
   } END_ERR_PROP return ret; }
 
-  int NeuralGPU_ConnectGroup(int *i_source, int n_source, int *i_target,
-			   int n_target)
+  int NeuralGPU_ConnectSeqGroup(int i_source, int n_source, int *i_target,
+				int n_target)
   { int ret; BEGIN_ERR_PROP {
-    ret = NeuralGPU_instance->Connect(
-				      i_source, n_source, i_target, n_target,
+    ret = NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
+				      ConnSpec_instance, SynSpec_instance); 
+  } END_ERR_PROP return ret; }
+
+  int NeuralGPU_ConnectGroupSeq(int *i_source, int n_source, int i_target,
+				int n_target)
+  { int ret; BEGIN_ERR_PROP {
+    ret = NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
 				      ConnSpec_instance, SynSpec_instance);
   } END_ERR_PROP return ret; }
 
-  int NeuralGPU_RemoteConnectSeq(int i_source_host, int i_source, int n_source,
-				 int i_target_host, int i_target, int n_target)
+  int NeuralGPU_ConnectGroupGroup(int *i_source, int n_source, int *i_target,
+				  int n_target)
   { int ret; BEGIN_ERR_PROP {
-    ret = NeuralGPU_instance->RemoteConnect(
-					     i_source_host, i_source, n_source,
-					     i_target_host, i_target, n_target,
-					     ConnSpec_instance,
-					     SynSpec_instance); 
+    ret = NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
+				      ConnSpec_instance, SynSpec_instance);
   } END_ERR_PROP return ret; }
 
-  int NeuralGPU_RemoteConnectGroup(int i_source_host, int *i_source,
-				   int n_source,
-				   int i_target_host, int *i_target,
-				   int n_target)
+  int NeuralGPU_RemoteConnectSeqSeq(int i_source_host, int i_source,
+				    int n_source, int i_target_host,
+				    int i_target, int n_target)
   { int ret; BEGIN_ERR_PROP {
-    ret = NeuralGPU_instance->RemoteConnect(
-					     i_source_host, i_source, n_source,
-					     i_target_host, i_target, n_target,
-					     ConnSpec_instance,
-					     SynSpec_instance);
+    ret = NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
+					    i_target_host, i_target, n_target,
+					    ConnSpec_instance,
+					    SynSpec_instance); 
+  } END_ERR_PROP return ret; }
+
+  int NeuralGPU_RemoteConnectSeqGroup(int i_source_host, int i_source,
+				      int n_source, int i_target_host,
+				      int *i_target, int n_target)
+  { int ret; BEGIN_ERR_PROP {
+    ret = NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
+					    i_target_host, i_target, n_target,
+					    ConnSpec_instance,
+					    SynSpec_instance); 
+  } END_ERR_PROP return ret; }
+
+  int NeuralGPU_RemoteConnectGroupSeq(int i_source_host, int *i_source,
+				      int n_source, int i_target_host,
+				      int i_target, int n_target)
+  { int ret; BEGIN_ERR_PROP {
+    ret = NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
+					    i_target_host, i_target, n_target,
+					    ConnSpec_instance,
+					    SynSpec_instance);
+  } END_ERR_PROP return ret; }
+
+
+  int NeuralGPU_RemoteConnectGroupGroup(int i_source_host, int *i_source,
+					int n_source, int i_target_host,
+					int *i_target, int n_target)
+  { int ret; BEGIN_ERR_PROP {
+    ret = NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
+					    i_target_host, i_target, n_target,
+					    ConnSpec_instance,
+					    SynSpec_instance);
   } END_ERR_PROP return ret; }
 
 
@@ -627,6 +658,73 @@ extern "C" {
     ret = NeuralGPU_instance->GetNArrayVar(i_node);
   } END_ERR_PROP return ret; }
 
-  
+
+  int *NeuralGPU_GetSeqSeqConnections(int i_source, int n_source, int i_target,
+				      int n_target, int syn_type, int *n_conn)
+  { int *ret; BEGIN_ERR_PROP {
+      std::vector<ConnectionId> conn_id_vect =
+	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
+					   n_target, syn_type);
+      *n_conn = conn_id_vect.size();
+      int *conn_id_array = (int*)malloc((*n_conn)*3*sizeof(int));
+      for (int i=0; i<(*n_conn); i++) {
+	conn_id_array[i*3] = conn_id_vect[i].i_source_;
+	conn_id_array[i*3 + 1] = conn_id_vect[i].i_group_;
+	conn_id_array[i*3 + 2] = conn_id_vect[i].i_conn_;
+      }
+      ret = conn_id_array;
+  } END_ERR_PROP return ret; }
+
+  int *NeuralGPU_GetSeqGroupConnections(int i_source, int n_source,
+					int *i_target, int n_target,
+					int syn_type, int *n_conn)
+  { int *ret; BEGIN_ERR_PROP {
+      std::vector<ConnectionId> conn_id_vect =
+	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
+					   n_target, syn_type);
+      *n_conn = conn_id_vect.size();
+      int *conn_id_array = (int*)malloc((*n_conn)*3*sizeof(int));
+      for (int i=0; i<(*n_conn); i++) {
+	conn_id_array[i*3] = conn_id_vect[i].i_source_;
+	conn_id_array[i*3 + 1] = conn_id_vect[i].i_group_;
+	conn_id_array[i*3 + 2] = conn_id_vect[i].i_conn_;
+      }
+      ret = conn_id_array;
+  } END_ERR_PROP return ret; }
+
+  int *NeuralGPU_GetGroupSeqConnections(int *i_source, int n_source,
+					int i_target, int n_target,
+					int syn_type, int *n_conn)
+  { int *ret; BEGIN_ERR_PROP {
+      std::vector<ConnectionId> conn_id_vect =
+	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
+					   n_target, syn_type);
+      *n_conn = conn_id_vect.size();
+      int *conn_id_array = (int*)malloc((*n_conn)*3*sizeof(int));
+      for (int i=0; i<(*n_conn); i++) {
+	conn_id_array[i*3] = conn_id_vect[i].i_source_;
+	conn_id_array[i*3 + 1] = conn_id_vect[i].i_group_;
+	conn_id_array[i*3 + 2] = conn_id_vect[i].i_conn_;
+      }
+      ret = conn_id_array;
+  } END_ERR_PROP return ret; }
+
+  int *NeuralGPU_GetGroupGroupConnections(int *i_source, int n_source,
+					 int *i_target, int n_target,
+					 int syn_type, int *n_conn)
+  { int *ret; BEGIN_ERR_PROP {
+      std::vector<ConnectionId> conn_id_vect =
+	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
+					   n_target, syn_type);
+      *n_conn = conn_id_vect.size();
+      int *conn_id_array = (int*)malloc((*n_conn)*3*sizeof(int));
+      for (int i=0; i<(*n_conn); i++) {
+	conn_id_array[i*3] = conn_id_vect[i].i_source_;
+	conn_id_array[i*3 + 1] = conn_id_vect[i].i_group_;
+	conn_id_array[i*3 + 2] = conn_id_vect[i].i_conn_;
+      }
+      ret = conn_id_array;
+  } END_ERR_PROP return ret; }
+
 }
 

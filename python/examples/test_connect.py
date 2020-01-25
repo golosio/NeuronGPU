@@ -40,23 +40,52 @@ ngpu.Connect(neuron_odd, neuron_even, conn_dict, odd_to_even_syn_dict);
 
 # Even to all
 conn_id = ngpu.GetConnections(neuron_even, neuron)
-conn_stat_list = ngpu.GetConnectionStatus(conn_id);
+conn_status_dict = ngpu.GetStatus(conn_id)
 print("########################################")
 print("Even to all")
-for i in range(len(conn_id)): # len(conn_stat_list)
-    i_source = conn_stat_list[i].i_source;
-    i_target = conn_stat_list[i].i_target;
-    i_port = conn_stat_list[i].i_port;
-    i_syn = conn_stat_list[i].i_syn;
-    weight = conn_stat_list[i].weight;
-    delay = conn_stat_list[i].delay;
-    print("  i_source ", i_source)
-    print("  i_target ", i_target)
-    print("  i_port ", i_port)
-    print("  i_syn ", i_syn)
-    print("  weight ", weight)
-    print("  delay ", delay)
-    print()
+for i in range(len(conn_status_dict)):
+    print (conn_status_dict[i])
+print()
+print()
 
+# Even to all weight, delay
+conn_status_dict = ngpu.GetStatus(conn_id, ["weight", "delay"])
 print("########################################")
+print("Even to all weight, delat")
+for i in range(len(conn_status_dict)):
+    print (conn_status_dict[i])
+print()
+print()
 
+conn_id = ngpu.GetConnections(neuron, neuron_odd)
+conn_status_dict = ngpu.GetStatus(conn_id)
+print("########################################")
+print("All to odd")
+for i in range(len(conn_status_dict)):
+    print (conn_status_dict[i])
+print()
+print()
+
+# Even to 3,4,5,6
+neuron_3_6 = neuron[3:6]
+conn_id = ngpu.GetConnections(neuron_even, neuron_3_6)
+conn_status_dict = ngpu.GetStatus(conn_id)
+print("########################################")
+print("Even to 3,4,5,6")
+for i in range(len(conn_status_dict)):
+    print (conn_status_dict[i])
+print()
+print()
+
+ 
+# 3,4,5,6 to odd
+conn_id = ngpu.GetConnections(neuron_3_6, neuron_odd)
+conn_status_dict = ngpu.GetStatus(conn_id)
+print("########################################")
+print("3,4,5,6 to odd")
+for i in range(len(conn_status_dict)):
+    print (conn_status_dict[i])
+print()
+print()
+
+ 

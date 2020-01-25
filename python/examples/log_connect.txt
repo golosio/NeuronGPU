@@ -1,0 +1,115 @@
+########################################
+Even to all
+{'target': 1, 'weight': 100.0, 'syn': 0, 'delay': 1.0, 'source': 0, 'port': 0}
+{'target': 3, 'weight': 300.0, 'syn': 0, 'delay': 3.0, 'source': 0, 'port': 0}
+{'target': 5, 'weight': 500.0, 'syn': 0, 'delay': 5.0, 'source': 0, 'port': 0}
+{'target': 7, 'weight': 700.0, 'syn': 0, 'delay': 7.0, 'source': 0, 'port': 0}
+{'target': 9, 'weight': 900.0, 'syn': 0, 'delay': 9.0, 'source': 0, 'port': 0}
+{'target': 1, 'weight': 2100.0, 'syn': 0, 'delay': 21.0, 'source': 2, 'port': 0}
+{'target': 3, 'weight': 2300.0, 'syn': 0, 'delay': 23.0, 'source': 2, 'port': 0}
+{'target': 5, 'weight': 2500.0, 'syn': 0, 'delay': 25.0, 'source': 2, 'port': 0}
+{'target': 7, 'weight': 2700.0, 'syn': 0, 'delay': 27.0, 'source': 2, 'port': 0}
+{'target': 9, 'weight': 2900.0, 'syn': 0, 'delay': 29.0, 'source': 2, 'port': 0}
+{'target': 1, 'weight': 4100.0, 'syn': 0, 'delay': 41.0, 'source': 4, 'port': 0}
+{'target': 3, 'weight': 4300.0, 'syn': 0, 'delay': 43.0, 'source': 4, 'port': 0}
+{'target': 5, 'weight': 4500.0, 'syn': 0, 'delay': 45.0, 'source': 4, 'port': 0}
+{'target': 7, 'weight': 4700.0, 'syn': 0, 'delay': 47.0, 'source': 4, 'port': 0}
+{'target': 9, 'weight': 4900.0, 'syn': 0, 'delay': 49.0, 'source': 4, 'port': 0}
+{'target': 1, 'weight': 6100.0, 'syn': 0, 'delay': 61.0, 'source': 6, 'port': 0}
+{'target': 3, 'weight': 6300.0, 'syn': 0, 'delay': 63.0, 'source': 6, 'port': 0}
+{'target': 5, 'weight': 6500.0, 'syn': 0, 'delay': 65.0, 'source': 6, 'port': 0}
+{'target': 7, 'weight': 6700.0, 'syn': 0, 'delay': 67.0, 'source': 6, 'port': 0}
+{'target': 9, 'weight': 6900.0, 'syn': 0, 'delay': 69.0, 'source': 6, 'port': 0}
+{'target': 1, 'weight': 8100.0, 'syn': 0, 'delay': 81.0, 'source': 8, 'port': 0}
+{'target': 3, 'weight': 8300.0, 'syn': 0, 'delay': 83.0, 'source': 8, 'port': 0}
+{'target': 5, 'weight': 8500.0, 'syn': 0, 'delay': 85.0, 'source': 8, 'port': 0}
+{'target': 7, 'weight': 8700.0, 'syn': 0, 'delay': 87.0, 'source': 8, 'port': 0}
+{'target': 9, 'weight': 8900.0, 'syn': 0, 'delay': 89.0, 'source': 8, 'port': 0}
+()
+()
+########################################
+Even to all weight, delat
+[100.0, 1.0]
+[300.0, 3.0]
+[500.0, 5.0]
+[700.0, 7.0]
+[900.0, 9.0]
+[2100.0, 21.0]
+[2300.0, 23.0]
+[2500.0, 25.0]
+[2700.0, 27.0]
+[2900.0, 29.0]
+[4100.0, 41.0]
+[4300.0, 43.0]
+[4500.0, 45.0]
+[4700.0, 47.0]
+[4900.0, 49.0]
+[6100.0, 61.0]
+[6300.0, 63.0]
+[6500.0, 65.0]
+[6700.0, 67.0]
+[6900.0, 69.0]
+[8100.0, 81.0]
+[8300.0, 83.0]
+[8500.0, 85.0]
+[8700.0, 87.0]
+[8900.0, 89.0]
+()
+()
+########################################
+All to odd
+{'target': 1, 'weight': 100.0, 'syn': 0, 'delay': 1.0, 'source': 0, 'port': 0}
+{'target': 3, 'weight': 300.0, 'syn': 0, 'delay': 3.0, 'source': 0, 'port': 0}
+{'target': 5, 'weight': 500.0, 'syn': 0, 'delay': 5.0, 'source': 0, 'port': 0}
+{'target': 7, 'weight': 700.0, 'syn': 0, 'delay': 7.0, 'source': 0, 'port': 0}
+{'target': 9, 'weight': 900.0, 'syn': 0, 'delay': 9.0, 'source': 0, 'port': 0}
+{'target': 1, 'weight': 2100.0, 'syn': 0, 'delay': 21.0, 'source': 2, 'port': 0}
+{'target': 3, 'weight': 2300.0, 'syn': 0, 'delay': 23.0, 'source': 2, 'port': 0}
+{'target': 5, 'weight': 2500.0, 'syn': 0, 'delay': 25.0, 'source': 2, 'port': 0}
+{'target': 7, 'weight': 2700.0, 'syn': 0, 'delay': 27.0, 'source': 2, 'port': 0}
+{'target': 9, 'weight': 2900.0, 'syn': 0, 'delay': 29.0, 'source': 2, 'port': 0}
+{'target': 1, 'weight': 4100.0, 'syn': 0, 'delay': 41.0, 'source': 4, 'port': 0}
+{'target': 3, 'weight': 4300.0, 'syn': 0, 'delay': 43.0, 'source': 4, 'port': 0}
+{'target': 5, 'weight': 4500.0, 'syn': 0, 'delay': 45.0, 'source': 4, 'port': 0}
+{'target': 7, 'weight': 4700.0, 'syn': 0, 'delay': 47.0, 'source': 4, 'port': 0}
+{'target': 9, 'weight': 4900.0, 'syn': 0, 'delay': 49.0, 'source': 4, 'port': 0}
+{'target': 1, 'weight': 6100.0, 'syn': 0, 'delay': 61.0, 'source': 6, 'port': 0}
+{'target': 3, 'weight': 6300.0, 'syn': 0, 'delay': 63.0, 'source': 6, 'port': 0}
+{'target': 5, 'weight': 6500.0, 'syn': 0, 'delay': 65.0, 'source': 6, 'port': 0}
+{'target': 7, 'weight': 6700.0, 'syn': 0, 'delay': 67.0, 'source': 6, 'port': 0}
+{'target': 9, 'weight': 6900.0, 'syn': 0, 'delay': 69.0, 'source': 6, 'port': 0}
+{'target': 1, 'weight': 8100.0, 'syn': 0, 'delay': 81.0, 'source': 8, 'port': 0}
+{'target': 3, 'weight': 8300.0, 'syn': 0, 'delay': 83.0, 'source': 8, 'port': 0}
+{'target': 5, 'weight': 8500.0, 'syn': 0, 'delay': 85.0, 'source': 8, 'port': 0}
+{'target': 7, 'weight': 8700.0, 'syn': 0, 'delay': 87.0, 'source': 8, 'port': 0}
+{'target': 9, 'weight': 8900.0, 'syn': 0, 'delay': 89.0, 'source': 8, 'port': 0}
+()
+()
+########################################
+Even to 3,4,5,6
+{'target': 3, 'weight': 300.0, 'syn': 0, 'delay': 3.0, 'source': 0, 'port': 0}
+{'target': 5, 'weight': 500.0, 'syn': 0, 'delay': 5.0, 'source': 0, 'port': 0}
+{'target': 3, 'weight': 2300.0, 'syn': 0, 'delay': 23.0, 'source': 2, 'port': 0}
+{'target': 5, 'weight': 2500.0, 'syn': 0, 'delay': 25.0, 'source': 2, 'port': 0}
+{'target': 3, 'weight': 4300.0, 'syn': 0, 'delay': 43.0, 'source': 4, 'port': 0}
+{'target': 5, 'weight': 4500.0, 'syn': 0, 'delay': 45.0, 'source': 4, 'port': 0}
+{'target': 3, 'weight': 6300.0, 'syn': 0, 'delay': 63.0, 'source': 6, 'port': 0}
+{'target': 5, 'weight': 6500.0, 'syn': 0, 'delay': 65.0, 'source': 6, 'port': 0}
+{'target': 3, 'weight': 8300.0, 'syn': 0, 'delay': 83.0, 'source': 8, 'port': 0}
+{'target': 5, 'weight': 8500.0, 'syn': 0, 'delay': 85.0, 'source': 8, 'port': 0}
+()
+()
+########################################
+3,4,5,6 to odd
+{'target': 1, 'weight': 4100.0, 'syn': 0, 'delay': 41.0, 'source': 4, 'port': 0}
+{'target': 3, 'weight': 4300.0, 'syn': 0, 'delay': 43.0, 'source': 4, 'port': 0}
+{'target': 5, 'weight': 4500.0, 'syn': 0, 'delay': 45.0, 'source': 4, 'port': 0}
+{'target': 7, 'weight': 4700.0, 'syn': 0, 'delay': 47.0, 'source': 4, 'port': 0}
+{'target': 9, 'weight': 4900.0, 'syn': 0, 'delay': 49.0, 'source': 4, 'port': 0}
+{'target': 1, 'weight': 6100.0, 'syn': 0, 'delay': 61.0, 'source': 6, 'port': 0}
+{'target': 3, 'weight': 6300.0, 'syn': 0, 'delay': 63.0, 'source': 6, 'port': 0}
+{'target': 5, 'weight': 6500.0, 'syn': 0, 'delay': 65.0, 'source': 6, 'port': 0}
+{'target': 7, 'weight': 6700.0, 'syn': 0, 'delay': 67.0, 'source': 6, 'port': 0}
+{'target': 9, 'weight': 6900.0, 'syn': 0, 'delay': 69.0, 'source': 6, 'port': 0}
+()
+()

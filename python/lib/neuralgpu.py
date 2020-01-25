@@ -36,7 +36,14 @@ class NodeSeq(object):
         return list(range(self.i0, self.i0 + self.n))
     def __len__(self):
         return self.n
-    
+
+
+class ConnectionId(object):
+    def __init__(self, i_source, i_group, i_conn):
+        self.i_source = i_source
+        self.i_group = i_group
+        self.i_conn = i_conn
+
 conn_rule_name = ("one_to_one", "all_to_all", "fixed_total_number",
                   "fixed_indegree", "fixed_outdegree")
     
@@ -1453,27 +1460,6 @@ def SetStatus(nodes, params, val=None):
         raise ValueError(GetErrorMessage())
     
 
-
-def GetStatus(nodes, var_name=None):
-    "Get neuron group scalar or array variable or parameter"
-    if var_name != None:
-         return GetNeuronStatus(nodes, var_name)
-    if type(nodes)==NodeSeq:
-        nodes = nodes.ToList()
-    if (type(nodes)!=list) & (type(nodes)!=tuple):
-        nodes = [nodes]
-    dict_list = []
-    for i_node in nodes:
-        status_dict = {}
-        name_list = GetScalVarNames(i_node) + GetScalParamNames(i_node) + GetPortVarNames(i_node) + GetPortParamNames(i_node) + GetArrayVarNames(i_node) + GetArrayParamNames(i_node)
-        for var_name in name_list:
-            val = GetNeuronStatus([i_node], var_name)[0]
-            status_dict[var_name] = val
-        dict_list.append(status_dict)
-    return dict_list
-
-
-
 #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 NeuralGPU_GetSeqSeqConnections = _neuralgpu.NeuralGPU_GetSeqSeqConnections
@@ -1524,7 +1510,7 @@ def GetConnections(source=None, target=None, syn_type=0):
                                                         target_arr_pt,
                                                         len(target),
                                                         syn_type,
-                                                        c_types.byref(n_conn))
+                                                        ctypes.byref(n_conn))
         elif (type(source)!=NodeSeq) & (type(target)==NodeSeq):
             conn_arr = NeuralGPU_GetGroupSeqConnections(source_arr_pt,
                                                         len(source),
@@ -1541,8 +1527,8 @@ def GetConnections(source=None, target=None, syn_type=0):
 
     conn_list = []
     for i_conn in range(n_conn.value):
-        conn_id = [conn_arr[i_conn*3], conn_arr[i_conn*3 + 1],
-                   conn_arr[i_conn*3 + 2]]
+        conn_id = ConnectionId(conn_arr[i_conn*3], conn_arr[i_conn*3 + 1],
+                   conn_arr[i_conn*3 + 2])
         conn_list.append(conn_id)
         
     ret = conn_list
@@ -1551,5 +1537,84 @@ def GetConnections(source=None, target=None, syn_type=0):
         raise ValueError(GetErrorMessage())
     return ret
 
+ 
+NeuralGPU_GetConnectionStatus = _neuralgpu.NeuralGPU_GetConnectionStatus
+NeuralGPU_GetConnectionStatus.argtypes = (ctypes.c_int, ctypes.c_int,
+                                         ctypes.c_int, c_int_p,
+                                         c_char_p, c_char_p,
+                                         c_float_p, c_float_p)
+NeuralGPU_GetConnectionStatus.restype = ctypes.c_int
+
+def GetConnectionStatus(conn_id):
+    i_source = conn_id.i_source
+    i_group = conn_id.i_group
+    i_conn = conn_id.i_conn
     
+    i_target = ctypes.c_int(0)
+    i_port = ctypes.c_char()
+    i_syn = ctypes.c_char()
+    delay = ctypes.c_float(0.0)
+    weight = ctypes.c_float(0.0)
+
+    NeuralGPU_GetConnectionStatus(i_source, i_group, i_conn,
+                                  ctypes.byref(i_target),
+                                  ctypes.byref(i_port),
+                                  ctypes.byref(i_syn),
+                                  ctypes.byref(delay),
+                                  ctypes.byref(weight))
+    i_target = i_target.value
+    i_port = ord(i_port.value)
+    i_syn = ord(i_syn.value)
+    delay = delay.value
+    weight = weight.value
+    conn_status_dict = {"source":i_source, "target":i_target, "port":i_port,
+                        "syn":i_syn, "delay":delay, "weight":weight}
+
+    return conn_status_dict
+
+
+
+def GetStatus(gen_object, var_key=None):
+    "Get neuron group or connection status"
+    if type(gen_object)==NodeSeq:
+        gen_object = gen_object.ToList()
+    if (type(gen_object)==list) | (type(gen_object)==tuple):
+        status_list = []
+        for gen_elem in gen_object:
+            elem_dict = GetStatus(gen_elem, var_key)
+            status_list.append(elem_dict)
+        return status_list
+    if (type(var_key)==list) | (type(var_key)==tuple):
+        status_list = []
+        for var_elem in var_key:
+            var_value = GetStatus(gen_object, var_elem)
+            status_list.append(var_value)
+        return status_list
+    elif (var_key==None):
+        if (type(gen_object)==ConnectionId):
+            status_dict = GetConnectionStatus(gen_object)
+        elif (type(gen_object)==int):
+            i_node = gen_object
+            status_dict = {}
+            name_list = GetScalVarNames(i_node) + GetScalParamNames(i_node) \
+                        + GetPortVarNames(i_node) + GetPortParamNames(i_node) \
+                        + GetArrayVarNames(i_node) + GetArrayParamNames(i_node)
+            for var_name in name_list:
+                val = GetStatus(i_node, var_name)
+                status_dict[var_name] = val
+        else:
+            raise ValueError("Unknown object type in GetStatus")
+        return status_dict
+    elif (type(var_key)==str):
+        if (type(gen_object)==ConnectionId):
+            status_dict = GetConnectionStatus(gen_object)
+            return status_dict[var_key]
+        elif (type(gen_object)==int):
+            i_node = gen_object
+            return GetNeuronStatus([i_node], var_key)[0]
+        else:
+            raise ValueError("Unknown object type in GetStatus")
+        
+    else:
+        raise ValueError("Unknown key type in GetStatus", type(var_key))
 

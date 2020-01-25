@@ -1,5 +1,3 @@
-Implement connection quering based on connect class print method
-
 Implement parrot neuron
 
 make user_model1, 2, ...

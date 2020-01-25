@@ -726,5 +726,25 @@ extern "C" {
       ret = conn_id_array;
   } END_ERR_PROP return ret; }
 
+  int NeuralGPU_GetConnectionStatus(int i_source, int i_group, int i_conn,
+				    int *i_target, unsigned char *i_port,
+				    unsigned char *i_syn, float *delay,
+				    float *weight)
+  { int ret; BEGIN_ERR_PROP {
+      ConnectionId conn_id;
+      conn_id.i_source_ = i_source;
+      conn_id.i_group_ = i_group;
+      conn_id.i_conn_ = i_conn;
+      ConnectionStatus conn_stat
+	= NeuralGPU_instance->GetConnectionStatus(conn_id);
+      *i_target = conn_stat.i_target;
+      *i_port = conn_stat.i_port;
+      *i_syn = conn_stat.i_syn;
+      *delay = conn_stat.delay;
+      *weight = conn_stat.weight;
+      
+      ret = 0;
+  } END_ERR_PROP return ret; }
+
 }
 

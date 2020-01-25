@@ -30,8 +30,8 @@ struct ConnectionStatus
 {
   int i_source;
   int i_target;
-  int i_port;
-  int i_syn;
+  unsigned char i_port;
+  unsigned char i_syn;
   float delay;
   float weight;
 };

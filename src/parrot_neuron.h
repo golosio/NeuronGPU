@@ -12,18 +12,29 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURONMODELSH
-#define NEURONMODELSH
+#ifndef PARROTNEURONH
+#define PARROTNEURONH
 
-enum NeuronModels {
-  i_null_model = 0, i_aeif_cond_beta_model, i_poisson_generator_model,
-  i_spike_generator_model, i_parrot_neuron_model, N_NEURON_MODELS
+#include <iostream>
+#include <string>
+//#include "node_group.h"
+#include "base_neuron.h"
+//#include "neuron_models.h"
+
+
+class parrot_neuron : public BaseNeuron
+{
+ public:
+  ~parrot_neuron();
+
+  int Init(int i_node_0, int n_node, int n_port, int i_group,
+	   unsigned long long *seed);
+
+  int Free();
+  
+  int Update(int it, float t1);
+
 };
 
-const std::string neuron_model_name[N_NEURON_MODELS] = {
-  "", "aeif_cond_beta", "poisson_generator", "spike_generator",
-  "parrot_neuron"
-};
 
 #endif
-

@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "poiss_gen.h"
 #include "spike_generator.h"
 #include "parrot_neuron.h"
+#include "spike_detector.h"
 
 NodeSeq NeuralGPU::Create(std::string model_name, int n_node /*=1*/,
 			  int n_port /*=1*/)
@@ -52,6 +53,11 @@ NodeSeq NeuralGPU::Create(std::string model_name, int n_node /*=1*/,
     n_port = 1;
     parrot_neuron *parrot_neuron_group = new parrot_neuron;
     node_vect_.push_back(parrot_neuron_group);
+  }
+  else if (model_name == neuron_model_name[i_spike_detector_model]) {
+    n_port = 1;
+    spike_detector *spike_detector_group = new spike_detector;
+    node_vect_.push_back(spike_detector_group);
   }
   else {
     throw ngpu_exception(std::string("Unknown neuron model name: ")

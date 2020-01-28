@@ -11,7 +11,10 @@ c_char_p = ctypes.POINTER(ctypes.c_char)
 c_void_p = ctypes.c_void_p
 
 class NodeSeq(object):
-    def __init__(self, i0, n):
+    def __init__(self, i0, n=1):
+        if i0 == None:
+            i0 = 0
+            n = -1
         self.i0 = i0
         self.n = n
 
@@ -1488,6 +1491,14 @@ NeuralGPU_GetGroupGroupConnections.restype = c_int_p
 
 def GetConnections(source=None, target=None, syn_type=0): 
     "Get connections between two node groups"
+    if source==None:
+        source = NodeSeq(None)
+    if target==None:
+        target = NodeSeq(None)
+    if (type(source)==int):
+        source = [source]
+    if (type(target)==int):
+        target = [target]
     if (type(source)!=list) & (type(source)!=tuple) & (type(source)!=NodeSeq):
         raise ValueError("Unknown source type")
     if (type(target)!=list) & (type(target)!=tuple) & (type(target)!=NodeSeq):

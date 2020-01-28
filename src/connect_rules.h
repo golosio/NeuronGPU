@@ -284,30 +284,81 @@ int NeuralGPU::_ConnectFixedOutdegree
  SynSpec &syn_spec
  )
 {
+  const int method_thresh = 5;
   if (outdegree>n_target) {
     throw ngpu_exception("Outdegree larger than number of target nodes");
   }
-  unsigned int *rnd = RandomInt(n_source*outdegree);
-  std::vector<int> output_array;
-  for (int i=0; i<n_target; i++) {
-    output_array.push_back(i);
-  }
+  int n_rnd = outdegree*THREAD_MAXNUM;
+  if (n_target>=method_thresh*outdegree) { // choose method
+    n_rnd *= 5; 
+  } 
+  unsigned int *rnd = RandomInt(n_rnd);
+
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) collapse(1) // cannot be 2 !
-#endif
+  omp_lock_t *lock = new omp_lock_t[n_source];
   for (int i=0; i<n_source; i++) {
-    for (int k=0; k<outdegree; k++) {
-      int j = k + rnd[i*outdegree+k] % (n_target - k);
-      if (j!=k) {
-	std::swap(output_array[j], output_array[k]);
-      }
-      int isn = i;
-      int itn = output_array[k];
-      size_t i_array = (size_t)i*outdegree + k;
+    omp_init_lock(&(lock[i]));
+  }
+#endif
+
+  for (int is0=0; is0<n_source; is0+=THREAD_MAXNUM) {
+#ifdef _OPENMP
+#pragma omp parallel for default(shared)
+#endif
+    for (int ith=0; ith<THREAD_MAXNUM; ith++) {
+      int isn = is0 + ith;
+      if (isn < n_source) {
+	std::vector<int> int_vect;
+ 	if (n_target<method_thresh*outdegree) { // choose method
+	  //https://stackoverflow.com/questions/18625223
+	  // v = sequence(0, n_target-1)
+	  int_vect.reserve(n_target);
+	  std::generate_n(std::back_inserter(int_vect), n_target, [&]()
+			  { return int_vect.size(); });
+	  for (int i=0; i<outdegree; i++) {
+	    int j = i + rnd[i*THREAD_MAXNUM + ith] % (n_target - i);
+	    if (j != i) {
+	      std::swap(int_vect[i], int_vect[j]);
+	    }
+	  }
+	}
+	else { // other method
+	  std::vector<int> sorted_vect;
+	  for (int i=0; i<outdegree; i++) {
+	    int i1 = 0;
+	    std::vector<int>::iterator iter;
+	    int j;
+	    do {
+	      j = rnd[(i1*outdegree + i)*THREAD_MAXNUM + ith]
+		% n_target;
+	      // https://riptutorial.com/cplusplus/example/7270/using-a-sorted-vector-for-fast-element-lookup
+	      // check if j is in target_vect
+	      iter = std::lower_bound(sorted_vect.begin(),
+				      sorted_vect.end(), j);
+	      i1++;
+	    } while (iter != sorted_vect.end() && *iter == j); // we found j 
+	    sorted_vect.insert(iter, j);
+	    int_vect.push_back(j);
+	  }
+	}	
+	for (int k=0; k<outdegree; k++) {
+	  int itn = int_vect[k];
+	  size_t i_array = (size_t)isn*outdegree + k;
+#ifdef _OPENMP
+	  omp_set_lock(&(lock[isn]));
+#endif	  
       _SingleConnect<T1, T2>(source, isn, target, itn, i_array, syn_spec);
+#ifdef _OPENMP
+	  omp_unset_lock(&(lock[isn]));
+#endif
+	}
+      }
     }
   }
   delete[] rnd;
+#ifdef _OPENMP
+  delete[] lock;
+#endif
   
   return 0;
 }
@@ -563,6 +614,10 @@ template <class T1, class T2>
   (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
    int indegree, SynSpec &syn_spec)
 {
+  const int method_thresh = 5;
+  if (indegree>n_source) {
+    throw ngpu_exception("Indegree larger than number of source nodes");
+  }
   if (MpiId()==source.i_host_ && source.i_host_==target.i_host_) {
     return _ConnectFixedIndegree<T1, T2>(source.i_node_, n_source,
 					 target.i_node_, n_target, indegree,
@@ -597,19 +652,52 @@ template <class T1, class T2>
     }
     else if (MpiId() == source.i_host_) {
       connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, target.i_host_);
-      unsigned int *rnd = RandomInt(n_target*indegree); // check parall. seed problem
-      std::vector<int> input_array;
-      for (int i=0; i<n_source; i++) {
-	input_array.push_back(source.GetINode(i));
-      }
+      int n_rnd = indegree;
+      if (n_source>=method_thresh*indegree) { // choose method
+	n_rnd *= 5; 
+      } 
+      unsigned int *rnd = RandomInt(n_rnd);
+
+      //std::vector<int> input_array;
+      //for (int i=0; i<n_source; i++) {
+      //input_array.push_back(source.GetINode(i));
+      //}
       for (int k=0; k<n_target; k++) {
-	for (int i=0; i<indegree; i++) {
-	  int j = i + rnd[k*indegree+i] % (n_source - i);
-	  if (j!=i) {
-	    std::swap(input_array[i], input_array[j]);
+	std::vector<int> int_vect;
+	if (n_source<method_thresh*indegree) { // choose method
+	  //https://stackoverflow.com/questions/18625223
+	  // v = sequence(0, n_source-1)
+	  int_vect.reserve(n_source);
+	  std::generate_n(std::back_inserter(int_vect), n_source, [&]()
+			  { return int_vect.size(); });
+	  for (int i=0; i<indegree; i++) {
+	    int j = i + rnd[i] % (n_source - i);
+	    if (j != i) {
+	      std::swap(int_vect[i], int_vect[j]);
+	    }
 	  }
-	  int i_source_node = input_array[i];
-	  
+	}
+	else { // nuovo metodo
+	  std::vector<int> sorted_vect;
+	  for (int i=0; i<indegree; i++) {
+	    int i1 = 0;
+	    std::vector<int>::iterator iter;
+	    int j;
+	    do {
+	      j = rnd[i1*indegree + i]
+		% n_source;
+	      // https://riptutorial.com/cplusplus/example/7270/using-a-sorted-vector-for-fast-element-lookup
+	      // check if j is in target_vect
+	      iter = std::lower_bound(sorted_vect.begin(),
+				      sorted_vect.end(), j);
+	      i1++;
+	    } while (iter != sorted_vect.end() && *iter == j); // we found j 
+	    sorted_vect.insert(iter, j);
+	    int_vect.push_back(j);
+	  }
+	}
+	for (int i=0; i<indegree; i++) {
+	  int i_source_node = source.GetINode(int_vect[i]);
 	  int i_remote_node = -1;
 	  for (std::vector<ExternalConnectionNode >::iterator it =
 		 connect_mpi_->extern_connection_[i_source_node].begin();

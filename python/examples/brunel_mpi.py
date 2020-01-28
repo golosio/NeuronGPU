@@ -116,7 +116,7 @@ ri_syn_dict={"weight": Win, "delay": delay,
 # host 0 to host 1
 ngpu.RemoteConnect(0, inh_neuron, 1, neuron, ri_conn_dict, ri_syn_dict)
 # host 1 to host 0
-ngpu.RemoteConnect(1, exc_neuron, 0, neuron, ri_conn_dict, ri_syn_dict)
+ngpu.RemoteConnect(1, inh_neuron, 0, neuron, ri_conn_dict, ri_syn_dict)
 
 ngpu.Simulate()
 

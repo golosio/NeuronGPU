@@ -735,6 +735,10 @@ template <class T1, class T2>
   (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
    int outdegree, SynSpec &syn_spec)
 {
+  const int method_thresh = 5;
+  if (outdegree>n_target) {
+    throw ngpu_exception("Outdegree larger than number of target nodes");
+  }
   if (MpiId()==source.i_host_ && source.i_host_==target.i_host_) {
     return _ConnectFixedOutdegree<T1, T2>(source.i_node_, n_source,
 					 target.i_node_, n_target, outdegree,
@@ -756,20 +760,49 @@ template <class T1, class T2>
       connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_source,
 				 source.i_host_);
 
-      unsigned int *rnd = RandomInt(n_source*outdegree);
-      std::vector<int> output_array;
-      for (int i=0; i<n_target; i++) {
-	output_array.push_back(i);
+      int n_rnd = outdegree;
+      if (n_target>=method_thresh*outdegree) { // choose method
+	n_rnd *= 5; 
       }
-      for (int i=0; i<n_source; i++) {
-	for (int k=0; k<outdegree; k++) {
-      	  int i_remote_node = i_remote_node_arr[i];
-	  int j = k + rnd[i*outdegree+k] % (n_target - k);
-	  if (j!=k) {
-	    std::swap(output_array[j], output_array[k]);
+      unsigned int *rnd = RandomInt(n_rnd);
+
+      for (int isn=0; isn<n_source; isn++) {
+	std::vector<int> int_vect;
+ 	if (n_target<method_thresh*outdegree) { // choose method
+	  //https://stackoverflow.com/questions/18625223
+	  // v = sequence(0, n_target-1)
+	  int_vect.reserve(n_target);
+	  std::generate_n(std::back_inserter(int_vect), n_target, [&]()
+			  { return int_vect.size(); });
+	  for (int i=0; i<outdegree; i++) {
+	    int j = i + rnd[i] % (n_target - i);
+	    if (j != i) {
+	      std::swap(int_vect[i], int_vect[j]);
+	    }
 	  }
-	  int itn = output_array[k];
-	  size_t i_array = (size_t)i*outdegree + k;
+	}
+	else { // other method
+	  std::vector<int> sorted_vect;
+	  for (int i=0; i<outdegree; i++) {
+	    int i1 = 0;
+	    std::vector<int>::iterator iter;
+	    int j;
+	    do {
+	      j = rnd[i1*outdegree + i] % n_target;
+	      // https://riptutorial.com/cplusplus/example/7270/using-a-sorted-vector-for-fast-element-lookup
+	      // check if j is in target_vect
+	      iter = std::lower_bound(sorted_vect.begin(),
+				      sorted_vect.end(), j);
+	      i1++;
+	    } while (iter != sorted_vect.end() && *iter == j); // we found j 
+	    sorted_vect.insert(iter, j);
+	    int_vect.push_back(j);
+	  }
+	}	
+	for (int k=0; k<outdegree; k++) {
+      	  int i_remote_node = i_remote_node_arr[isn];
+	  int itn = int_vect[k];
+	  size_t i_array = (size_t)isn*outdegree + k;
 	  _SingleConnect<int,T2>(i_remote_node, 0, target.i_node_, itn,
 	  			 i_array, syn_spec);
 	}

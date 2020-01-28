@@ -1427,16 +1427,16 @@ def RemoteConnect(i_source_host, source, i_target_host, target,
                                                   target_arr_pt, len(target))
         elif (type(source)!=NodeSeq) & (type(target)==NodeSeq):
             ret = NeuralGPU_RemoteConnectGroupSeq(i_source_host, source_arr_pt,
-                                                  len(source_list),
+                                                  len(source),
                                                   i_target_host, target.i0,
                                                   target.n)
         else:
             ret = NeuralGPU_RemoteConnectGroupGroup(i_source_host,
                                                     source_arr_pt,
-                                                    len(source_list),
+                                                    len(source),
                                                     i_target_host,
                                                     target_arr_pt,
-                                                    len(target_list))
+                                                    len(target))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret

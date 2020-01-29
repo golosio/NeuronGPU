@@ -23,6 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
+namespace aeif_cond_beta_ns
+{
 enum ScalVarIndexes {
   i_V_m = 0,
   i_w,
@@ -128,10 +130,10 @@ const std::string aeif_cond_beta_port_param_name[N_PORT_PARAM] = {
 #define g0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_g0]
 
 
-template<int NVAR, int NPARAM, class DataStruct>
+ template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
-    void aeif_cond_beta_Derivatives(float x, float *y, float *dydx, float *param,
-		     DataStruct data_struct)
+    void Derivatives(float x, float *y, float *dydx, float *param,
+		     RK5DataStruct data_struct)
 {
   enum { n_port = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
   float I_syn = 0.0;
@@ -153,9 +155,9 @@ __device__
   }
 }
 
-template<int NVAR, int NPARAM, class DataStruct>
+ template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
-    void aeif_cond_beta_ExternalUpdate
+    void ExternalUpdate
     (float x, float *y, float *param, bool end_time_step,
 			RK5DataStruct data_struct)
 {
@@ -188,10 +190,10 @@ __device__
   }
 }
 
-template<class DataStruct>
+//template<class DataStruct>
 __device__
-void aeif_cond_beta_NodeInit(int n_var, int n_param, float x, float *y, float *param,
-		  DataStruct data_struct)
+void NodeInit(int n_var, int n_param, float x, float *y, float *param,
+	      RK5DataStruct data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
@@ -221,10 +223,10 @@ void aeif_cond_beta_NodeInit(int n_var, int n_param, float x, float *y, float *p
   }
 }
 
-template<class DataStruct>
+//template<class DataStruct>
 __device__
-void aeif_cond_beta_NodeCalibrate(int n_var, int n_param, float x, float *y,
-		       float *param, DataStruct data_struct)
+void NodeCalibrate(int n_var, int n_param, float x, float *y,
+		       float *param, RK5DataStruct data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
@@ -253,6 +255,8 @@ void aeif_cond_beta_NodeCalibrate(int n_var, int n_param, float x, float *y,
   }
 }
 
+};
+
 template <>
 int aeif_cond_beta::UpdateNR<0>(int it, float t1);
 
@@ -260,8 +264,10 @@ template<int N_PORT>
 int aeif_cond_beta::UpdateNR(int it, float t1)
 {
   if (N_PORT == n_port_) {
-    const int NVAR = N_SCAL_VAR + N_PORT_VAR*N_PORT;
-    const int NPARAM = N_SCAL_PARAM + N_PORT_PARAM*N_PORT;
+    const int NVAR = aeif_cond_beta_ns::N_SCAL_VAR
+      + aeif_cond_beta_ns::N_PORT_VAR*N_PORT;
+    const int NPARAM = aeif_cond_beta_ns::N_SCAL_PARAM
+      + aeif_cond_beta_ns::N_PORT_PARAM*N_PORT;
 
     rk5_.Update<NVAR, NPARAM>(t1, h_min_, rk5_data_struct_);
   }

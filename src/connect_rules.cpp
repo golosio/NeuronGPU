@@ -85,10 +85,8 @@ int ConnSpec::SetParam(std::string param_name, int value)
     outdegree_ = value;
     return 0;
   }
-  else {
-    throw ngpu_exception("Unknown connection int parameter");
-  }
-  return 0;
+
+  throw ngpu_exception("Unknown connection int parameter");
 }
 
 bool ConnSpec::IsParam(std::string param_name)
@@ -176,10 +174,8 @@ int SynSpec::SetParam(std::string param_name, int value)
     port_ = value;
     return 0;
   }
-  else {
-    throw ngpu_exception("Unknown synapse int parameter");
-  }
-  return 0;
+  
+  throw ngpu_exception("Unknown synapse int parameter");
 }
 
 bool SynSpec::IsIntParam(std::string param_name)

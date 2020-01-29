@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "rk5.h"
 #include "aeif_cond_beta.h"
 
+using namespace aeif_cond_beta_ns;
 
 int aeif_cond_beta::Init(int i_node_0, int n_node, int n_port,
 			 int i_group, unsigned long long *seed) {

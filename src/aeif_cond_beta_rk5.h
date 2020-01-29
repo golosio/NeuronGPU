@@ -20,27 +20,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include "node_group.h"
 
-template<int NVAR, int NPARAM, class DataStruct>
-__device__
-void aeif_cond_beta_Derivatives(float x, float *y, float *dydx, float *param,
-				DataStruct data_struct);
+namespace aeif_cond_beta_ns
+{
 
-template<int NVAR, int NPARAM, class DataStruct>
+template<int NVAR, int NPARAM> // , class DataStruct>
 __device__
-void aeif_cond_beta_ExternalUpdate(float x, float *y, float *param,
+void Derivatives(float x, float *y, float *dydx, float *param,
+				RK5DataStruct data_struct);
+
+template<int NVAR, int NPARAM> //, class DataStruct>
+__device__
+void ExternalUpdate(float x, float *y, float *param,
 				   bool end_time_step,
 				   RK5DataStruct data_struct);
 
-template<class DataStruct>
+//template<class DataStruct>
 __device__
-void aeif_cond_beta_NodeInit(int n_var, int n_param, float x, float *y,
-			     float *param, DataStruct data_struct);
+void NodeInit(int n_var, int n_param, float x, float *y,
+			     float *param, RK5DataStruct data_struct);
 
 
-template<class DataStruct>
+//template<class DataStruct>
 __device__
-void aeif_cond_beta_NodeCalibrate(int n_var, int n_param, float x, float *y,
-				  float *param, DataStruct data_struct);
+void NodeCalibrate(int n_var, int n_param, float x, float *y,
+				  float *param, RK5DataStruct data_struct);
 
+}
 
 #endif

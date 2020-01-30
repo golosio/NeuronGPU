@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "spike_generator.h"
 #include "parrot_neuron.h"
 #include "spike_detector.h"
+#include "user_m1.h"
+#include "user_m2.h"
 
 NodeSeq NeuralGPU::Create(std::string model_name, int n_node /*=1*/,
 			  int n_port /*=1*/)
@@ -38,6 +40,14 @@ NodeSeq NeuralGPU::Create(std::string model_name, int n_node /*=1*/,
   if (model_name == neuron_model_name[i_aeif_cond_beta_model]) {
     aeif_cond_beta *aeif_cond_beta_group = new aeif_cond_beta;
     node_vect_.push_back(aeif_cond_beta_group);
+  }
+  else if (model_name == neuron_model_name[i_user_m1_model]) {
+    user_m1 *user_m1_group = new user_m1;
+    node_vect_.push_back(user_m1_group);
+  }
+  else if (model_name == neuron_model_name[i_user_m2_model]) {
+    user_m2 *user_m2_group = new user_m2;
+    node_vect_.push_back(user_m2_group);
   }
   else if (model_name == neuron_model_name[i_poisson_generator_model]) {
     n_port = 0;

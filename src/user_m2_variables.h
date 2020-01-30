@@ -12,18 +12,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef AEIFCONDBETAVARIABLESH
-#define AEIFCONDBETAVARIABLESH
+#ifndef USERM2VARIABLESH
+#define USERM2VARIABLESH
 
 #include <string>
 #include <math.h>
 #include "spike_buffer.h"
 #include "node_group.h"
-#include "aeif_cond_beta.h"
+#include "user_m2.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-namespace aeif_cond_beta_ns
+namespace user_m2_ns
 {
 enum ScalVarIndexes {
   i_V_m = 0,
@@ -62,17 +62,17 @@ enum PortParamIndexes {
   N_PORT_PARAM
 };
 
-const std::string aeif_cond_beta_scal_var_name[N_SCAL_VAR] = {
+const std::string user_m2_scal_var_name[N_SCAL_VAR] = {
   "V_m",
   "w"
 };
 
-const std::string aeif_cond_beta_port_var_name[N_PORT_VAR] = {
+const std::string user_m2_port_var_name[N_PORT_VAR] = {
   "g",
   "g1"
 };
 
-const std::string aeif_cond_beta_scal_param_name[N_SCAL_PARAM] = {
+const std::string user_m2_scal_param_name[N_SCAL_PARAM] = {
   "V_th",
   "Delta_T",
   "g_L",
@@ -88,7 +88,7 @@ const std::string aeif_cond_beta_scal_param_name[N_SCAL_PARAM] = {
   "refractory_step"
 };
 
-const std::string aeif_cond_beta_port_param_name[N_PORT_PARAM] = {
+const std::string user_m2_port_param_name[N_PORT_PARAM] = {
   "E_rev",
   "taus_rise",
   "taus_decay",
@@ -258,16 +258,16 @@ void NodeCalibrate(int n_var, int n_param, float x, float *y,
 };
 
 template <>
-int aeif_cond_beta::UpdateNR<0>(int it, float t1);
+int user_m2::UpdateNR<0>(int it, float t1);
 
 template<int N_PORT>
-int aeif_cond_beta::UpdateNR(int it, float t1)
+int user_m2::UpdateNR(int it, float t1)
 {
   if (N_PORT == n_port_) {
-    const int NVAR = aeif_cond_beta_ns::N_SCAL_VAR
-      + aeif_cond_beta_ns::N_PORT_VAR*N_PORT;
-    const int NPARAM = aeif_cond_beta_ns::N_SCAL_PARAM
-      + aeif_cond_beta_ns::N_PORT_PARAM*N_PORT;
+    const int NVAR = user_m2_ns::N_SCAL_VAR
+      + user_m2_ns::N_PORT_VAR*N_PORT;
+    const int NPARAM = user_m2_ns::N_SCAL_PARAM
+      + user_m2_ns::N_PORT_PARAM*N_PORT;
 
     rk5_.Update<NVAR, NPARAM>(t1, h_min_, rk5_data_struct_);
   }

@@ -20,6 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "neuron_models.h"
 #include "aeif_cond_beta_rk5.h"
+#include "user_m1_rk5.h"
+#include "user_m2_rk5.h"
+
 				    //#include "aeif_cond_beta_variables.h"
 
 template<int NVAR, int NPARAM, class DataStruct>
@@ -29,8 +32,16 @@ __device__
 {
   switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
-    aeif_cond_beta_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
-						 data_struct);
+    aeif_cond_beta_ns::Derivatives(x, y, dydx, NVAR, param,
+				   data_struct);
+    break;
+  case i_user_m1_model:
+    user_m1_ns::Derivatives(x, y, dydx, NVAR, param,
+			    data_struct);
+    break;
+  case i_user_m2_model:
+    user_m2_ns::Derivatives(x, y, dydx, NVAR, param,
+			    data_struct);
     break;
   }
 }
@@ -43,9 +54,19 @@ __device__
 {
   switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
-    aeif_cond_beta_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,
-						    end_time_step,
-						    data_struct);
+    aeif_cond_beta_ns::ExternalUpdate(x, y, param,
+				      end_time_step,
+				      data_struct);
+    break;
+  case i_user_m1_model:
+    user_m1_ns::ExternalUpdate(x, y, param,
+			       end_time_step,
+			       data_struct);
+    break;
+  case i_user_m2_model:
+    user_m2_ns::ExternalUpdate(x, y, param,
+			       end_time_step,
+			       data_struct);
     break;
   }    
 }
@@ -61,6 +82,14 @@ void NodeInit(int n_var, int n_param, float x, float *y,
     aeif_cond_beta_ns::NodeInit(n_var, n_param, x, y, param,
 				data_struct);
     break;
+  case i_user_m1_model:
+    user_m1_ns::NodeInit(n_var, n_param, x, y, param,
+				data_struct);
+    break;
+  case i_user_m2_model:
+    user_m2_ns::NodeInit(n_var, n_param, x, y, param,
+				data_struct);
+    break;
   }
 }
 
@@ -73,6 +102,12 @@ void NodeCalibrate(int n_var, int n_param, float x, float *y,
   switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
     aeif_cond_beta_ns::NodeCalibrate(n_var, n_param, x, y, param, data_struct);
+    break;
+  case i_user_m1_model:
+    user_m1_ns::NodeCalibrate(n_var, n_param, x, y, param, data_struct);
+    break;
+  case i_user_m2_model:
+    user_m2_ns::NodeCalibrate(n_var, n_param, x, y, param, data_struct);
     break;
   }
 }

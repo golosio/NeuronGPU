@@ -12,15 +12,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef AEIFCONDBETARK5H
-#define AEIFCONDBETARK5H
+#ifndef USERM2RK5H
+#define USERM2RK5H
 
 #include <string>
 #include <stdio.h>
 #include <math.h>
 #include "node_group.h"
 
-namespace aeif_cond_beta_ns
+namespace user_m2_ns
 {
 
   //template<int NVAR, int NPARAM> // , class DataStruct>

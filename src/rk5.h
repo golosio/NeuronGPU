@@ -22,8 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-#define MAXNVAR 20
-#define MAXNPARAM 40
+#define MAXNVAR 6 //20
+#define MAXNPARAM 21 //40
 
 __global__ void SetFloatArray(float *arr, int n_elem, int step, float val);
 
@@ -170,18 +170,20 @@ void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
 		 DataStruct data_struct)
 {
   //extern __shared__ shared_data[];
-  __shared__ float shared_data[48*1024/4];
+  //__shared__ float shared_data[48*1024/4];
+  __shared__ float shared_data[30*256]; //24*1024/4];
   int thread_idx = threadIdx.x;
   int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
   if (ArrayIdx<array_size) {
     float x = x_arr[ArrayIdx];
     float h = h_arr[ArrayIdx];
-    float *param = shared_data + thread_idx*n_param; //[MAXNPARAM];
-    float *shared_var = shared_data + blockDim.x*n_param; 
-    float *y = shared_var + thread_idx*n_var; //[MAXNVAR];
-    float *y_new = y + blockDim.x*n_var; //[MAXNVAR];
-    float *k1 = y_new + blockDim.x*n_var; //[MAXNVAR];
-    float *k2 = k1 + blockDim.x*n_var; //[MAXNVAR];
+    float param[MAXNPARAM]; // = shared_data + thread_idx*n_param; //[MAXNPARAM];
+    //float *shared_var = shared_data + blockDim.x*n_param; 
+    float y[MAXNVAR]; // = shared_var + thread_idx*n_var; //[MAXNVAR];
+    float y_new[MAXNVAR]; // = y + blockDim.x*n_var; //[MAXNVAR];
+    float k1[MAXNVAR]; // = y_new + blockDim.x*n_var; //[MAXNVAR];
+    //float *k2 = k1 + blockDim.x*n_var; //[MAXNVAR];
+    float *k2 = shared_data + thread_idx*n_var; //[MAXNVAR];
     float *k3 = k2 + blockDim.x*n_var; //[MAXNVAR];
     float *k4 = k3 + blockDim.x*n_var; //[MAXNVAR];
     float *k5 = k4 + blockDim.x*n_var; //[MAXNVAR];
@@ -249,7 +251,8 @@ template<class DataStruct>
 				      DataStruct data_struct)
 {
   //ArrayUpdate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
-  ArrayUpdate<DataStruct><<<(array_size_+127)/128, 128>>>
+  //ArrayUpdate<DataStruct><<<(array_size_+127)/128, 128>>>
+  ArrayUpdate<DataStruct><<<(array_size_+255)/256, 256>>>
     (array_size_, d_XArr, d_HArr, d_YArr, d_ParamArr, x1, h_min, n_var,
      n_param, data_struct);
   gpuErrchk( cudaPeekAtLastError() );

@@ -65,14 +65,8 @@ int user_m2::Calibrate(float time_min, float /*time_resolution*/)
   return 0;
 }
 
-template <>
-int user_m2::UpdateNR<0>(int it, float t1)
-{
-  return 0;
-}
-
 int user_m2::Update(int it, float t1) {
-  UpdateNR<MAX_PORT_NUM>(it, t1);
+  UpdateNR(it, t1); ////???????????????
 
   return 0;
 }

@@ -48,8 +48,7 @@ class aeif_cond_beta : public BaseNeuron
     return rk5_.GetY(i_var, i_neuron, n_node, y);
   }
   
-  template<int N_PORT>
-    int UpdateNR(int it, float t1);
+  int UpdateNR(int it, float t1);
 
 };
 

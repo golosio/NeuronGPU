@@ -25,31 +25,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 				    //#include "aeif_cond_beta_variables.h"
 
-template<int NVAR, int NPARAM, class DataStruct>
+template<class DataStruct>
 __device__
-    void Derivatives(float x, float *y, float *dydx, float *param,
-		     RK5DataStruct data_struct)
+void Derivatives(float x, float *y, float *dydx, int n_var, int n_param,
+		 float *param, RK5DataStruct data_struct)
 {
   switch (data_struct.node_type_) {
   case i_aeif_cond_beta_model:
-    aeif_cond_beta_ns::Derivatives(x, y, dydx, NVAR, param,
+    aeif_cond_beta_ns::Derivatives(x, y, dydx, n_var, param,
 				   data_struct);
     break;
   case i_user_m1_model:
-    user_m1_ns::Derivatives(x, y, dydx, NVAR, param,
+    user_m1_ns::Derivatives(x, y, dydx, n_var, param,
 			    data_struct);
     break;
   case i_user_m2_model:
-    user_m2_ns::Derivatives(x, y, dydx, NVAR, param,
+    user_m2_ns::Derivatives(x, y, dydx, n_var, param,
 			    data_struct);
     break;
   }
 }
 
-template<int NVAR, int NPARAM, class DataStruct>
+template<class DataStruct>
 __device__
     void ExternalUpdate
-    (float x, float *y, float *param, bool end_time_step,
+(float x, float *y, int n_var, int n_param, float *param, bool end_time_step,
 			RK5DataStruct data_struct)
 {
   switch (data_struct.node_type_) {

@@ -22,6 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+#define MAXNVAR 20
+#define MAXNPARAM 40
+
 __global__ void SetFloatArray(float *arr, int n_elem, int step, float val);
 
 template<class DataStruct>
@@ -54,73 +57,73 @@ void ArrayCalibrate(int array_size, int n_var, int n_param, float *x_arr,
   }
 }
 
-template<int NVAR, int NPARAM, class DataStruct>
+template<class DataStruct>
 __device__
 void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
-	     float *param, DataStruct data_struct)
+	     int n_var, int n_param, float *param, DataStruct data_struct)
 {
   float err;
-  float y_new[NVAR];
+  float y_new[MAXNVAR];
 
   for(;;) {
     if (h > h_max) h = h_max;
 
-    float k1[NVAR];
-    float k2[NVAR];
-    float k3[NVAR];
-    float k4[NVAR];
-    float k5[NVAR];
-    float k6[NVAR];
+    float k1[MAXNVAR];
+    float k2[MAXNVAR];
+    float k3[MAXNVAR];
+    float k4[MAXNVAR];
+    float k5[MAXNVAR];
+    float k6[MAXNVAR];
 
-    Derivatives<NVAR, NPARAM, DataStruct>(x, y, k1, param, data_struct);
+    Derivatives<DataStruct>(x, y, k1, n_var, n_param, param, data_struct);
 
-    for (int i=0; i<NVAR; i++) {
+    for (int i=0; i<n_var; i++) {
       y_new[i] = y[i] + h*a21*k1[i];
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x+c2*h, y_new, k2, param,
-					   data_struct);
+    Derivatives<DataStruct>(x+c2*h, y_new, k2, n_var, n_param, param,
+			    data_struct);
   
-    for (int i=0; i<NVAR; i++) {
+    for (int i=0; i<n_var; i++) {
       y_new[i] = y[i] + h*(a31*k1[i] + a32*k2[i]);
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x+c3*h, y_new, k3, param,
-					   data_struct);
+    Derivatives<DataStruct>(x+c3*h, y_new, k3, n_var, n_param, param,
+			    data_struct);
 
-    for (int i=0; i<NVAR; i++) {
+    for (int i=0; i<n_var; i++) {
       y_new[i] = y[i] + h*(a41*k1[i] + a42*k2[i] + a43*k3[i]);
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x+c4*h, y_new, k4, param,
-					   data_struct);
+    Derivatives<DataStruct>(x+c4*h, y_new, k4, n_var, n_param, param,
+			    data_struct);
   
-    for (int i=0; i<NVAR; i++) {
+    for (int i=0; i<n_var; i++) {
       y_new[i] = y[i] + h*(a51*k1[i] + a52*k2[i] + a53*k3[i] + a54*k4[i]);
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x+c5*h, y_new, k5, param,
+    Derivatives<DataStruct>(x+c5*h, y_new, k5, n_var, n_param, param,
 					   data_struct);
   
-    for (int i=0; i<NVAR; i++) {
+    for (int i=0; i<n_var; i++) {
       y_new[i] = y[i] + h*(a61*k1[i] + a62*k2[i] + a63*k3[i] + a64*k4[i]
-			  + a65*k5[i]);
+			   + a65*k5[i]);
     }
     float x1 = x + h;
-    Derivatives<NVAR, NPARAM, DataStruct>(x1, y_new, k6, param, data_struct);
+    Derivatives<DataStruct>(x1, y_new, k6, n_var, n_param, param, data_struct);
 
-    for (int i=0; i<NVAR; i++) {
+    for (int i=0; i<n_var; i++) {
       y_new[i] = y[i] + h*(a71*k1[i] + a73*k3[i] + a74*k4[i] + a75*k5[i]
-			  + a76*k6[i]);
+			   + a76*k6[i]);
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x1, y_new, k2, param,
-					   data_struct); // k2 replaces k7
+    Derivatives<DataStruct>(x1, y_new, k2, n_var, n_param, param,
+			    data_struct); // k2 replaces k7
   
     err = 0.0;
-    for (int i=0; i<NVAR; i++) {
+    for (int i=0; i<n_var; i++) {
       float val = h*(e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i] + e6*k6[i]
 		     + e7*k2[i])
 	/ (abs_tol + rel_tol*MAX(fabs(y[i]), fabs(y_new[i])));
 
       err += val*val;
     }
-    err = sqrt(err/NVAR);
+    err = sqrt(err/n_var);
 
     float x_new = x + h;
     bool rejected=false;
@@ -143,53 +146,54 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
     }
   }
   
-  for (int i=0; i<NVAR; i++) {
+  for (int i=0; i<n_var; i++) {
     y[i] = y_new[i];
   }
 }
 
-template<int NVAR, int NPARAM, class DataStruct>
+template<class DataStruct>
 __device__
 void RK5Update(float &x, float *y, float x1, float &h, float h_min,
-	       float *param, DataStruct data_struct)
+	       int n_var, int n_param, float *param, DataStruct data_struct)
 {
   bool end_time_step=false;
   while(!end_time_step) {
     float hmax=x1-x;
-    RK5Step<NVAR, NPARAM, DataStruct>(x, y, h, h_min, hmax, param,
-				       data_struct);
+    RK5Step<DataStruct>(x, y, h, h_min, hmax, n_var, n_param, param,
+			data_struct);
     end_time_step = (x >= x1-h_min);
-    ExternalUpdate<NVAR, NPARAM, DataStruct>(x, y, param, end_time_step,
-					      data_struct);
+    ExternalUpdate<DataStruct>(x, y, n_var, n_param, param, end_time_step,
+			       data_struct);
   }
 }
 
-template<int NVAR, int NPARAM, class DataStruct>
+template<class DataStruct>
 __global__
 void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
-		 float *par_arr, float x1, float h_min, DataStruct data_struct)
+		 float *par_arr, float x1, float h_min, int n_var, int n_param,
+		 DataStruct data_struct)
 {
   int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
   if (ArrayIdx<array_size) {
     float x = x_arr[ArrayIdx];
     float h = h_arr[ArrayIdx];
-    float y[NVAR];
-    float param[NPARAM];
+    float y[MAXNVAR];
+    float param[MAXNPARAM];
 
-    for(int i=0; i<NVAR; i++) {
-      y[i] = y_arr[ArrayIdx*NVAR + i];
+    for(int i=0; i<n_var; i++) {
+      y[i] = y_arr[ArrayIdx*n_var + i];
     }
-    for(int j=0; j<NPARAM; j++) {
-      param[j] = par_arr[ArrayIdx*NPARAM + j];
+    for(int j=0; j<n_param; j++) {
+      param[j] = par_arr[ArrayIdx*n_param + j];
     }
 
-    RK5Update<NVAR, NPARAM, DataStruct>(x, y, x1, h, h_min, param,
-					 data_struct);
+    RK5Update<DataStruct>(x, y, x1, h, h_min, n_var, n_param, param,
+			  data_struct);
 
     x_arr[ArrayIdx] = x;
     h_arr[ArrayIdx] = h;
-    for(int i=0; i<NVAR; i++) {
-      y_arr[ArrayIdx*NVAR + i] = y[i];
+    for(int i=0; i<n_var; i++) {
+      y_arr[ArrayIdx*n_var + i] = y[i];
     }
        
   }
@@ -226,19 +230,20 @@ class RungeKutta5
   int SetParam(int i_param, int i_array, int n_param, int n_elem, float val);
   int SetVectParam(int i_param, int i_array, int n_param, int n_elem,
 		    float *param, int vect_size);
-  template<int NVAR, int NPARAM> int Update(float x1, float h_min,
-					     DataStruct data_struct);
+  int Update(float x1, float h_min, int n_var, int n_param,
+	     DataStruct data_struct);
 
 };
 
 
 template<class DataStruct>
-template<int NVAR, int NPARAM>
   int RungeKutta5<DataStruct>::Update(float x1, float h_min,
+				      int n_var, int n_param,
 				      DataStruct data_struct)
 {
-  ArrayUpdate<NVAR, NPARAM, DataStruct><<<(array_size_+1023)/1024, 1024>>>
-    (array_size_, d_XArr, d_HArr, d_YArr, d_ParamArr, x1, h_min, data_struct);
+  ArrayUpdate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
+    (array_size_, d_XArr, d_HArr, d_YArr, d_ParamArr, x1, h_min, n_var,
+     n_param, data_struct);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 

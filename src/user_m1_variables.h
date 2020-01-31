@@ -257,23 +257,11 @@ void NodeCalibrate(int n_var, int n_param, float x, float *y,
 
 };
 
-template <>
-int user_m1::UpdateNR<0>(int it, float t1);
 
-template<int N_PORT>
 int user_m1::UpdateNR(int it, float t1)
 {
-  if (N_PORT == n_port_) {
-    const int NVAR = user_m1_ns::N_SCAL_VAR
-      + user_m1_ns::N_PORT_VAR*N_PORT;
-    const int NPARAM = user_m1_ns::N_SCAL_PARAM
-      + user_m1_ns::N_PORT_PARAM*N_PORT;
 
-    rk5_.Update<NVAR, NPARAM>(t1, h_min_, rk5_data_struct_);
-  }
-  else {
-    UpdateNR<N_PORT - 1>(it, t1);
-  }
+  rk5_.Update(t1, h_min_, n_var_, n_param_, rk5_data_struct_);
 
   return 0;
 }

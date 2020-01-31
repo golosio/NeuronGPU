@@ -60,20 +60,14 @@ void ArrayCalibrate(int array_size, int n_var, int n_param, float *x_arr,
 template<class DataStruct>
 __device__
 void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
-	     int n_var, int n_param, float *param, DataStruct data_struct)
+	     float *y_new, float *k1, float *k2, float *k3, float *k4,
+	     float *k5, float *k6, int n_var, int n_param, float *param,
+	     DataStruct data_struct)
 {
   float err;
-  float y_new[MAXNVAR];
 
   for(;;) {
     if (h > h_max) h = h_max;
-
-    float k1[MAXNVAR];
-    float k2[MAXNVAR];
-    float k3[MAXNVAR];
-    float k4[MAXNVAR];
-    float k5[MAXNVAR];
-    float k6[MAXNVAR];
 
     Derivatives<DataStruct>(x, y, k1, n_var, n_param, param, data_struct);
 
@@ -154,13 +148,15 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
 template<class DataStruct>
 __device__
 void RK5Update(float &x, float *y, float x1, float &h, float h_min,
-	       int n_var, int n_param, float *param, DataStruct data_struct)
+	       float *y_new, float *k1, float *k2, float *k3, float *k4,
+	       float *k5, float *k6, int n_var, int n_param, float *param,
+	       DataStruct data_struct)
 {
   bool end_time_step=false;
   while(!end_time_step) {
     float hmax=x1-x;
-    RK5Step<DataStruct>(x, y, h, h_min, hmax, n_var, n_param, param,
-			data_struct);
+    RK5Step<DataStruct>(x, y, h, h_min, hmax, y_new, k1, k2, k3, k4, k5, k6,
+			n_var, n_param, param, data_struct);
     end_time_step = (x >= x1-h_min);
     ExternalUpdate<DataStruct>(x, y, n_var, n_param, param, end_time_step,
 			       data_struct);
@@ -173,13 +169,24 @@ void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
 		 float *par_arr, float x1, float h_min, int n_var, int n_param,
 		 DataStruct data_struct)
 {
+  //extern __shared__ shared_data[];
+  __shared__ float shared_data[48*1024/4];
+  int thread_idx = threadIdx.x;
   int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
   if (ArrayIdx<array_size) {
     float x = x_arr[ArrayIdx];
     float h = h_arr[ArrayIdx];
-    float y[MAXNVAR];
-    float param[MAXNPARAM];
-
+    float *param = shared_data + thread_idx*n_param; //[MAXNPARAM];
+    float *shared_var = shared_data + blockDim.x*n_param; 
+    float *y = shared_var + thread_idx*n_var; //[MAXNVAR];
+    float *y_new = y + blockDim.x*n_var; //[MAXNVAR];
+    float *k1 = y_new + blockDim.x*n_var; //[MAXNVAR];
+    float *k2 = k1 + blockDim.x*n_var; //[MAXNVAR];
+    float *k3 = k2 + blockDim.x*n_var; //[MAXNVAR];
+    float *k4 = k3 + blockDim.x*n_var; //[MAXNVAR];
+    float *k5 = k4 + blockDim.x*n_var; //[MAXNVAR];
+    float *k6 = k5 + blockDim.x*n_var; //[MAXNVAR];
+    
     for(int i=0; i<n_var; i++) {
       y[i] = y_arr[ArrayIdx*n_var + i];
     }
@@ -187,8 +194,8 @@ void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
       param[j] = par_arr[ArrayIdx*n_param + j];
     }
 
-    RK5Update<DataStruct>(x, y, x1, h, h_min, n_var, n_param, param,
-			  data_struct);
+    RK5Update<DataStruct>(x, y, x1, h, h_min, y_new, k1, k2, k3, k4, k5, k6,
+			  n_var, n_param, param, data_struct);
 
     x_arr[ArrayIdx] = x;
     h_arr[ArrayIdx] = h;
@@ -241,7 +248,8 @@ template<class DataStruct>
 				      int n_var, int n_param,
 				      DataStruct data_struct)
 {
-  ArrayUpdate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
+  //ArrayUpdate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
+  ArrayUpdate<DataStruct><<<(array_size_+127)/128, 128>>>
     (array_size_, d_XArr, d_HArr, d_YArr, d_ParamArr, x1, h_min, n_var,
      n_param, data_struct);
   gpuErrchk( cudaPeekAtLastError() );

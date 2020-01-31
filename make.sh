@@ -19,7 +19,7 @@ fi
 
 cd src
 
-nvcc -ccbin=mpic++ --compiler-options -Wall --compiler-options '-fPIC' --compiler-options '-fopenmp' -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true --shared -o ../lib/libneuralgpu.so user_m1.cu user_m2.cu aeif_cond_beta.cu rk5.cu neuron_models.cu spike_detector.cu parrot_neuron.cu spike_generator.cu poiss_gen.cu base_neuron.cu neuralgpu.cu connect_rules.cpp scan.cu connect.cu connect_mpi.cu poisson.cu spike_buffer.cu send_spike.cu get_spike.cu spike_mpi.cu getRealTime.cu multimeter.cu random.cu nested_loop.cu prefix_scan.cu node_group.cu -lm -lcurand
+nvcc -ccbin=mpic++ --compiler-options -Wall --compiler-options '-fPIC' --compiler-options '-fopenmp' -arch sm_60 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true --shared -o ../lib/libneuralgpu.so user_m1.cu user_m2.cu aeif_cond_beta.cu rk5.cu neuron_models.cu spike_detector.cu parrot_neuron.cu spike_generator.cu poiss_gen.cu base_neuron.cu neuralgpu.cu connect_rules.cpp scan.cu connect.cu connect_mpi.cu poisson.cu spike_buffer.cu send_spike.cu get_spike.cu spike_mpi.cu getRealTime.cu multimeter.cu random.cu nested_loop.cu prefix_scan.cu node_group.cu -lm -lcurand
 
 if [ $? -ne 0 ]; then
     cd ..

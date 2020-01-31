@@ -171,7 +171,7 @@ void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
 {
   //extern __shared__ shared_data[];
   //__shared__ float shared_data[48*1024/4];
-  __shared__ float shared_data[30*256]; //24*1024/4];
+  //__shared__ float shared_data[30*256]; //24*1024/4];
   int thread_idx = threadIdx.x;
   int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
   if (ArrayIdx<array_size) {
@@ -183,11 +183,12 @@ void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
     float y_new[MAXNVAR]; // = y + blockDim.x*n_var; //[MAXNVAR];
     float k1[MAXNVAR]; // = y_new + blockDim.x*n_var; //[MAXNVAR];
     //float *k2 = k1 + blockDim.x*n_var; //[MAXNVAR];
-    float *k2 = shared_data + thread_idx*n_var; //[MAXNVAR];
-    float *k3 = k2 + blockDim.x*n_var; //[MAXNVAR];
-    float *k4 = k3 + blockDim.x*n_var; //[MAXNVAR];
-    float *k5 = k4 + blockDim.x*n_var; //[MAXNVAR];
-    float *k6 = k5 + blockDim.x*n_var; //[MAXNVAR];
+    //float *k2 = shared_data + thread_idx*n_var; //[MAXNVAR];
+    float k2[MAXNVAR];
+    float k3[MAXNVAR]; // = k2 + blockDim.x*n_var; //[MAXNVAR];
+    float k4[MAXNVAR]; // = k3 + blockDim.x*n_var; //[MAXNVAR];
+    float k5[MAXNVAR]; // = k4 + blockDim.x*n_var; //[MAXNVAR];
+    float k6[MAXNVAR]; // = k5 + blockDim.x*n_var; //[MAXNVAR];
     
     for(int i=0; i<n_var; i++) {
       y[i] = y_arr[ArrayIdx*n_var + i];
@@ -250,9 +251,9 @@ template<class DataStruct>
 				      int n_var, int n_param,
 				      DataStruct data_struct)
 {
-  //ArrayUpdate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
+  ArrayUpdate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
   //ArrayUpdate<DataStruct><<<(array_size_+127)/128, 128>>>
-  ArrayUpdate<DataStruct><<<(array_size_+255)/256, 256>>>
+  //ArrayUpdate<DataStruct><<<(array_size_+255)/256, 256>>>
     (array_size_, d_XArr, d_HArr, d_YArr, d_ParamArr, x1, h_min, n_var,
      n_param, data_struct);
   gpuErrchk( cudaPeekAtLastError() );

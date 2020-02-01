@@ -15,36 +15,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AEIFCONDBETARK5H
 #define AEIFCONDBETARK5H
 
-#include <string>
-#include <stdio.h>
-#include <math.h>
-#include "node_group.h"
+struct aeif_cond_beta_rk5;
 
-namespace aeif_cond_beta_ns
-{
 
-template<int NVAR, int NPARAM> // , class DataStruct>
+template<int NVAR, int NPARAM>
 __device__
 void Derivatives(float x, float *y, float *dydx, float *param,
-				aeif_cond_beta_rk5 data_struct);
+		 aeif_cond_beta_rk5 data_struct);
 
-template<int NVAR, int NPARAM> //, class DataStruct>
+template<int NVAR, int NPARAM>
 __device__
-void ExternalUpdate(float x, float *y, float *param,
-				   bool end_time_step,
-				   aeif_cond_beta_rk5 data_struct);
+void ExternalUpdate(float x, float *y, float *param, bool end_time_step,
+		    aeif_cond_beta_rk5 data_struct);
 
-//template<class DataStruct>
 __device__
 void NodeInit(int n_var, int n_param, float x, float *y,
-			     float *param, aeif_cond_beta_rk5 data_struct);
+	      float *param, aeif_cond_beta_rk5 data_struct);
 
-
-//template<class DataStruct>
 __device__
 void NodeCalibrate(int n_var, int n_param, float x, float *y,
-				  float *param, aeif_cond_beta_rk5 data_struct);
-
-}
+		   float *param, aeif_cond_beta_rk5 data_struct);
 
 #endif

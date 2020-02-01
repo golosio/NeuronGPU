@@ -26,19 +26,5 @@ struct NodeGroupStruct
   double *get_spike_array_;
 };
 
-/*
-struct RK5DataStruct
-{
-  int node_type_;
-  int i_node_0_;
-};
-*/
-
-struct aeif_cond_beta_rk5
-{
-  //int node_type_;
-  int i_node_0_;
-};
-
 #endif
 

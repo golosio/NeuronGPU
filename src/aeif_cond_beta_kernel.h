@@ -12,8 +12,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef AEIFCONDBETAVARIABLESH
-#define AEIFCONDBETAVARIABLESH
+#ifndef AEIFCONDBETAKERNELH
+#define AEIFCONDBETAKERNELH
 
 #include <string>
 #include <math.h>
@@ -190,70 +190,6 @@ __device__
   }
 }
 
-//template<class DataStruct>
-__device__
-void NodeInit(int n_var, int n_param, float x, float *y, float *param,
-	      aeif_cond_beta_rk5 data_struct)
-{
-  //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
-
-  V_th = -50.4;
-  Delta_T = 2.0;
-  g_L = 30.0;
-  E_L = -70.6;
-  C_m = 281.0;
-  a = 4.0;
-  b = 80.5;
-  tau_w = 144.0;
-  I_e = 0.0;
-  V_peak = 0.0;
-  V_reset = -60.0;
-  n_refractory_steps = 1;
-  
-  V_m = E_L;
-  w = 0;
-  refractory_step = 0;
-  for (int i = 0; i<n_port; i++) {
-    g(i) = 0;
-    g1(i) = 0;
-    E_rev(i) = 0.0;
-    taus_decay(i) = 20.0;
-    taus_rise(i) = 2.0;
-  }
-}
-
-//template<class DataStruct>
-__device__
-void NodeCalibrate(int n_var, int n_param, float x, float *y,
-		       float *param, aeif_cond_beta_rk5 data_struct)
-{
-  //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
-
-  refractory_step = 0;
-  for (int i = 0; i<n_port; i++) {
-    // denominator is computed here to check that it is != 0
-    float denom1 = taus_decay(i) - taus_rise(i);
-    float denom2 = 0;
-    if (denom1 != 0) {
-      // peak time
-      float t_p = taus_decay(i)*taus_rise(i)
-	*log(taus_decay(i)/taus_rise(i)) / denom1;
-      // another denominator is computed here to check that it is != 0
-      denom2 = exp(-t_p / taus_decay(i))
-	- exp(-t_p / taus_rise(i));
-    }
-    if (denom2 == 0) { // if rise time == decay time use alpha function
-      // use normalization for alpha function in this case
-      g0(i) = M_E / taus_decay(i);
-    }
-    else { // if rise time != decay time use beta function
-      g0(i) // normalization factor for conductance
-	= ( 1. / taus_rise(i) - 1. / taus_decay(i) ) / denom2;
-    }
-  }
-}
 
 };
 
@@ -277,5 +213,25 @@ int aeif_cond_beta::UpdateNR(int it, float t1)
 
   return 0;
 }
+
+template<int NVAR, int NPARAM>
+__device__
+void Derivatives(float x, float *y, float *dydx, float *param,
+		 aeif_cond_beta_rk5 data_struct)
+{
+    aeif_cond_beta_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
+						 data_struct);
+}
+
+template<int NVAR, int NPARAM>
+__device__
+void ExternalUpdate(float x, float *y, float *param, bool end_time_step,
+		    aeif_cond_beta_rk5 data_struct)
+{
+    aeif_cond_beta_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,
+						    end_time_step,
+						    data_struct);
+}
+
 
 #endif

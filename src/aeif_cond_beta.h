@@ -25,6 +25,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_PORT_NUM 20
 
+struct aeif_cond_beta_rk5
+{
+  int i_node_0_;
+};
+
 class aeif_cond_beta : public BaseNeuron
 {
  public:
@@ -52,6 +57,5 @@ class aeif_cond_beta : public BaseNeuron
     int UpdateNR(int it, float t1);
 
 };
-
 
 #endif

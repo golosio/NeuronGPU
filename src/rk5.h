@@ -59,75 +59,108 @@ void ArrayCalibrate(int array_size, int n_var, int n_param, float *x_arr,
 
 template<class DataStruct>
 __device__
-void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
-	     float *y_new, float *k1, float *k2, float *k3, float *k4,
-	     float *k5, float *k6, int n_var, int n_param, float *param,
+void RK5Step(int i_array, int i_var, float &x, float *y, float &h,
+	     float h_min, float h_max, float *y_new,
+	     float *k1, float *k2, float *k3, float *k4,
+	     float *k5, float *k6, float *err_arr, int n_var, int n_param,
+	     float *param,
 	     DataStruct data_struct)
 {
-  float err;
-
   for(;;) {
     if (h > h_max) h = h_max;
 
-    Derivatives<DataStruct>(x, y, k1, n_var, n_param, param, data_struct);
+    __syncthreads();
+    if (i_var==0) {
+      Derivatives<DataStruct>(x, y, k1, n_var, n_param, param, data_struct);
+    }
+    __syncthreads();
+    y_new[i_var] = y[i_var] + h*a21*k1[i_var];
+    //printf("okk0 %d %f\n", i_var, y_new[i_var]);
 
-    for (int i=0; i<n_var; i++) {
-      y_new[i] = y[i] + h*a21*k1[i];
+    __syncthreads();
+    if (i_var==0) {
+      Derivatives<DataStruct>(x+c2*h, y_new, k2, n_var, n_param, param,
+			      data_struct);
     }
-    Derivatives<DataStruct>(x+c2*h, y_new, k2, n_var, n_param, param,
-			    data_struct);
-  
-    for (int i=0; i<n_var; i++) {
-      y_new[i] = y[i] + h*(a31*k1[i] + a32*k2[i]);
+    __syncthreads();
+    y_new[i_var] = y[i_var] + h*(a31*k1[i_var] + a32*k2[i_var]);
+    //printf("okk1 %d %f\n", i_var, y_new[i_var]);
+    
+    __syncthreads();
+    if (i_var==0) {
+      Derivatives<DataStruct>(x+c3*h, y_new, k3, n_var, n_param, param,
+			      data_struct);
     }
-    Derivatives<DataStruct>(x+c3*h, y_new, k3, n_var, n_param, param,
-			    data_struct);
-
-    for (int i=0; i<n_var; i++) {
-      y_new[i] = y[i] + h*(a41*k1[i] + a42*k2[i] + a43*k3[i]);
+    __syncthreads();
+    y_new[i_var] = y[i_var] + h*(a41*k1[i_var] + a42*k2[i_var] + a43*k3[i_var]);
+    //printf("okk2 %d %f\n", i_var, y_new[i_var]);
+    
+    __syncthreads();
+    if (i_var==0) {
+      Derivatives<DataStruct>(x+c4*h, y_new, k4, n_var, n_param, param,
+			      data_struct);
     }
-    Derivatives<DataStruct>(x+c4*h, y_new, k4, n_var, n_param, param,
-			    data_struct);
-  
-    for (int i=0; i<n_var; i++) {
-      y_new[i] = y[i] + h*(a51*k1[i] + a52*k2[i] + a53*k3[i] + a54*k4[i]);
+    __syncthreads();
+    y_new[i_var] = y[i_var] + h*(a51*k1[i_var] + a52*k2[i_var] + a53*k3[i_var]
+				 + a54*k4[i_var]);
+    //printf("okk3 %d %f\n", i_var, y_new[i_var]);
+    
+    __syncthreads();
+    if (i_var==0) {
+      Derivatives<DataStruct>(x+c5*h, y_new, k5, n_var, n_param, param,
+			      data_struct);
     }
-    Derivatives<DataStruct>(x+c5*h, y_new, k5, n_var, n_param, param,
-					   data_struct);
-  
-    for (int i=0; i<n_var; i++) {
-      y_new[i] = y[i] + h*(a61*k1[i] + a62*k2[i] + a63*k3[i] + a64*k4[i]
-			   + a65*k5[i]);
-    }
+    __syncthreads();
+    y_new[i_var] = y[i_var] + h*(a61*k1[i_var] + a62*k2[i_var] + a63*k3[i_var]
+				 + a64*k4[i_var] + a65*k5[i_var]);
+    //printf("okk4 %d %f\n", i_var, y_new[i_var]);
+    
     float x1 = x + h;
-    Derivatives<DataStruct>(x1, y_new, k6, n_var, n_param, param, data_struct);
-
-    for (int i=0; i<n_var; i++) {
-      y_new[i] = y[i] + h*(a71*k1[i] + a73*k3[i] + a74*k4[i] + a75*k5[i]
-			   + a76*k6[i]);
+    
+    __syncthreads();
+    if (i_var==0) {
+      Derivatives<DataStruct>(x1, y_new, k6, n_var, n_param, param,
+			      data_struct);
     }
-    Derivatives<DataStruct>(x1, y_new, k2, n_var, n_param, param,
-			    data_struct); // k2 replaces k7
-  
-    err = 0.0;
-    for (int i=0; i<n_var; i++) {
-      float val = h*(e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i] + e6*k6[i]
-		     + e7*k2[i])
-	/ (abs_tol + rel_tol*MAX(fabs(y[i]), fabs(y_new[i])));
-
-      err += val*val;
+    __syncthreads();
+    y_new[i_var] = y[i_var] + h*(a71*k1[i_var] + a73*k3[i_var] + a74*k4[i_var]
+				 + a75*k5[i_var] + a76*k6[i_var]);
+    //printf("okk5 %d %f\n", i_var, y_new[i_var]);
+    
+    __syncthreads();
+    if (i_var==0) {
+      Derivatives<DataStruct>(x1, y_new, k2, n_var, n_param, param,
+			      data_struct); // k2 replaces k7
     }
-    err = sqrt(err/n_var);
-
+    __syncthreads();
+    float val = h*(e1*k1[i_var] + e3*k3[i_var] + e4*k4[i_var] + e5*k5[i_var]
+		   + e6*k6[i_var] + e7*k2[i_var])
+      / (abs_tol + rel_tol*MAX(fabs(y[i_var]), fabs(y_new[i_var])));
+    //printf("okk6 %d %f\n", i_var, val);
+    
+    err_arr[i_var] = val*val;
+    __syncthreads();
     float x_new = x + h;
-    bool rejected=false;
-
-    if (err<min_err) err = min_err;
-    if (err>max_err) err = max_err;
+    if (i_var==0) {
+      float err = 0.0;
+      for (int i=0; i<n_var; i++) {
+	err += err_arr[i];
+      }
+      err = sqrt(err/n_var);
+      //printf("okk7 %f\n", err);
+      if (err<min_err) err = min_err;
+      if (err>max_err) err = max_err;
+      err_arr[0] = err;
+    }
+    __syncthreads();
+    float err = err_arr[0];
+    bool rejected=false;    
     float fact=coeff*pow(err,-alpha);
-    if (rejected && fact>1.0) fact=1.0;
+    //printf("okk8 %f\n", fact);
+    if (fact>1.0) fact=1.0;
     h *= fact;
-
+    
+    //printf("okk9 %f\n", h);
     if (h <= h_min) {
       h = h_min;
       rejected = false;
@@ -139,27 +172,30 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
       break;
     }
   }
-  
-  for (int i=0; i<n_var; i++) {
-    y[i] = y_new[i];
-  }
+  //printf("okk10 %d\n", i_var);
+  y[i_var] = y_new[i_var];
+  __syncthreads();
 }
 
 template<class DataStruct>
 __device__
-void RK5Update(float &x, float *y, float x1, float &h, float h_min,
-	       float *y_new, float *k1, float *k2, float *k3, float *k4,
-	       float *k5, float *k6, int n_var, int n_param, float *param,
+void RK5Update(int i_array, int i_var, float &x, float *y, float x1,
+	       float &h, float h_min, float *y_new,
+	       float *k1, float *k2, float *k3, float *k4, float *k5,
+	       float *k6, float *err_arr, int n_var, int n_param, float *param,
 	       DataStruct data_struct)
 {
   bool end_time_step=false;
   while(!end_time_step) {
     float hmax=x1-x;
-    RK5Step<DataStruct>(x, y, h, h_min, hmax, y_new, k1, k2, k3, k4, k5, k6,
+    RK5Step<DataStruct>(i_array, i_var, x, y, h, h_min, hmax, y_new,
+			k1, k2, k3, k4, k5, k6, err_arr,
 			n_var, n_param, param, data_struct);
     end_time_step = (x >= x1-h_min);
-    ExternalUpdate<DataStruct>(x, y, n_var, n_param, param, end_time_step,
-			       data_struct);
+    if (i_var==0) {
+      ExternalUpdate<DataStruct>(x, y, n_var, n_param, param, end_time_step,
+				 data_struct);
+    }
   }
 }
 
@@ -170,43 +206,60 @@ void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
 		 DataStruct data_struct)
 {
   //extern __shared__ shared_data[];
-  //__shared__ float shared_data[48*1024/4];
+  __shared__ float shared_data[48*1024/4];
   //__shared__ float shared_data[30*256]; //24*1024/4];
-  int thread_idx = threadIdx.x;
-  int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (ArrayIdx<array_size) {
-    float x = x_arr[ArrayIdx];
-    float h = h_arr[ArrayIdx];
-    float param[MAXNPARAM]; // = shared_data + thread_idx*n_param; //[MAXNPARAM];
-    //float *shared_var = shared_data + blockDim.x*n_param; 
-    float y[MAXNVAR]; // = shared_var + thread_idx*n_var; //[MAXNVAR];
-    float y_new[MAXNVAR]; // = y + blockDim.x*n_var; //[MAXNVAR];
-    float k1[MAXNVAR]; // = y_new + blockDim.x*n_var; //[MAXNVAR];
-    //float *k2 = k1 + blockDim.x*n_var; //[MAXNVAR];
-    //float *k2 = shared_data + thread_idx*n_var; //[MAXNVAR];
-    float k2[MAXNVAR];
-    float k3[MAXNVAR]; // = k2 + blockDim.x*n_var; //[MAXNVAR];
-    float k4[MAXNVAR]; // = k3 + blockDim.x*n_var; //[MAXNVAR];
-    float k5[MAXNVAR]; // = k4 + blockDim.x*n_var; //[MAXNVAR];
-    float k6[MAXNVAR]; // = k5 + blockDim.x*n_var; //[MAXNVAR];
-    
-    for(int i=0; i<n_var; i++) {
-      y[i] = y_arr[ArrayIdx*n_var + i];
-    }
-    for(int j=0; j<n_param; j++) {
-      param[j] = par_arr[ArrayIdx*n_param + j];
-    }
 
-    RK5Update<DataStruct>(x, y, x1, h, h_min, y_new, k1, k2, k3, k4, k5, k6,
-			  n_var, n_param, param, data_struct);
+  int i_array = threadIdx.x + blockIdx.x * blockDim.x;
+  int i_var = threadIdx.y; // + blockIdx.y * blockDim.y;
+  if (i_array>=array_size || i_var>=n_var) return;
 
-    x_arr[ArrayIdx] = x;
-    h_arr[ArrayIdx] = h;
-    for(int i=0; i<n_var; i++) {
-      y_arr[ArrayIdx*n_var + i] = y[i];
-    }
-       
+  int thread_x = threadIdx.x;
+  float *param = shared_data + thread_x*n_param; //[MAXNPARAM];
+  float *x_pt = shared_data + blockDim.x*n_param + thread_x;
+  float *h_pt = x_pt + blockDim.x;
+  float *shared_var = shared_data + blockDim.x*(n_param + 2); 
+  float *y = shared_var + thread_x*n_var; //[MAXNVAR];
+  float *y_new = y + blockDim.x*n_var; //[MAXNVAR];
+  float *k1 = y_new + blockDim.x*n_var; //[MAXNVAR];
+  float *k2 = k1 + blockDim.x*n_var; //[MAXNVAR];
+  float *k3 = k2 + blockDim.x*n_var; //[MAXNVAR];
+  float *k4 = k3 + blockDim.x*n_var; //[MAXNVAR];
+  float *k5 = k4 + blockDim.x*n_var; //[MAXNVAR];
+  float *k6 = k5 + blockDim.x*n_var; //[MAXNVAR];
+  float *err_arr = k6 + blockDim.x*n_var; //[MAXNVAR];
+  //printf("ok0 %d %d\n", i_array, i_var);
+  if (i_var==0) {
+    *x_pt = x_arr[i_array];
+    *h_pt = h_arr[i_array];
+    //printf("ok1 %f %f\n", *x_pt, *h_pt);
   }
+  __syncthreads();
+  float x = *x_pt;
+  float h = *h_pt;
+
+  for(int j=0; j<=(n_param-1)/n_var; j++) {
+    int i_param = i_var + j*n_var;
+    if (i_param<n_param) {
+      param[i_param] = par_arr[i_array*n_param + i_param];
+      //printf("ok2 %d %f\n", i_param, param[i_param]);
+    }
+  }
+
+  y[i_var] = y_arr[i_array*n_var + i_var];
+  //printf("ok3 %d %f\n", i_var, y[i_var]);
+  __syncthreads();
+  //printf("ok4\n");
+  RK5Update<DataStruct>(i_array, i_var, x, y, x1, h, h_min, y_new,
+			k1, k2, k3, k4, k5, k6, err_arr,
+			n_var, n_param, param, data_struct);
+
+  //printf("ok5 %f %f\n", x, h);
+  if (i_var==0) {
+    x_arr[i_array] = x;
+    h_arr[i_array] = h;
+  }
+  y_arr[i_array*n_var + i_var] = y[i_var];
+  //printf("ok6 %d %f\n", i_var, y[i_var]);
 }
 
 template<class DataStruct>
@@ -251,9 +304,12 @@ template<class DataStruct>
 				      int n_var, int n_param,
 				      DataStruct data_struct)
 {
-  ArrayUpdate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
+  //ArrayUpdate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
   //ArrayUpdate<DataStruct><<<(array_size_+127)/128, 128>>>
   //ArrayUpdate<DataStruct><<<(array_size_+255)/256, 256>>>
+  dim3 dimBlock(128, n_var);
+  dim3 dimGrid((array_size_+127)/128, 1);
+  ArrayUpdate<DataStruct><<<dimGrid, dimBlock>>>
     (array_size_, d_XArr, d_HArr, d_YArr, d_ParamArr, x1, h_min, n_var,
      n_param, data_struct);
   gpuErrchk( cudaPeekAtLastError() );

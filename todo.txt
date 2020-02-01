@@ -1,13 +1,9 @@
-make user_model1, 2, ...
-
-implement tests
+implement other tests
 
 Produce build system and check it on different linux, mac (windows?)
 
-Make rk5 dynamic
+Make rk5 dynamic?
 
 Write tutorial
-
-Implement connection quering
 
 Implement stdp

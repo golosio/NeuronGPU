@@ -28,10 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class aeif_cond_beta : public BaseNeuron
 {
  public:
-  RungeKutta5<RK5DataStruct> rk5_;
+  RungeKutta5<aeif_cond_beta_rk5> rk5_;
   float h_min_;
   float h_;
-  RK5DataStruct rk5_data_struct_;
+  aeif_cond_beta_rk5 rk5_data_struct_;
     
   int Init(int i_node_0, int n_neuron, int n_port, int i_group,
 	   unsigned long long *seed);

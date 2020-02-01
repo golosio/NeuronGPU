@@ -72,45 +72,45 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
     float k5[NVAR];
     float k6[NVAR];
 
-    Derivatives<NVAR, NPARAM, DataStruct>(x, y, k1, param, data_struct);
+    Derivatives<NVAR, NPARAM>(x, y, k1, param, data_struct);
 
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*a21*k1[i];
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x+c2*h, y_new, k2, param,
-					   data_struct);
+    Derivatives<NVAR, NPARAM>(x+c2*h, y_new, k2, param,
+			      data_struct);
   
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a31*k1[i] + a32*k2[i]);
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x+c3*h, y_new, k3, param,
-					   data_struct);
+    Derivatives<NVAR, NPARAM>(x+c3*h, y_new, k3, param,
+			      data_struct);
 
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a41*k1[i] + a42*k2[i] + a43*k3[i]);
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x+c4*h, y_new, k4, param,
-					   data_struct);
+    Derivatives<NVAR, NPARAM>(x+c4*h, y_new, k4, param,
+			      data_struct);
   
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a51*k1[i] + a52*k2[i] + a53*k3[i] + a54*k4[i]);
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x+c5*h, y_new, k5, param,
-					   data_struct);
+    Derivatives<NVAR, NPARAM>(x+c5*h, y_new, k5, param,
+			      data_struct);
   
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a61*k1[i] + a62*k2[i] + a63*k3[i] + a64*k4[i]
 			  + a65*k5[i]);
     }
     float x1 = x + h;
-    Derivatives<NVAR, NPARAM, DataStruct>(x1, y_new, k6, param, data_struct);
-
+    Derivatives<NVAR, NPARAM>(x1, y_new, k6, param, data_struct);
+    
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*(a71*k1[i] + a73*k3[i] + a74*k4[i] + a75*k5[i]
 			  + a76*k6[i]);
     }
-    Derivatives<NVAR, NPARAM, DataStruct>(x1, y_new, k2, param,
-					   data_struct); // k2 replaces k7
+    Derivatives<NVAR, NPARAM>(x1, y_new, k2, param,
+			      data_struct); // k2 replaces k7
   
     err = 0.0;
     for (int i=0; i<NVAR; i++) {
@@ -159,8 +159,7 @@ void RK5Update(float &x, float *y, float x1, float &h, float h_min,
     RK5Step<NVAR, NPARAM, DataStruct>(x, y, h, h_min, hmax, param,
 				       data_struct);
     end_time_step = (x >= x1-h_min);
-    ExternalUpdate<NVAR, NPARAM, DataStruct>(x, y, param, end_time_step,
-					      data_struct);
+    ExternalUpdate<NVAR, NPARAM>(x, y, param, end_time_step, data_struct);
   }
 }
 

@@ -133,7 +133,7 @@ const std::string aeif_cond_beta_port_param_name[N_PORT_PARAM] = {
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void Derivatives(float x, float *y, float *dydx, float *param,
-		     RK5DataStruct data_struct)
+		     aeif_cond_beta_rk5 data_struct)
 {
   enum { n_port = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
   float I_syn = 0.0;
@@ -159,7 +159,7 @@ __device__
 __device__
     void ExternalUpdate
     (float x, float *y, float *param, bool end_time_step,
-			RK5DataStruct data_struct)
+			aeif_cond_beta_rk5 data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
     printf("V_m out of lower bound\n");
@@ -193,7 +193,7 @@ __device__
 //template<class DataStruct>
 __device__
 void NodeInit(int n_var, int n_param, float x, float *y, float *param,
-	      RK5DataStruct data_struct)
+	      aeif_cond_beta_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
@@ -226,7 +226,7 @@ void NodeInit(int n_var, int n_param, float x, float *y, float *param,
 //template<class DataStruct>
 __device__
 void NodeCalibrate(int n_var, int n_param, float x, float *y,
-		       float *param, RK5DataStruct data_struct)
+		       float *param, aeif_cond_beta_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;

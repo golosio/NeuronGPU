@@ -38,7 +38,7 @@ int aeif_cond_beta::Init(int i_node_0, int n_node, int n_port,
   port_var_name_= aeif_cond_beta_port_var_name;
   scal_param_name_ = aeif_cond_beta_scal_param_name;
   port_param_name_ = aeif_cond_beta_port_param_name;
-  rk5_data_struct_.node_type_ = i_aeif_cond_beta_model;
+  //rk5_data_struct_.node_type_ = i_aeif_cond_beta_model;
   rk5_data_struct_.i_node_0_ = i_node_0_;
 
   rk5_.Init(n_node, n_var_, n_param_, 0.0, h_, rk5_data_struct_);
@@ -77,3 +77,25 @@ int aeif_cond_beta::Update(int it, float t1) {
   return 0;
 }
 
+__device__
+void NodeInit(int n_var, int n_param, float x, float *y,
+	     float *param, aeif_cond_beta_rk5 data_struct)
+{
+  //switch (data_struct.node_type_) {
+  //case i_aeif_cond_beta_model:
+    aeif_cond_beta_ns::NodeInit(n_var, n_param, x, y, param, data_struct);
+    //break;
+    //}
+}
+
+__device__
+void NodeCalibrate(int n_var, int n_param, float x, float *y,
+		  float *param, aeif_cond_beta_rk5 data_struct)
+
+{
+  //switch (data_struct.node_type_) {
+  //case i_aeif_cond_beta_model:
+    aeif_cond_beta_ns::NodeCalibrate(n_var, n_param, x, y, param, data_struct);
+    //  break;
+    //}
+}

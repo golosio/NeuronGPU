@@ -17,6 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <algorithm>
 
+#define PORT_N_SHIFT 1
+#define POW2_PORT_N_SHIFT 2 // 2^PORT_N_SHIFT
+#define PORT_MASK 0x1FFFFF // in the highest byte the lowest PORT_N_SHIFT bits
+				    // are 1, the other are 0
+#define MAX_N_NEURON    POW2_PORT_N_SHIFT*16*1024*1024
+#define MAX_N_PORT    256/POW2_PORT_N_SHIFT
+
 extern float TimeResolution;
 
 struct ConnectionId

@@ -45,10 +45,12 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
   int i_source = SpikeSourceIdx[i_spike];
   int i_conn = SpikeConnIdx[i_spike];
   float height = SpikeHeight[i_spike];
-  int i_target = ConnectionGroupTargetNode[i_conn*NSpikeBuffer+i_source]
-    [i_syn];
-  unsigned char port = ConnectionGroupTargetPort[i_conn*NSpikeBuffer
-						   +i_source][i_syn];
+  unsigned int target_port
+    = ConnectionGroupTargetNode[i_conn*NSpikeBuffer + i_source][i_syn];
+  int i_target = target_port & PORT_MASK;
+  unsigned char port = (unsigned char)(target_port >> (PORT_N_SHIFT + 24));
+  unsigned char syn_group
+    = ConnectionGroupTargetSynGroup[i_conn*NSpikeBuffer + i_source][i_syn];
   float weight = ConnectionGroupTargetWeight[i_conn*NSpikeBuffer+i_source]
     [i_syn];
   //printf("handles spike %d src %d conn %d syn %d target %d"
@@ -62,7 +64,11 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
     - NodeGroupArray[i_group].i_node_0_;
   double d_val = (double)(height*weight);
 
-  atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i], d_val); 
+  atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i], d_val);
+  if (syn_group>0) { // THIS IS TEMPORARY, JUST FOR TESTING
+    atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i],
+		    d_val*syn_group);
+  }
   ////////////////////////////////////////////////////////////////
 }
 ///////////////

@@ -44,16 +44,17 @@ __device__ int *ConnectionGroupTargetSize; // [NSpikeBuffer*MaxDelayNum];
 // ConnectionGroupTargetSize[i_delay*NSpikeBuffer+i_spike_buffer];
 // number of output connections in the group i_delay
 
-int **d_ConnectionGroupTargetNode; // [NSpikeBuffer*MaxDelayNum];
-__device__ int **ConnectionGroupTargetNode; // [NSpikeBuffer*MaxDelayNum];
+unsigned int **d_ConnectionGroupTargetNode; // [NSpikeBuffer*MaxDelayNum];
+__device__ unsigned int **ConnectionGroupTargetNode;
+// [NSpikeBuffer*MaxDelayNum];
 // ConnectionGroupTargetNode[i_delay*NSpikeBuffer+i_spike_buffer];
 // is a pointer to an integer array of size ConnectionGroupTargetSize
 // that contains the indexes of the target nodes
 
-unsigned char **d_ConnectionGroupTargetPort; // [NSpikeBuffer*MaxDelayNum];
-__device__ unsigned char **ConnectionGroupTargetPort;
+unsigned char **d_ConnectionGroupTargetSynGroup; // [NSpikeBuffer*MaxDelayNum];
+__device__ unsigned char **ConnectionGroupTargetSynGroup;
 // [NSpikeBuffer*MaxDelayNum];
-// ConnectionGroupTargetPort[i_delay*NSpikeBuffer+i_spike_buffer];
+// ConnectionGroupTargetSynGroup[i_delay*NSpikeBuffer+i_spike_buffer];
 // Connection target port
 
 float **d_ConnectionGroupTargetWeight; // [NSpikeBuffer*MaxDelayNum];
@@ -150,21 +151,22 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   int max_delay_num = net_connection->MaxDelayNum();
   //printf("mdn: %d\n", max_delay_num);
   int n_conn = net_connection->NConnections();
-  int *h_conn_target = new int[n_conn];
-  unsigned char *h_conn_port = new unsigned char[n_conn];
+  unsigned int *h_conn_target = new unsigned int[n_conn];
+  unsigned char *h_conn_syn_group = new unsigned char[n_conn];
   float *h_conn_weight = new float[n_conn];
-  int *d_conn_target;
-  unsigned char *d_conn_port;
+  unsigned int *d_conn_target;
+  unsigned char *d_conn_syn_group;
   float *d_conn_weight;  
-  gpuErrchk(cudaMalloc(&d_conn_target, n_conn*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_conn_port, n_conn*sizeof(unsigned char)));
+  gpuErrchk(cudaMalloc(&d_conn_target, n_conn*sizeof(unsigned int)));
+  gpuErrchk(cudaMalloc(&d_conn_syn_group, n_conn*sizeof(unsigned char)));
   gpuErrchk(cudaMalloc(&d_conn_weight, n_conn*sizeof(float)));
     
   int *h_ConnectionGroupSize = new int[n_spike_buffers];
   int *h_ConnectionGroupDelay = new int[n_spike_buffers*max_delay_num];
   int *h_ConnectionGroupTargetSize = new int[n_spike_buffers*max_delay_num];
-  int **h_ConnectionGroupTargetNode = new int*[n_spike_buffers*max_delay_num];
-  unsigned char **h_ConnectionGroupTargetPort =
+  unsigned int **h_ConnectionGroupTargetNode =
+    new unsigned int*[n_spike_buffers*max_delay_num];
+  unsigned char **h_ConnectionGroupTargetSynGroup =
     new unsigned char*[n_spike_buffers*max_delay_num];
   float **h_ConnectionGroupTargetWeight = new float*[n_spike_buffers
 						     *max_delay_num];
@@ -184,8 +186,8 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   gpuErrchk(cudaMemset(d_SpikeBufferSize, 0, n_spike_buffers*sizeof(int)));
 
   gpuErrchk(cudaMalloc(&d_ConnectionGroupTargetNode,
-		     n_spike_buffers*max_delay_num*sizeof(int*)));
-  gpuErrchk(cudaMalloc(&d_ConnectionGroupTargetPort,
+		     n_spike_buffers*max_delay_num*sizeof(unsigned int*)));
+  gpuErrchk(cudaMalloc(&d_ConnectionGroupTargetSynGroup,
 		     n_spike_buffers*max_delay_num*sizeof(unsigned char*)));
   gpuErrchk(cudaMalloc(&d_ConnectionGroupTargetWeight,
 		     n_spike_buffers*max_delay_num*sizeof(float*)));
@@ -201,32 +203,34 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
 
      h_ConnectionGroupTargetNode[id*n_spike_buffers+i_source]
        = &d_conn_target[i_conn];
-     h_ConnectionGroupTargetPort[id*n_spike_buffers+i_source]
-       = &d_conn_port[i_conn];
+     h_ConnectionGroupTargetSynGroup[id*n_spike_buffers+i_source]
+       = &d_conn_syn_group[i_conn];
      h_ConnectionGroupTargetWeight[id*n_spike_buffers+i_source]
        = &d_conn_weight[i_conn];
 
-     int *target_arr = &h_conn_target[i_conn];
-     unsigned char *port_arr = &h_conn_port[i_conn];
+     unsigned int *target_arr = &h_conn_target[i_conn];
+     unsigned char *syn_group_arr = &h_conn_syn_group[i_conn];
      float *weight_arr = &h_conn_weight[i_conn];
      for (int it=0; it<n_target; it++) {
-       target_arr[it] = conn->at(id).target_vect[it].node;
-       port_arr[it] = conn->at(id).target_vect[it].port;
+       unsigned int target = conn->at(id).target_vect[it].node;
+       unsigned int port = conn->at(id).target_vect[it].port;
+       target_arr[it] = (port << (24 + PORT_N_SHIFT)) | target;
+       syn_group_arr[it] = conn->at(id).target_vect[it].syn_group;
        weight_arr[it] = conn->at(id).target_vect[it].weight;
      }
      i_conn += n_target;
    }
   }
 
-  cudaMemcpy(d_conn_target, h_conn_target, n_conn*sizeof(int),
+  cudaMemcpy(d_conn_target, h_conn_target, n_conn*sizeof(unsigned int),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(d_conn_port, h_conn_port, n_conn*sizeof(unsigned char),
+  cudaMemcpy(d_conn_syn_group, h_conn_syn_group, n_conn*sizeof(unsigned char),
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(d_conn_weight, h_conn_weight, n_conn*sizeof(float),
 	     cudaMemcpyHostToDevice);
 
   delete[] h_conn_target;
-  delete[] h_conn_port;
+  delete[] h_conn_syn_group;
   delete[] h_conn_weight;			       
 
   cudaMemcpy(d_ConnectionGroupSize, h_ConnectionGroupSize,
@@ -237,10 +241,10 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
 	     n_spike_buffers*max_delay_num*sizeof(int), cudaMemcpyHostToDevice);
 
   cudaMemcpy(d_ConnectionGroupTargetNode, h_ConnectionGroupTargetNode,
-	     n_spike_buffers*max_delay_num*sizeof(int*),
+	     n_spike_buffers*max_delay_num*sizeof(unsigned int*),
 	     cudaMemcpyHostToDevice);
   
-  cudaMemcpy(d_ConnectionGroupTargetPort, h_ConnectionGroupTargetPort,
+  cudaMemcpy(d_ConnectionGroupTargetSynGroup, h_ConnectionGroupTargetSynGroup,
 	     n_spike_buffers*max_delay_num*sizeof(unsigned char*),
 	     cudaMemcpyHostToDevice);
   
@@ -253,7 +257,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
 			   d_ConnectionGroupSize, d_ConnectionGroupDelay,
 			   d_ConnectionGroupTargetSize,
 			   d_ConnectionGroupTargetNode,
-			   d_ConnectionGroupTargetPort,
+			   d_ConnectionGroupTargetSynGroup,
 			   d_ConnectionGroupTargetWeight,
 			   d_SpikeBufferSize, d_SpikeBufferTimeIdx,
 			   d_SpikeBufferConnIdx, d_SpikeBufferHeight);
@@ -263,7 +267,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   delete[] h_ConnectionGroupSize;
   delete[] h_ConnectionGroupDelay;
   delete[] h_ConnectionGroupTargetNode;
-  delete[] h_ConnectionGroupTargetPort;
+  delete[] h_ConnectionGroupTargetSynGroup;
   delete[] h_ConnectionGroupTargetWeight;
 
   return 0;
@@ -273,8 +277,8 @@ __global__ void DeviceSpikeBufferInit(int n_spike_buffers, int max_delay_num,
 				int max_spike_buffer_size,
 				int *conn_group_size, int *conn_group_delay,
 				int *conn_group_target_size,
-				int **conn_group_target_node,
-				unsigned char **conn_group_target_port,
+				unsigned int **conn_group_target_node,
+				unsigned char **conn_group_target_syn_group,
 				float **conn_group_target_weight,
 				int *spike_buffer_size, int *spike_buffer_time,
 				int *spike_buffer_conn,
@@ -287,7 +291,7 @@ __global__ void DeviceSpikeBufferInit(int n_spike_buffers, int max_delay_num,
   ConnectionGroupDelay = conn_group_delay;
   ConnectionGroupTargetSize = conn_group_target_size;
   ConnectionGroupTargetNode = conn_group_target_node;
-  ConnectionGroupTargetPort = conn_group_target_port;
+  ConnectionGroupTargetSynGroup = conn_group_target_syn_group;
   ConnectionGroupTargetWeight = conn_group_target_weight;
   SpikeBufferSize = spike_buffer_size;
   SpikeBufferTimeIdx = spike_buffer_time;

@@ -130,12 +130,20 @@ int NeuralGPU::CreateNodeGroup(int n_node, int n_port)
 {
   int i_node_0 = node_group_map_.size();
   if ((int)connect_mpi_->extern_connection_.size() != i_node_0) {
-    std::cerr << "Error: connect_mpi_.extern_connection_ and "
-      "node_group_map_ must have the same size!\n";
+    throw ngpu_exception("Error: connect_mpi_.extern_connection_ and "
+			 "node_group_map_ must have the same size!");
   }
   if ((int)net_connection_->connection_.size() != i_node_0) {
-    std::cerr << "Error: net_connection_.connection_ and "
-      "node_group_map_ must have the same size!\n";
+    throw ngpu_exception("Error: net_connection_.connection_ and "
+			 "node_group_map_ must have the same size!");
+  }
+  if ((net_connection_->connection_.size() + n_node) > MAX_N_NEURON) {
+    throw ngpu_exception(std::string("Maximum number of neurons ")
+			 + std::to_string(MAX_N_NEURON) + " exceeded");
+  }
+  if (n_port > MAX_N_PORT) {
+    throw ngpu_exception(std::string("Maximum number of ports ")
+			 + std::to_string(MAX_N_PORT) + " exceeded");
   }
   int i_group = node_vect_.size() - 1;
   node_group_map_.insert(node_group_map_.end(), n_node, i_group);

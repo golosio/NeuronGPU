@@ -81,29 +81,29 @@ int main(int argc, char *argv[])
   int it3 = neur_group3[rand()%n_neur3];
   
   // connect poisson generator to port 0 of all neurons
-  ngpu.Connect(pg[0], i11, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[0], i12, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[0], i13, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[0], i14, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[0], i21, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[0], i31, 0, poiss_weight, poiss_delay);
-  ngpu.Connect(pg[0], i32, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i11, 0, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i12, 0, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i13, 0, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i14, 0, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i21, 0, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i31, 0, 0, poiss_weight, poiss_delay);
+  ngpu.Connect(pg[0], i32, 0, 0, poiss_weight, poiss_delay);
 
   float weight = 0.01; // connection weight
   float delay = 0.2; // connection delay in ms
 
   // connect neurons to target neuron n. 1
-  ngpu.Connect(i11, it1, 0, weight, delay);
-  ngpu.Connect(i12, it1, 1, weight, delay);
-  ngpu.Connect(i13, it1, 1, weight, delay);
-  ngpu.Connect(i14, it1, 2, weight, delay);
+  ngpu.Connect(i11, it1, 0, 0, weight, delay);
+  ngpu.Connect(i12, it1, 1, 0, weight, delay);
+  ngpu.Connect(i13, it1, 1, 0, weight, delay);
+  ngpu.Connect(i14, it1, 2, 0, weight, delay);
 
   // connect neuron to target neuron n. 2
-  ngpu.Connect(i21, it2, 0, weight, delay);
+  ngpu.Connect(i21, it2, 0, 0, weight, delay);
 
     // connect neurons to target neuron n. 3
-  ngpu.Connect(i31, it3, 0, weight, delay);
-  ngpu.Connect(i32, it3, 1, weight, delay);
+  ngpu.Connect(i31, it3, 0, 0, weight, delay);
+  ngpu.Connect(i32, it3, 1, 0, weight, delay);
   
   // create multimeter record n.1
   string filename1 = "test_neuron_groups_voltage.dat";

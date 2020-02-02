@@ -97,7 +97,8 @@ bool ConnectMpi::ProcMaster()
   if (mpi_id_==mpi_master_) return true;
   else return false;
 }
-
+/* // CHECK: using net_connection_->connection_.push_back(conn)
+   // connection_size() should be aligned with node_group_map_.size()
 int ConnectMpi::RemoteConnect(int i_source_host, int i_source_node,
 			      int i_target_host, int i_target_node,
 			      unsigned char port, unsigned char syn_group,
@@ -115,7 +116,7 @@ int ConnectMpi::RemoteConnect(int i_source_host, int i_source_node,
       // Create remote connection node....
       i_remote_node = net_connection_->connection_.size();
       vector<ConnGroup> conn;
-      net_connection_->connection_.push_back(conn);
+      net_connection_->connection_.push_back(conn); /////// CHECK THIS!!!!!!!
       MPI_Send_int(&i_remote_node, 1, i_source_host);
     }
     net_connection_->Connect(i_remote_node, i_target_node, port, syn_group,
@@ -142,3 +143,4 @@ int ConnectMpi::RemoteConnect(int i_source_host, int i_source_node,
 
   return 0;
 }
+*/

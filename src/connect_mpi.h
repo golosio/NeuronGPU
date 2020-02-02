@@ -46,11 +46,12 @@ class ConnectMpi
 
   int MPI_Send_uchar(unsigned char *uchar_val, int n, int target_id);
 
+  /*
   int RemoteConnect(int i_source_host, int i_source_node,
 		    int i_target_host, int i_target_node,
 		    unsigned char port, unsigned char syn_group,
 		    float weight, float delay);
-    
+  */
   int MpiInit(int argc, char *argv[]);
   
   bool ProcMaster();

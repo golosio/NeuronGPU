@@ -50,7 +50,7 @@ __global__ void PoissGenSendSpikeKernel(curandState *curand_state, float t,
     DirectConnection dir_conn = dir_conn_array[i_conn];
     int irel = dir_conn.irel_source_;
     int i_target = dir_conn.i_target_;
-    int i_port = dir_conn.port_;
+    int port = dir_conn.port_;
     float weight = dir_conn.weight_;
     float delay = dir_conn.delay_;
     float *param = param_arr + irel*n_param;
@@ -61,7 +61,7 @@ __global__ void PoissGenSendSpikeKernel(curandState *curand_state, float t,
       if (n>0) { // //Send direct spike (i_target, port, weight*n);
 	/////////////////////////////////////////////////////////////////
 	int i_group=NodeGroupMap[i_target];
-	int i = i_port*NodeGroupArray[i_group].n_node_ + i_target
+	int i = port*NodeGroupArray[i_group].n_node_ + i_target
 	  - NodeGroupArray[i_group].i_node_0_;
 	double d_val = (double)(weight*n);
 	atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i], d_val); 

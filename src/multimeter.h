@@ -29,13 +29,13 @@ class Record
   std::string file_name_;
   std::vector<std::string> var_name_vect_;
   std::vector<int> i_neuron_vect_;
-  std::vector<int> i_port_vect_;
+  std::vector<int> port_vect_;
   std::vector<float*> var_pt_vect_;
   FILE *fp_;
 
   Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
 	 std::vector<std::string> var_name_vect,
-	 std::vector<int> i_neur_vect, std::vector<int> i_port_vect);
+	 std::vector<int> i_neur_vect, std::vector<int> port_vect);
 
   int OpenFile();
   
@@ -54,7 +54,7 @@ class Multimeter
 		   std::string file_name,
 		   std::vector<std::string> var_name_vect,
 		   std::vector<int> i_neur_vect,
-		   std::vector<int> i_port_vect);
+		   std::vector<int> port_vect);
   int OpenFiles();
 
   int CloseFiles();

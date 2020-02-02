@@ -405,32 +405,32 @@ int NeuralGPU::Simulate(float sim_time)
 }
 
 int NeuralGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
-			    int *i_node_arr, int *i_port_arr,
+			    int *i_node_arr, int *port_arr,
 			    int n_node)
 {
   std::vector<BaseNeuron*> neur_vect;
   std::vector<int> i_neur_vect;
-  std::vector<int> i_port_vect;
+  std::vector<int> port_vect;
   std::vector<std::string> var_name_vect;
   for (int i=0; i<n_node; i++) {
     var_name_vect.push_back(var_name_arr[i]);
     int i_group = node_group_map_[i_node_arr[i]];
     i_neur_vect.push_back(i_node_arr[i] - node_vect_[i_group]->i_node_0_);
-    i_port_vect.push_back(i_port_arr[i]);
+    port_vect.push_back(port_arr[i]);
     neur_vect.push_back(node_vect_[i_group]);
   }
 
   return multimeter_->CreateRecord(neur_vect, file_name, var_name_vect,
-  				   i_neur_vect, i_port_vect);
+  				   i_neur_vect, port_vect);
 
 }
 
 int NeuralGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
 			    int *i_node_arr, int n_node)
 {
-  std::vector<int> i_port_vect(n_node, 0);
+  std::vector<int> port_vect(n_node, 0);
   return CreateRecord(file_name, var_name_arr, i_node_arr,
-		      i_port_vect.data(), n_node);
+		      port_vect.data(), n_node);
 }
 
 std::vector<std::vector<float>> *NeuralGPU::GetRecordData(int i_record)

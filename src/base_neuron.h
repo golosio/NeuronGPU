@@ -177,12 +177,12 @@ class BaseNeuron
 
   int CheckNeuronIdx(int i_neuron);
 
-  int CheckPortIdx(int i_port);
+  int CheckPortIdx(int port);
 
-  virtual float *GetVarPt(int i_neuron, std::string var_name, int i_port=0);
+  virtual float *GetVarPt(int i_neuron, std::string var_name, int port=0);
 
   virtual float *GetParamPt(int i_neuron, std::string param_name, 
-			    int i_port=0);
+			    int port=0);
   virtual float GetSpikeActivity(int i_neuron);
 
   virtual int SendDirectSpikes(float t, float time_step) {return 0;}

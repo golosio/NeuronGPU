@@ -71,7 +71,7 @@ const std::string synapse_type_name[N_SYNAPSE_TYPE] =
 
 class SynSpec
 {
-  unsigned char synapse_group_;
+  unsigned char syn_group_;
   unsigned char port_;
  public:
   int weight_distr_;

@@ -99,7 +99,7 @@ extern "C" {
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_CreateRecord(char *file_name, char *var_name_arr[],
-			     int *i_node_arr, int *i_port_arr,
+			     int *i_node_arr, int *port_arr,
 			     int n_node)
   { int ret; BEGIN_ERR_PROP {
     std::string file_name_str = std::string(file_name);
@@ -109,7 +109,7 @@ extern "C" {
       var_name_vect.push_back(var_name);
     }
     ret = NeuralGPU_instance->CreateRecord
-      (file_name_str, var_name_vect.data(), i_node_arr, i_port_arr,
+      (file_name_str, var_name_vect.data(), i_node_arr, port_arr,
        n_node);		       
   } END_ERR_PROP return ret; }
   
@@ -384,10 +384,11 @@ extern "C" {
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_Connect(int i_source_node, int i_target_node,
-			unsigned char i_port, float weight, float delay)
+			unsigned char port, unsigned char syn_group,
+			float weight, float delay)
   { int ret; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Connect(i_source_node, i_target_node,
-				       i_port, weight, delay);
+				      port, syn_group, weight, delay);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_ConnSpecInit()
@@ -727,8 +728,8 @@ extern "C" {
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_GetConnectionStatus(int i_source, int i_group, int i_conn,
-				    int *i_target, unsigned char *i_port,
-				    unsigned char *i_syn, float *delay,
+				    int *i_target, unsigned char *port,
+				    unsigned char *syn_group, float *delay,
 				    float *weight)
   { int ret; BEGIN_ERR_PROP {
       ConnectionId conn_id;
@@ -738,8 +739,8 @@ extern "C" {
       ConnectionStatus conn_stat
 	= NeuralGPU_instance->GetConnectionStatus(conn_id);
       *i_target = conn_stat.i_target;
-      *i_port = conn_stat.i_port;
-      *i_syn = conn_stat.i_syn;
+      *port = conn_stat.port;
+      *syn_group = conn_stat.syn_group;
       *delay = conn_stat.delay;
       *weight = conn_stat.weight;
       

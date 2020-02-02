@@ -48,7 +48,8 @@ class ConnectMpi
 
   int RemoteConnect(int i_source_host, int i_source_node,
 		    int i_target_host, int i_target_node,
-		    unsigned char i_port, float weight, float delay);
+		    unsigned char port, unsigned char syn_group,
+		    float weight, float delay);
     
   int MpiInit(int argc, char *argv[]);
   

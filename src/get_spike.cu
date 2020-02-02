@@ -47,18 +47,18 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
   float height = SpikeHeight[i_spike];
   int i_target = ConnectionGroupTargetNode[i_conn*NSpikeBuffer+i_source]
     [i_syn];
-  unsigned char i_port = ConnectionGroupTargetPort[i_conn*NSpikeBuffer
+  unsigned char port = ConnectionGroupTargetPort[i_conn*NSpikeBuffer
 						   +i_source][i_syn];
   float weight = ConnectionGroupTargetWeight[i_conn*NSpikeBuffer+i_source]
     [i_syn];
   //printf("handles spike %d src %d conn %d syn %d target %d"
   //" port %d weight %f\n",
   //i_spike, i_source, i_conn, i_syn, i_target,
-  //i_port, weight);
+  //port, weight);
   
   /////////////////////////////////////////////////////////////////
   int i_group=NodeGroupMap[i_target];
-  int i = i_port*NodeGroupArray[i_group].n_node_ + i_target
+  int i = port*NodeGroupArray[i_group].n_node_ + i_target
     - NodeGroupArray[i_group].i_node_0_;
   double d_val = (double)(height*weight);
 
@@ -79,16 +79,16 @@ __global__ void GetSpikes(int i_group, int array_size, int n_port, int n_var,
   int i_array = threadIdx.x + blockIdx.x * blockDim.x;
   if (i_array < array_size*n_port) {
      int i_target = i_array % array_size;
-     int i_port = i_array / array_size;
-     int i_port_input = i_target*port_input_arr_step
-       + port_input_port_step*i_port;
-     int i_port_weight = i_target*port_weight_arr_step
-       + port_weight_port_step*i_port;
-     double d_val = (double)port_input_arr[i_port_input]
+     int port = i_array / array_size;
+     int port_input = i_target*port_input_arr_step
+       + port_input_port_step*port;
+     int port_weight = i_target*port_weight_arr_step
+       + port_weight_port_step*port;
+     double d_val = (double)port_input_arr[port_input]
        + NodeGroupArray[i_group].get_spike_array_[i_array]
-       * port_weight_arr[i_port_weight];
+       * port_weight_arr[port_weight];
 
-     port_input_arr[i_port_input] = (float)d_val;
+     port_input_arr[port_input] = (float)d_val;
   }
 }
 

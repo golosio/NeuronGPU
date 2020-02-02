@@ -40,7 +40,7 @@ extern "C" {
   int NeuralGPU_CreatePoissonGenerator(int n_node, float rate);
   
   int NeuralGPU_CreateRecord(char *file_name, char *var_name_arr[],
-			     int *i_node_arr, int *i_port_arr,
+			     int *i_node_arr, int *port_arr,
 			     int n_node);
   
   int NeuralGPU_GetRecordDataRows(int i_record);
@@ -134,7 +134,8 @@ extern "C" {
 				       float vmin, float vmax);
   
   int NeuralGPU_Connect(int i_source_node, int i_target_node,
-			unsigned char i_port, float weight, float delay);
+			unsigned char port, unsigned char syn_group,
+			float weight, float delay);
 
   int NeuralGPU_ConnSpecInit();
 
@@ -223,8 +224,8 @@ extern "C" {
 					  int *i_target, int n_target,
 					  int syn_group, int *n_conn);
   int NeuralGPU_GetConnectionStatus(int i_source, int i_group, int i_conn,
-				    int *i_target, unsigned char *i_port,
-				    unsigned char *i_syn, float *delay,
+				    int *i_target, unsigned char *port,
+				    unsigned char *syn_group, float *delay,
 				    float *weight);
 
 #ifdef __cplusplus

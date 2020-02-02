@@ -222,7 +222,7 @@ class NeuralGPU
   int CreateRecord(std::string file_name, std::string *var_name_arr,
 		   int *i_node_arr, int n_node);  
   int CreateRecord(std::string file_name, std::string *var_name_arr,
-		   int *i_node_arr, int *i_port_arr, int n_node);
+		   int *i_node_arr, int *port_arr, int n_node);
   std::vector<std::vector<float>> *GetRecordData(int i_record);
 
   int SetNeuronParam(int i_node, int n_neuron, std::string param_name,
@@ -382,8 +382,8 @@ class NeuralGPU
 
   int Connect
     (
-     int i_source_node, int i_target_node, unsigned char i_port,
-     float weight, float delay
+     int i_source_node, int i_target_node, unsigned char port,
+     unsigned char syn_group, float weight, float delay
      );
 
   int Connect(int i_source, int n_source, int i_target, int n_target,

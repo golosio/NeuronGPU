@@ -385,10 +385,10 @@ float *BaseNeuron::GetPortParam(int i_neuron, int n_neuron,
   gpuErrchk(cudaMalloc(&d_param_arr, n_neuron*n_port_*sizeof(float)));
   float *h_param_arr = (float*)malloc(n_neuron*n_port_*sizeof(float));
   
-  for (int i_port=0; i_port<n_port_; i_port++) {
-    param_pt = GetParamPt(i_neuron, param_name, i_port);
+  for (int port=0; port<n_port_; port++) {
+    param_pt = GetParamPt(i_neuron, param_name, port);
     BaseNeuronGetFloatArray<<<(n_neuron+1023)/1024, 1024>>>
-      (param_pt, d_param_arr + i_port, n_neuron, n_param_, n_port_);
+      (param_pt, d_param_arr + port, n_neuron, n_param_, n_port_);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   }
@@ -416,10 +416,10 @@ float *BaseNeuron::GetPortParam(int *i_neuron, int n_neuron,
   gpuErrchk(cudaMalloc(&d_param_arr, n_neuron*n_port_*sizeof(float)));
   float *h_param_arr = (float*)malloc(n_neuron*n_port_*sizeof(float));
     
-  for (int i_port=0; i_port<n_port_; i_port++) {
-    float *param_pt = GetParamPt(0, param_name, i_port);
+  for (int port=0; port<n_port_; port++) {
+    float *param_pt = GetParamPt(0, param_name, port);
     BaseNeuronGetFloatPtArray<<<(n_neuron+1023)/1024, 1024>>>
-      (param_pt, d_param_arr+i_port, d_i_neuron, n_neuron, n_param_,
+      (param_pt, d_param_arr+port, d_i_neuron, n_neuron, n_param_,
        n_port_);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -511,10 +511,10 @@ float *BaseNeuron::GetPortVar(int i_neuron, int n_neuron,
   gpuErrchk(cudaMalloc(&d_var_arr, n_neuron*n_port_*sizeof(float)));
   float *h_var_arr = (float*)malloc(n_neuron*n_port_*sizeof(float));
   
-  for (int i_port=0; i_port<n_port_; i_port++) {
-    var_pt = GetVarPt(i_neuron, var_name, i_port);
+  for (int port=0; port<n_port_; port++) {
+    var_pt = GetVarPt(i_neuron, var_name, port);
     BaseNeuronGetFloatArray<<<(n_neuron+1023)/1024, 1024>>>
-      (var_pt, d_var_arr + i_port, n_neuron, n_var_, n_port_);
+      (var_pt, d_var_arr + port, n_neuron, n_var_, n_port_);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   }
@@ -542,10 +542,10 @@ float *BaseNeuron::GetPortVar(int *i_neuron, int n_neuron,
   gpuErrchk(cudaMalloc(&d_var_arr, n_neuron*n_port_*sizeof(float)));
   float *h_var_arr = (float*)malloc(n_neuron*n_port_*sizeof(float));
     
-  for (int i_port=0; i_port<n_port_; i_port++) {
-    float *var_pt = GetVarPt(0, var_name, i_port);
+  for (int port=0; port<n_port_; port++) {
+    float *var_pt = GetVarPt(0, var_name, port);
     BaseNeuronGetFloatPtArray<<<(n_neuron+1023)/1024, 1024>>>
-      (var_pt, d_var_arr+i_port, d_i_neuron, n_neuron, n_var_, n_port_);
+      (var_pt, d_var_arr+port, d_i_neuron, n_neuron, n_var_, n_port_);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   }
@@ -747,23 +747,23 @@ int BaseNeuron::CheckNeuronIdx(int i_neuron)
   return 0;
 }
 
-int BaseNeuron::CheckPortIdx(int i_port)
+int BaseNeuron::CheckPortIdx(int port)
 {
-  if (i_port>=n_port_) {
+  if (port>=n_port_) {
     throw ngpu_exception("Port index must be lower then n. of ports");
   }
-  else if (i_port<0) {
+  else if (port<0) {
     throw ngpu_exception("Port index must be >= 0");
   }
   return 0;
 }
 
 float *BaseNeuron::GetVarPt(int i_neuron, std::string var_name,
-			    int i_port /*=0*/)
+			    int port /*=0*/)
 {
   CheckNeuronIdx(i_neuron);
-  if (i_port!=0) {
-    CheckPortIdx(i_port);
+  if (port!=0) {
+    CheckPortIdx(port);
   }
     
   if (IsScalVar(var_name)) {
@@ -773,7 +773,7 @@ float *BaseNeuron::GetVarPt(int i_neuron, std::string var_name,
   else if (IsPortVar(var_name)) {
     int i_vvar =  GetPortVarIdx(var_name);
     return GetVarArr() + i_neuron*n_var_ + n_scal_var_
-      + i_port*n_port_var_ + i_vvar;
+      + port*n_port_var_ + i_vvar;
   }
   else {
     throw ngpu_exception(std::string("Unrecognized variable ")
@@ -782,11 +782,11 @@ float *BaseNeuron::GetVarPt(int i_neuron, std::string var_name,
 }
 
 float *BaseNeuron::GetParamPt(int i_neuron, std::string param_name,
-			      int i_port /*=0*/)
+			      int port /*=0*/)
 {
   CheckNeuronIdx(i_neuron);
-  if (i_port!=0) {
-    CheckPortIdx(i_port);
+  if (port!=0) {
+    CheckPortIdx(port);
   }
   if (IsScalParam(param_name)) {
     int i_param =  GetScalParamIdx(param_name);
@@ -795,7 +795,7 @@ float *BaseNeuron::GetParamPt(int i_neuron, std::string param_name,
   else if (IsPortParam(param_name)) {
     int i_vparam =  GetPortParamIdx(param_name);
     return GetParamArr() + i_neuron*n_param_ + n_scal_param_
-      + i_port*n_port_param_ + i_vparam;
+      + port*n_port_param_ + i_vparam;
   }
   else {
     throw ngpu_exception(std::string("Unrecognized parameter ")

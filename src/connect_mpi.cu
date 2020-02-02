@@ -100,12 +100,14 @@ bool ConnectMpi::ProcMaster()
 
 int ConnectMpi::RemoteConnect(int i_source_host, int i_source_node,
 			      int i_target_host, int i_target_node,
-			      unsigned char i_port, float weight, float delay)
+			      unsigned char port, unsigned char syn_group,
+			      float weight, float delay)
 {
   int i_remote_node;
   
   if (mpi_id_==i_source_host && i_source_host==i_target_host) {
-    return net_connection_->Connect(i_source_node, i_target_node, i_port, weight, delay);
+    return net_connection_->Connect(i_source_node, i_target_node, port,
+				    syn_group, weight, delay);
   }
   else if (mpi_id_ == i_target_host) {
     MPI_Recv_int(&i_remote_node, 1, i_source_host);
@@ -116,7 +118,8 @@ int ConnectMpi::RemoteConnect(int i_source_host, int i_source_node,
       net_connection_->connection_.push_back(conn);
       MPI_Send_int(&i_remote_node, 1, i_source_host);
     }
-    net_connection_->Connect(i_remote_node, i_target_node, i_port, weight, delay);
+    net_connection_->Connect(i_remote_node, i_target_node, port, syn_group,
+			     weight, delay);
   }
   else if (mpi_id_ == i_source_host) {
     i_remote_node = -1;

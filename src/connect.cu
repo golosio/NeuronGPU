@@ -21,15 +21,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-int NetConnection::Connect(int i_source, int i_target, unsigned char i_port,
-			   float weight, float delay) 
+int NetConnection::Connect(int i_source, int i_target, unsigned char port,
+			   unsigned char syn_group, float weight, float delay) 
 {
   if (delay<time_resolution_) {
     throw ngpu_exception("Delay must be >= time resolution");
   }
   
   int d_int = (int)round(delay/time_resolution_) - 1;
-  TargetSyn tg = {i_target, i_port, weight};
+  TargetSyn tg = {i_target, port, syn_group, weight};
   Insert(d_int, i_source, tg);
   
   return 0;
@@ -74,6 +74,7 @@ int NetConnection::ConnGroupPrint(int i_source)
     cout << "\tTargets: " << endl;
     for (unsigned int i=0; i<tv.size(); i++) {
       cout << "(" << tv[i].node << "," << (int)tv[i].port
+	 << "," << (int)tv[i].syn_group
 	   << "," << tv[i].weight << ")  ";
     }
     cout << endl;
@@ -131,8 +132,8 @@ ConnectionStatus NetConnection::GetConnectionStatus(ConnectionId conn_id)
   ConnectionStatus conn_stat;
   conn_stat.i_source = i_source;
   conn_stat.i_target = tv[i_conn].node;
-  conn_stat.i_port = tv[i_conn].port;
-  conn_stat.i_syn = 0;
+  conn_stat.port = tv[i_conn].port;
+  conn_stat.syn_group = tv[i_conn].syn_group;
   conn_stat.delay = time_resolution_*(conn[i_group].delay + 1);
   conn_stat.weight = tv[i_conn].weight;
 

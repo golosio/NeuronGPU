@@ -30,8 +30,8 @@ struct ConnectionStatus
 {
   int i_source;
   int i_target;
-  unsigned char i_port;
-  unsigned char i_syn;
+  unsigned char port;
+  unsigned char syn_group;
   float delay;
   float weight;
 };
@@ -40,6 +40,7 @@ struct TargetSyn
 {
   int node;
   unsigned char port;
+  unsigned char syn_group;
   float weight;
 };
   
@@ -61,8 +62,8 @@ class NetConnection
 
   int Insert(int d_int, int i_source, TargetSyn tg);
 
-  int Connect(int i_source, int i_target, unsigned char i_port, float weight,
-	      float delay);
+  int Connect(int i_source, int i_target, unsigned char port,
+	      unsigned char syn_group, float weight, float delay);
 
   int Print();
   
@@ -81,12 +82,12 @@ class NetConnection
   template<class T>
     std::vector<ConnectionId> GetConnections(T source, int n_source,
 					     int i_target, int n_target,
-					     int syn_group=0);
+					     int syn_group=-1);
 
   template<class T>
     std::vector<ConnectionId> GetConnections(T source, int n_source,
 					     int *i_target, int n_target,
-					     int syn_group=0);
+					     int syn_group=-1);
 
 };
 

@@ -108,7 +108,7 @@ SynSpec::SynSpec()
 
 int SynSpec::Init()
 {
-  synapse_type_ = STANDARD_SYNAPSE;
+  synapse_group_ = 0;
   port_ = 0;
   weight_ = 0;
   delay_ = 0;
@@ -138,21 +138,21 @@ int SynSpec::Init(float weight, float delay)
   return 0;
  }
 
-SynSpec::SynSpec(int syn_type, float weight, float delay, int port /*=0*/)
+SynSpec::SynSpec(int syn_group, float weight, float delay, int port /*=0*/)
 {
-  Init(syn_type, weight, delay, port);
+  Init(syn_group, weight, delay, port);
 }
 
-int SynSpec::Init(int syn_type, float weight, float delay, int port /*=0*/)
+int SynSpec::Init(int syn_group, float weight, float delay, int port /*=0*/)
 {
-  if (syn_type<0 || syn_type>N_SYNAPSE_TYPE) {
-    throw ngpu_exception("Unknown synapse type");
+  if (syn_group<0) { // || syn_group>n_syn_group) {
+    throw ngpu_exception("Unknown synapse group");
   }
   if (port<0) {
     throw ngpu_exception("Port index must be >=0");
   }
   Init(weight, delay);
-  synapse_type_ = syn_type;
+  synapse_group_ = syn_group;
   port_ = port;
 
   return 0;
@@ -160,11 +160,11 @@ int SynSpec::Init(int syn_type, float weight, float delay, int port /*=0*/)
 
 int SynSpec::SetParam(std::string param_name, int value)
 {
-  if (param_name=="synapse_type") {
-    if (value<0 || value>N_SYNAPSE_TYPE) {
-      throw ngpu_exception("Unknown synapse type");
+  if (param_name=="synapse_group") {
+    if (value<0) { // || value>n_syn_group) {
+      throw ngpu_exception("Unknown synapse group");
     }
-    synapse_type_ = value;
+    synapse_group_ = value;
     return 0;
   }
   else if (param_name=="receptor") {
@@ -180,7 +180,7 @@ int SynSpec::SetParam(std::string param_name, int value)
 
 bool SynSpec::IsIntParam(std::string param_name)
 {
-  if (param_name=="synapse_type" || param_name=="receptor") {
+  if (param_name=="synapse_group" || param_name=="receptor") {
     return true;
   }
   else {

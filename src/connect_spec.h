@@ -71,7 +71,7 @@ const std::string synapse_type_name[N_SYNAPSE_TYPE] =
 
 class SynSpec
 {
-  unsigned char synapse_type_;
+  unsigned char synapse_group_;
   unsigned char port_;
  public:
   int weight_distr_;
@@ -83,10 +83,10 @@ class SynSpec
  public:
   SynSpec();
   SynSpec(float weight, float delay);
-  SynSpec(int syn_type, float weight, float delay, int port=0);
+  SynSpec(int syn_group, float weight, float delay, int port=0);
   int Init();
   int Init(float weight, float delay);
-  int Init(int syn_type, float weight, float delay, int port=0);
+  int Init(int syn_group, float weight, float delay, int port=0);
   int SetParam(std::string param_name, int value);
   int SetParam(std::string param_name, float value);
   int SetParam(std::string param_name, float *array_pt);

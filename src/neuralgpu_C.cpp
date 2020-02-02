@@ -660,11 +660,11 @@ extern "C" {
 
 
   int *NeuralGPU_GetSeqSeqConnections(int i_source, int n_source, int i_target,
-				      int n_target, int syn_type, int *n_conn)
+				      int n_target, int syn_group, int *n_conn)
   { int *ret; BEGIN_ERR_PROP {
       std::vector<ConnectionId> conn_id_vect =
 	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
-					   n_target, syn_type);
+					   n_target, syn_group);
       *n_conn = conn_id_vect.size();
       int *conn_id_array = (int*)malloc((*n_conn)*3*sizeof(int));
       for (int i=0; i<(*n_conn); i++) {
@@ -677,11 +677,11 @@ extern "C" {
 
   int *NeuralGPU_GetSeqGroupConnections(int i_source, int n_source,
 					int *i_target, int n_target,
-					int syn_type, int *n_conn)
+					int syn_group, int *n_conn)
   { int *ret; BEGIN_ERR_PROP {
       std::vector<ConnectionId> conn_id_vect =
 	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
-					   n_target, syn_type);
+					   n_target, syn_group);
       *n_conn = conn_id_vect.size();
       int *conn_id_array = (int*)malloc((*n_conn)*3*sizeof(int));
       for (int i=0; i<(*n_conn); i++) {
@@ -694,11 +694,11 @@ extern "C" {
 
   int *NeuralGPU_GetGroupSeqConnections(int *i_source, int n_source,
 					int i_target, int n_target,
-					int syn_type, int *n_conn)
+					int syn_group, int *n_conn)
   { int *ret; BEGIN_ERR_PROP {
       std::vector<ConnectionId> conn_id_vect =
 	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
-					   n_target, syn_type);
+					   n_target, syn_group);
       *n_conn = conn_id_vect.size();
       int *conn_id_array = (int*)malloc((*n_conn)*3*sizeof(int));
       for (int i=0; i<(*n_conn); i++) {
@@ -711,11 +711,11 @@ extern "C" {
 
   int *NeuralGPU_GetGroupGroupConnections(int *i_source, int n_source,
 					 int *i_target, int n_target,
-					 int syn_type, int *n_conn)
+					 int syn_group, int *n_conn)
   { int *ret; BEGIN_ERR_PROP {
       std::vector<ConnectionId> conn_id_vect =
 	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
-					   n_target, syn_type);
+					   n_target, syn_group);
       *n_conn = conn_id_vect.size();
       int *conn_id_array = (int*)malloc((*n_conn)*3*sizeof(int));
       for (int i=0; i<(*n_conn); i++) {

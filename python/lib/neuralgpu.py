@@ -1489,7 +1489,7 @@ NeuralGPU_GetGroupGroupConnections.argtypes = (c_void_p, ctypes.c_int,
                                                ctypes.c_int, c_int_p)
 NeuralGPU_GetGroupGroupConnections.restype = c_int_p
 
-def GetConnections(source=None, target=None, syn_type=0): 
+def GetConnections(source=None, target=None, syn_group=-1): 
     "Get connections between two node groups"
     if source==None:
         source = NodeSeq(None)
@@ -1507,7 +1507,8 @@ def GetConnections(source=None, target=None, syn_type=0):
     n_conn = ctypes.c_int(0)
     if (type(source)==NodeSeq) & (type(target)==NodeSeq) :
         conn_arr = NeuralGPU_GetSeqSeqConnections(source.i0, source.n,
-                                                  target.i0, target.n, syn_type,
+                                                  target.i0, target.n,
+                                                  syn_group,
                                                   ctypes.byref(n_conn))
     else:
         if type(source)!=NodeSeq:
@@ -1520,20 +1521,20 @@ def GetConnections(source=None, target=None, syn_type=0):
             conn_arr = NeuralGPU_GetSeqGroupConnections(source.i0, source.n,
                                                         target_arr_pt,
                                                         len(target),
-                                                        syn_type,
+                                                        syn_group,
                                                         ctypes.byref(n_conn))
         elif (type(source)!=NodeSeq) & (type(target)==NodeSeq):
             conn_arr = NeuralGPU_GetGroupSeqConnections(source_arr_pt,
                                                         len(source),
                                                         target.i0, target.n,
-                                                        syn_type,
+                                                        syn_group,
                                                         ctypes.byref(n_conn))
         else:
             conn_arr = NeuralGPU_GetGroupGroupConnections(source_arr_pt,
                                                           len(source),
                                                           target_arr_pt,
                                                           len(target),
-                                                          syn_type,
+                                                          syn_group,
                                                           ctypes.byref(n_conn))
 
     conn_list = []

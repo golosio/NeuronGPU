@@ -81,12 +81,12 @@ class NetConnection
   template<class T>
     std::vector<ConnectionId> GetConnections(T source, int n_source,
 					     int i_target, int n_target,
-					     int syn_type=0);
+					     int syn_group=0);
 
   template<class T>
     std::vector<ConnectionId> GetConnections(T source, int n_source,
 					     int *i_target, int n_target,
-					     int syn_type=0);
+					     int syn_group=0);
 
 };
 
@@ -95,7 +95,7 @@ std::vector<ConnectionId> NetConnection::GetConnections(T source,
 							int n_source,
 							int i_target,
 							int n_target,
-							int /*syn_type*/)
+							int /*syn_group*/)
 {
   std::vector<ConnectionId> conn_id_vect;
   for (int is=0; is<n_source; is++) {
@@ -124,7 +124,7 @@ std::vector<ConnectionId> NetConnection::GetConnections(T source,
 							int n_source,
 							int *i_target,
 							int n_target,
-							int /*syn_type*/)
+							int /*syn_group*/)
 {
   std::vector<int> target_vect(i_target, i_target+n_target);
   std::sort(target_vect.begin(), target_vect.end());

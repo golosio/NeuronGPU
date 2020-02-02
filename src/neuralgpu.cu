@@ -1033,7 +1033,7 @@ std::vector<ConnectionStatus> NeuralGPU::GetConnectionStatus(std::vector
   
 std::vector<ConnectionId> NeuralGPU::GetConnections(int i_source, int n_source,
 						    int i_target, int n_target,
-						    int syn_type) {
+						    int syn_group) {
   if (n_source<=0) {
     i_source = 0;
     n_source = net_connection_->connection_.size();
@@ -1044,73 +1044,73 @@ std::vector<ConnectionId> NeuralGPU::GetConnections(int i_source, int n_source,
   }
 
   return net_connection_->GetConnections<int>(i_source, n_source, i_target,
-					      n_target, syn_type);    
+					      n_target, syn_group);    
 }
 
 std::vector<ConnectionId> NeuralGPU::GetConnections(int *i_source, int n_source,
 						    int i_target, int n_target,
-						    int syn_type) {
+						    int syn_group) {
   if (n_target<=0) {
     i_target = 0;
     n_target = net_connection_->connection_.size();
   }
     
   return net_connection_->GetConnections<int*>(i_source, n_source, i_target,
-					       n_target, syn_type);
+					       n_target, syn_group);
   
 }
 
 
 std::vector<ConnectionId> NeuralGPU::GetConnections(int i_source, int n_source,
 						    int *i_target, int n_target,
-						    int syn_type) {
+						    int syn_group) {
   if (n_source<=0) {
     i_source = 0;
     n_source = net_connection_->connection_.size();
   }
   
   return net_connection_->GetConnections<int>(i_source, n_source, i_target,
-					      n_target, syn_type);    
+					      n_target, syn_group);    
 }
 
 std::vector<ConnectionId> NeuralGPU::GetConnections(int *i_source, int n_source,
 						    int *i_target, int n_target,
-						    int syn_type) {
+						    int syn_group) {
   
   return net_connection_->GetConnections<int*>(i_source, n_source, i_target,
-					       n_target, syn_type);
+					       n_target, syn_group);
   
 }
 
 
 std::vector<ConnectionId> NeuralGPU::GetConnections(NodeSeq source,
 						    NodeSeq target,
-						    int syn_type) {
+						    int syn_group) {
   return net_connection_->GetConnections<int>(source.i0, source.n, target.i0,
-					      target.n, syn_type);
+					      target.n, syn_group);
 }
 
 std::vector<ConnectionId> NeuralGPU::GetConnections(std::vector<int> source,
 						    NodeSeq target,
-						    int syn_type) {
+						    int syn_group) {
   return net_connection_->GetConnections<int*>(source.data(), source.size(),
 					       target.i0, target.n,
-					       syn_type);
+					       syn_group);
 }
 
 
 std::vector<ConnectionId> NeuralGPU::GetConnections(NodeSeq source,
 						    std::vector<int> target,
-						    int syn_type) {
+						    int syn_group) {
   return net_connection_->GetConnections<int>(source.i0, source.n,
 					      target.data(), target.size(),
-					      syn_type);
+					      syn_group);
 }
 
 std::vector<ConnectionId> NeuralGPU::GetConnections(std::vector<int> source,
 						    std::vector<int> target,
-						    int syn_type) {
+						    int syn_group) {
   return net_connection_->GetConnections<int*>(source.data(), source.size(),
 					       target.data(), target.size(),
-					       syn_type);
+					       syn_group);
 }

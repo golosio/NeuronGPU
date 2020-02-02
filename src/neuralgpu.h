@@ -475,33 +475,33 @@ class NeuralGPU
 
   std::vector<ConnectionId> GetConnections(int i_source, int n_source,
 					   int i_target, int n_target,
-					   int syn_type=0);
+					   int syn_group=-1);
 
   std::vector<ConnectionId> GetConnections(int *i_source, int n_source,
 					   int i_target, int n_target,
-					   int syn_type=0);
+					   int syn_group=-1);
 
   std::vector<ConnectionId> GetConnections(int i_source, int n_source,
 					   int *i_target, int n_target,
-					   int syn_type=0);
+					   int syn_group=-1);
 
   std::vector<ConnectionId> GetConnections(int *i_source, int n_source,
 					   int *i_target, int n_target,
-					   int syn_type=0);
+					   int syn_group=-1);
     
   std::vector<ConnectionId> GetConnections(NodeSeq source, NodeSeq target,
-					   int syn_type=0);
+					   int syn_group=-1);
 
   std::vector<ConnectionId> GetConnections(std::vector<int> source,
-					   NodeSeq target, int syn_type=0);
+					   NodeSeq target, int syn_group=-1);
 
   std::vector<ConnectionId> GetConnections(NodeSeq source,
 					   std::vector<int> target,
-					   int syn_type=0);
+					   int syn_group=-1);
 
   std::vector<ConnectionId> GetConnections(std::vector<int> source,
 					   std::vector<int> target,
-					   int syn_type=0);
+					   int syn_group=-1);
 
 };
 

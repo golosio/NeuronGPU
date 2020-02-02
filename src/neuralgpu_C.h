@@ -209,19 +209,19 @@ extern "C" {
   int NeuralGPU_GetNArrayVar(int i_node);
     
   int *NeuralGPU_GetSeqSeqConnections(int i_source, int n_source, int i_target,
-				      int n_target, int syn_type, int *n_conn);
+				      int n_target, int syn_group, int *n_conn);
 
   int *NeuralGPU_GetSeqGroupConnections(int i_source, int n_source,
 					int *i_target, int n_target,
-					int syn_type, int *n_conn);
+					int syn_group, int *n_conn);
 
   int *NeuralGPU_GetGroupSeqConnections(int *i_source, int n_source,
 					int i_target, int n_target,
-					int syn_type, int *n_conn);
+					int syn_group, int *n_conn);
 
   int *NeuralGPU_GetGroupGroupConnections(int *i_source, int n_source,
 					  int *i_target, int n_target,
-					  int syn_type, int *n_conn);
+					  int syn_group, int *n_conn);
   int NeuralGPU_GetConnectionStatus(int i_source, int i_group, int i_conn,
 				    int *i_target, unsigned char *i_port,
 				    unsigned char *i_syn, float *delay,

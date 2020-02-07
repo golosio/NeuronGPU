@@ -24,8 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
 //////////////////////////////////////////////////////////////////////
-// declare here the function called by the nested loop 
-__device__ void NestedLoopFunction(int ix, int iy);
+// declare here the functions called by the nested loop 
+__device__ void NestedLoopFunction0(int ix, int iy);
+__device__ void NestedLoopFunction1(int ix, int iy);
 //////////////////////////////////////////////////////////////////////
 
 namespace NestedLoop
@@ -49,7 +50,7 @@ __device__ int locate(int val, int *data, int n)
   return i;
 }
 
-__global__ void CumulSumNestedLoopKernel(int Nx, int *Ny_cumul_sum,
+__global__ void CumulSumNestedLoopKernel0(int Nx, int *Ny_cumul_sum,
 					 int Ny_sum)
 {
   int blockId   = blockIdx.y * gridDim.x + blockIdx.x;
@@ -57,7 +58,19 @@ __global__ void CumulSumNestedLoopKernel(int Nx, int *Ny_cumul_sum,
   if (array_idx<Ny_sum) {
     int ix = locate(array_idx, Ny_cumul_sum, Nx + 1);
     int iy = (int)(array_idx - Ny_cumul_sum[ix]);
-    NestedLoopFunction(ix, iy);
+    NestedLoopFunction0(ix, iy);
+  }
+}
+
+__global__ void CumulSumNestedLoopKernel1(int Nx, int *Ny_cumul_sum,
+					 int Ny_sum)
+{
+  int blockId   = blockIdx.y * gridDim.x + blockIdx.x;
+  int array_idx = blockId * blockDim.x + threadIdx.x;
+  if (array_idx<Ny_sum) {
+    int ix = locate(array_idx, Ny_cumul_sum, Nx + 1);
+    int iy = (int)(array_idx - Ny_cumul_sum[ix]);
+    NestedLoopFunction1(ix, iy);
   }
 }
 
@@ -72,14 +85,14 @@ int NestedLoop::Init()
 }
 
 //////////////////////////////////////////////////////////////////////
-int NestedLoop::Run(int Nx, int *d_Ny)
+int NestedLoop::Run(int Nx, int *d_Ny, int i_func)
 {
-  return CumulSumNestedLoop(Nx, d_Ny);
+  return CumulSumNestedLoop(Nx, d_Ny, i_func);
 }
 
 
 //////////////////////////////////////////////////////////////////////
-int NestedLoop::CumulSumNestedLoop(int Nx, int *d_Ny)
+int NestedLoop::CumulSumNestedLoop(int Nx, int *d_Ny, int i_func)
 {
   //TMP
   //double time_mark=getRealTime();
@@ -127,8 +140,18 @@ int NestedLoop::CumulSumNestedLoop(int Nx, int *d_Ny)
     //TMP
     //double time_mark=getRealTime();
     //
-    CumulSumNestedLoopKernel<<<numBlocks, 1024>>>(Nx, d_Ny_cumul_sum_, Ny_sum);
-
+    switch (i_func) {
+    case 0:
+      CumulSumNestedLoopKernel0<<<numBlocks, 1024>>>
+	(Nx, d_Ny_cumul_sum_, Ny_sum);
+      break;
+    case 1:
+      CumulSumNestedLoopKernel1<<<numBlocks, 1024>>>
+	(Nx, d_Ny_cumul_sum_, Ny_sum);
+      break;
+    default:
+      throw ngpu_exception("unknown nested loop function");
+    }
     gpuErrchk(cudaDeviceSynchronize());
 
     //TMP

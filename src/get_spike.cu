@@ -18,8 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "node_group.h"
 #include "send_spike.h"
 #include "spike_buffer.h"
+				    //#include "rev_spike.h"
 #include "cuda_error.h"
 
+extern __constant__ int NeuralGPUTimeIdx;
 extern __constant__ NodeGroupStruct NodeGroupArray[];
 extern __device__ signed char *NodeGroupMap;
 
@@ -40,7 +42,7 @@ __device__ double atomicAddDouble(double* address, double val)
 //////////////////////////////////////////////////////////////////////
 // This is the function called by the nested loop
 // that collects the spikes
-__device__ void NestedLoopFunction(int i_spike, int i_syn)
+__device__ void NestedLoopFunction0(int i_spike, int i_syn)
 {
   int i_source = SpikeSourceIdx[i_spike];
   int i_conn = SpikeConnIdx[i_spike];
@@ -65,9 +67,14 @@ __device__ void NestedLoopFunction(int i_spike, int i_syn)
   double d_val = (double)(height*weight);
 
   atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i], d_val);
-  if (syn_group>0) { // THIS IS TEMPORARY, JUST FOR TESTING
-    atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i],
-		    d_val*syn_group);
+  if (syn_group>0) {
+    ConnectionGroupTargetSpikeTime[i_conn*NSpikeBuffer+i_source][i_syn]
+      = (unsigned short)(NeuralGPUTimeIdx & 0xffff);
+    printf("nlf 0 %d\n",
+	   ConnectionGroupTargetSpikeTime[i_conn*NSpikeBuffer+i_source][i_syn]);
+    // THIS IS TEMPORARY, JUST FOR TESTING
+    //atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i],
+    //		    d_val*syn_group);
   }
   ////////////////////////////////////////////////////////////////
 }

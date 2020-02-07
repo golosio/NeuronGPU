@@ -12,20 +12,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NESTED_LOOP_H
-#define  NESTED_LOOP_H
+#ifndef REVSPIKEH
+#define REVSPIKEH
 
-#include "prefix_scan.h"
+extern unsigned int *d_RevSpikeNum;
+extern unsigned int *d_RevSpikeTarget;
+extern int *d_RevSpikeNConn;
 
-namespace NestedLoop
-{
-  extern PrefixScan prefix_scan_;
-  
-  int Init();
-  int Run(int Nx, int *d_Ny, int i_func);
-  int CumulSumNestedLoop(int Nx, int *d_Ny, int i_func);  
+__global__ void RevSpikeReset();
 
-  int Free();
-}
+__global__ void RevSpikeBufferUpdate(unsigned int n_node);
+
+int RevSpikeInit(NetConnection *net_connection, int time_min_idx);
+
+int RevSpikeFree();
+
+
+
 
 #endif

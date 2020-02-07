@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuralgpu.h"
 #include "nested_loop.h"
 #include "dir_connect.h"
+#include "rev_spike.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -45,6 +46,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				    //using namespace std;
 
 #define VERBOSE_TIME
+
+__constant__ int NeuralGPUTimeIdx;
 
 NeuralGPU::NeuralGPU()
 {
@@ -220,21 +223,31 @@ int NeuralGPU::Calibrate()
   max_spike_per_host_ = net_connection_->connection_.size()
     * net_connection_->MaxDelayNum();
 
+  std::cout << "ok0\n";
   SpikeInit(max_spike_num_);
+  std::cout << "ok1\n";
   SpikeBufferInit(net_connection_, max_spike_buffer_size_);
-
+  std::cout << "ok2\n";
+  
   if (mpi_flag_) {
     // remove superfluous argument mpi_np
     connect_mpi_->ExternalSpikeInit(connect_mpi_->extern_connection_.size(),
 				    max_spike_num_, connect_mpi_->mpi_np_,
 				    max_spike_per_host_);
   }
+  std::cout << "ok3\n";
+  if (net_connection_->NRevConnections()>0) {
+    std::cout << "ok4\n";
+    RevSpikeInit(net_connection_, round(t_min_/time_resolution_)); 
+  }
+  std::cout << "ok5\n";
   
   multimeter_->OpenFiles();
   
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     node_vect_[i]->Calibrate(t_min_, time_resolution_);
   }
+  std::cout << "ok6\n";
   //float x;
   //float y;
   //node_vect_[0].GetX(test_arr_idx, 1, &x);
@@ -296,6 +309,10 @@ int NeuralGPU::Simulate(float sim_time)
 
     time_mark = getRealTime();
     neural_time_ = neur_t0 + time_resolution_*(it+1);
+    int time_idx = (int)round(neur_t0/time_resolution_) + it + 1;
+    gpuErrchk(cudaMemcpyToSymbol(NeuralGPUTimeIdx, &time_idx, sizeof(int)));
+
+    
     for (unsigned int i=0; i<node_vect_.size(); i++) {
       node_vect_[i]->Update(it, neural_time_);
     }
@@ -340,7 +357,7 @@ int NeuralGPU::Simulate(float sim_time)
     ClearGetSpikeArrays();    
     if (n_spikes > 0) {
       time_mark = getRealTime();
-      NestedLoop::Run(n_spikes, d_SpikeTargetNum);
+      NestedLoop::Run(n_spikes, d_SpikeTargetNum, 0);
       NestedLoop_time += (getRealTime() - time_mark);
       time_mark = getRealTime();
     }
@@ -382,6 +399,25 @@ int NeuralGPU::Simulate(float sim_time)
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
       ExternalSpikeReset_time += (getRealTime() - time_mark);
+    }
+
+    if (net_connection_->NRevConnections()>0) {
+      //time_mark = getRealTime();
+      RevSpikeReset<<<1, 1>>>();
+      gpuErrchk( cudaPeekAtLastError() );
+      gpuErrchk( cudaDeviceSynchronize() );
+      RevSpikeBufferUpdate<<<(net_connection_->connection_.size()+1023)/1024,
+	1024>>>(net_connection_->connection_.size());
+      gpuErrchk( cudaPeekAtLastError() );
+      gpuErrchk( cudaDeviceSynchronize() );
+      unsigned int n_rev_spikes;
+      if (n_spikes > 0) {
+	gpuErrchk(cudaMemcpy(&n_rev_spikes, d_RevSpikeNum, sizeof(unsigned int),
+			     cudaMemcpyDeviceToHost));
+	//cout << "n_rev_spikes: " << n_rev_spikes << endl;
+	NestedLoop::Run(n_rev_spikes, d_RevSpikeNConn, 1);
+      }      
+      //RevSpikeBufferUpdate_time += (getRealTime() - time_mark);
     }
   }
   printf("%.3f\n", neural_time_);
@@ -1030,13 +1066,32 @@ int NeuralGPU::GetNArrayVar(int i_node)
 }
 
 ConnectionStatus NeuralGPU::GetConnectionStatus(ConnectionId conn_id) {
-  return net_connection_->GetConnectionStatus(conn_id);
+  ConnectionStatus conn_stat = net_connection_->GetConnectionStatus(conn_id);
+  if (calibrate_flag_ == true) {
+    int i_source = conn_id.i_source_;
+    int i_group = conn_id.i_group_;
+    int i_conn = conn_id.i_conn_;
+    int n_spike_buffer = net_connection_->connection_.size();
+    conn_stat.weight = 0;
+    float *d_weight_pt
+      = h_ConnectionGroupTargetWeight[i_group*n_spike_buffer+i_source] + i_conn;
+    gpuErrchk(cudaMemcpy(&conn_stat.weight, d_weight_pt, sizeof(float),
+			 cudaMemcpyDeviceToHost));
+    std::cout << "here w: " << conn_stat.weight << "\n";
+
+  }
+  return conn_stat;
 }
 
 std::vector<ConnectionStatus> NeuralGPU::GetConnectionStatus(std::vector
 							     <ConnectionId>
 							     &conn_id_vect) {
-  return net_connection_->GetConnectionStatus(conn_id_vect);
+  std::vector<ConnectionStatus> conn_stat_vect;
+  for (unsigned int i=0; i<conn_id_vect.size(); i++) {
+    ConnectionStatus conn_stat = GetConnectionStatus(conn_id_vect[i]);
+    conn_stat_vect.push_back(conn_stat);
+  }
+  return conn_stat_vect;
 }
   
 std::vector<ConnectionId> NeuralGPU::GetConnections(int i_source, int n_source,

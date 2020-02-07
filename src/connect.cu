@@ -21,11 +21,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
+extern bool ConnectionSpikeTimeFlag; // provare a mettere nella classe?
+
 int NetConnection::Connect(int i_source, int i_target, unsigned char port,
 			   unsigned char syn_group, float weight, float delay) 
 {
   if (delay<time_resolution_) {
     throw ngpu_exception("Delay must be >= time resolution");
+  }
+  //TEMPORARY, TO BE IMPROVED
+  if (syn_group==1) {
+    ConnectionSpikeTimeFlag=true;
   }
   
   int d_int = (int)round(delay/time_resolution_) - 1;
@@ -51,7 +57,7 @@ int NetConnection::Insert(int d_int, int i_source, TargetSyn tg)
   else {
     conn[id].target_vect.push_back(tg);
   }
-
+  
   return 0;
 }
 
@@ -95,13 +101,22 @@ int NetConnection::MaxDelayNum()
   return max_delay_num;
 }
 
-int NetConnection::NConnections()
+unsigned int NetConnection::StoredNConnections()
 {
-  int n_conn = 0;
+  if (n_conn_==0) {
+    n_conn_ = NConnections();
+  }
+  
+  return n_conn_;
+}
+
+unsigned int NetConnection::NConnections()
+{
+  unsigned int n_conn = 0;
   for (unsigned int i_node=0; i_node<connection_.size(); i_node++) {
     vector<ConnGroup> &conn = connection_[i_node];
     for (unsigned int id=0; id<conn.size(); id++) {
-      int n_target = conn.at(id).target_vect.size();
+      unsigned int n_target = conn.at(id).target_vect.size();
       n_conn += n_target;
     }
   }

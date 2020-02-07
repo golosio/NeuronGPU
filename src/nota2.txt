@@ -1,0 +1,14 @@
+Confusione nei nomi delle variabili
+
+In spike_buffer.cu, get_spike.cu NestedLoopFunction0 e in send_spike.cu
+i_conn = SpikeConnIdx[i_spike] rappresenta l'indice del gruppo di connessioni che hanno lo stesso delay (ossia dovrebbe essere chiamato i_delay)
+->rinominare in i_conn_group
+
+l'indice della connessione all'interno di questo gruppo si chiama i_syn
+->rinominare in?
+
+
+In GetConnectionStatus i_conn è l'indice della connessione all'interno del gruppo
+-> rinominare in?
+i_group è l'indice del gruppo di connessioni che hanno lo stesso delay
+rinominare in i_conn_group

@@ -62,8 +62,12 @@ int GetINode(T node, int in);
 
 class NetConnection
 {
+  unsigned int n_conn_;
+  unsigned int n_rev_conn_;
  public:
   float time_resolution_;
+
+  NetConnection() {n_conn_ = 0;}
   
   std::vector<std::vector<ConnGroup> > connection_;
 
@@ -78,7 +82,16 @@ class NetConnection
 
   int MaxDelayNum();
   
-  int NConnections();
+  unsigned int StoredNConnections();
+  
+  unsigned int NConnections();
+
+  unsigned int NRevConnections() {return n_rev_conn_;}
+
+  int SetNRevConnections(unsigned int n_rev_conn) {
+    n_rev_conn_ = n_rev_conn;
+    return 0;
+  }
 
   ConnectionStatus GetConnectionStatus(ConnectionId conn_id);
 

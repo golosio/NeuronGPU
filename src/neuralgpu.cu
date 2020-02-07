@@ -223,11 +223,8 @@ int NeuralGPU::Calibrate()
   max_spike_per_host_ = net_connection_->connection_.size()
     * net_connection_->MaxDelayNum();
 
-  std::cout << "ok0\n";
   SpikeInit(max_spike_num_);
-  std::cout << "ok1\n";
   SpikeBufferInit(net_connection_, max_spike_buffer_size_);
-  std::cout << "ok2\n";
   
   if (mpi_flag_) {
     // remove superfluous argument mpi_np
@@ -235,24 +232,15 @@ int NeuralGPU::Calibrate()
 				    max_spike_num_, connect_mpi_->mpi_np_,
 				    max_spike_per_host_);
   }
-  std::cout << "ok3\n";
   if (net_connection_->NRevConnections()>0) {
-    std::cout << "ok4\n";
     RevSpikeInit(net_connection_, round(t_min_/time_resolution_)); 
   }
-  std::cout << "ok5\n";
   
   multimeter_->OpenFiles();
   
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     node_vect_[i]->Calibrate(t_min_, time_resolution_);
   }
-  std::cout << "ok6\n";
-  //float x;
-  //float y;
-  //node_vect_[0].GetX(test_arr_idx, 1, &x);
-  //node_vect_[0].GetY(test_var_idx, test_arr_idx, 1, &y);
-  //fprintf(fp,"%f\t%f\n", x, y);
 
 ///////////////////////////////////
 
@@ -326,7 +314,6 @@ int NeuralGPU::Simulate(float sim_time)
       copy_ext_spike_time += (getRealTime() - time_mark);
 
       if (n_ext_spike != 0) {
-	//cout << "n_ext_spike " << n_ext_spike << endl;
 	time_mark = getRealTime();
 	SendExternalSpike<<<(n_ext_spike+1023)/1024, 1024>>>();
 	gpuErrchk( cudaPeekAtLastError() );
@@ -352,7 +339,6 @@ int NeuralGPU::Simulate(float sim_time)
     time_mark = getRealTime();
     gpuErrchk(cudaMemcpy(&n_spikes, d_SpikeNum, sizeof(int),
 			 cudaMemcpyDeviceToHost));
-    //cout << "n_spikes: " << n_spikes << endl;
 
     ClearGetSpikeArrays();    
     if (n_spikes > 0) {
@@ -411,10 +397,9 @@ int NeuralGPU::Simulate(float sim_time)
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
       unsigned int n_rev_spikes;
-      if (n_spikes > 0) {
-	gpuErrchk(cudaMemcpy(&n_rev_spikes, d_RevSpikeNum, sizeof(unsigned int),
-			     cudaMemcpyDeviceToHost));
-	//cout << "n_rev_spikes: " << n_rev_spikes << endl;
+      gpuErrchk(cudaMemcpy(&n_rev_spikes, d_RevSpikeNum, sizeof(unsigned int),
+			   cudaMemcpyDeviceToHost));
+      if (n_rev_spikes > 0) {
 	NestedLoop::Run(n_rev_spikes, d_RevSpikeNConn, 1);
       }      
       //RevSpikeBufferUpdate_time += (getRealTime() - time_mark);
@@ -1077,8 +1062,6 @@ ConnectionStatus NeuralGPU::GetConnectionStatus(ConnectionId conn_id) {
       = h_ConnectionGroupTargetWeight[i_group*n_spike_buffer+i_source] + i_conn;
     gpuErrchk(cudaMemcpy(&conn_stat.weight, d_weight_pt, sizeof(float),
 			 cudaMemcpyDeviceToHost));
-    std::cout << "here w: " << conn_stat.weight << "\n";
-
   }
   return conn_stat;
 }

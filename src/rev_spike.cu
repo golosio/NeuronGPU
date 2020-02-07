@@ -40,14 +40,10 @@ __device__ void NestedLoopFunction1(int i_spike, int i_target_rev_conn)
   unsigned int target = RevSpikeTarget[i_spike];
   unsigned int i_conn = TargetRevConnection[target][i_target_rev_conn];
   unsigned char syn_group = ConnectionSynGroup[i_conn];
-  printf("i_spike %d i_target_rev_conn %d target %d i_conn %d syn_group %d\n",
-	 i_spike, i_target_rev_conn, target, i_conn, syn_group);
-  if (syn_group==1) { // TEMPORARY, TO BE IMPROVED
+  if (syn_group>0) {
     float *weight = &ConnectionWeight[i_conn];
     int spike_time_idx = ConnectionSpikeTime[i_conn];
     int Dt = ((int)NeuralGPUTimeIdx - spike_time_idx)&0xffff;
-    printf("weight %f spike_time_idx %d Dt %d NGPUtime %d spike_time_idx %d\n",
-	   weight, spike_time_idx, Dt, NeuralGPUTimeIdx, spike_time_idx);
     if (Dt<0) { // there was no spike from this connection
       return;
     }
@@ -83,10 +79,7 @@ __global__ void RevSpikeBufferUpdate(unsigned int n_node)
   if (target_spike_time_idx!=NeuralGPUTimeIdx) {
     return;
   }
-  printf("neuron %d is spiking\n", i_node);
   int n_conn = TargetRevConnectionSize[i_node];
-  printf("n_conn %d\n", n_conn);
-  printf("RevSpikeNum %d\n", *RevSpikeNum);
   if (n_conn>0) {
     unsigned int pos = atomicAdd(RevSpikeNum, 1);
     RevSpikeTarget[pos] = i_node;

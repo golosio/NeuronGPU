@@ -70,11 +70,13 @@ __device__ void NestedLoopFunction0(int i_spike, int i_syn)
   if (syn_group>0) {
     ConnectionGroupTargetSpikeTime[i_conn*NSpikeBuffer+i_source][i_syn]
       = (unsigned short)(NeuralGPUTimeIdx & 0xffff);
-    printf("nlf 0 %d\n",
-	   ConnectionGroupTargetSpikeTime[i_conn*NSpikeBuffer+i_source][i_syn]);
+    
+    int Dt = NeuralGPUTimeIdx - LastSpikeTimeIdx[i_target];
     // THIS IS TEMPORARY, JUST FOR TESTING
-    //atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i],
-    //		    d_val*syn_group);
+    if (Dt>0 && Dt<100) {
+      ConnectionGroupTargetWeight[i_conn*NSpikeBuffer+i_source][i_syn]
+	= weight - Dt;
+    }
   }
   ////////////////////////////////////////////////////////////////
 }

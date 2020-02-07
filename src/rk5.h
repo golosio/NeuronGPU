@@ -190,7 +190,9 @@ void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
     for(int i=0; i<NVAR; i++) {
       y_arr[ArrayIdx*NVAR + i] = y[i];
     }
-       
+    for(int j=0; j<NPARAM; j++) {
+      par_arr[ArrayIdx*NPARAM + j] = param[j]; 
+    }
   }
 }
 

@@ -246,7 +246,6 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   gpuErrchk(cudaMalloc(&d_ConnectionGroupTargetWeight,
 		     n_spike_buffers*max_delay_num*sizeof(float*)));
 
-  std::cout << "sb0\n";
   if (ConnectionSpikeTimeFlag){
     //h_conn_spike_time = new unsigned short[n_conn];
     gpuErrchk(cudaMalloc(&d_ConnectionSpikeTime,
@@ -259,13 +258,11 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
 			 n_spike_buffers*max_delay_num
 			 *sizeof(unsigned short*)));
   }
-  std::cout << "sb1 " << ConnectionSpikeTimeFlag << "\n";
   
   unsigned int i_conn = 0;
   for (unsigned int i_source=0; i_source<n_spike_buffers; i_source++) {
     vector<ConnGroup> *conn = &(net_connection->connection_[i_source]);
     h_ConnectionGroupSize[i_source] = conn->size();
-    std::cout << "sbbl0\n";
     for (unsigned int id=0; id<conn->size(); id++) {
       h_ConnectionGroupDelay[id*n_spike_buffers+i_source] = conn->at(id).delay;
      int n_target = conn->at(id).target_vect.size();
@@ -281,11 +278,9 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
        h_ConnectionGroupTargetSpikeTime[id*n_spike_buffers+i_source]
 	 = &d_ConnectionSpikeTime[i_conn];
      }
-     std::cout << "sbal0\n";
      unsigned int *target_arr = &h_conn_target[i_conn];
      unsigned char *syn_group_arr = &h_conn_syn_group[i_conn];
      float *weight_arr = &h_conn_weight[i_conn];
-     std::cout << "sbbl1\n";
      for (int it=0; it<n_target; it++) {
        unsigned int target = conn->at(id).target_vect[it].node;
        unsigned int port = conn->at(id).target_vect[it].port;
@@ -294,10 +289,8 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
        weight_arr[it] = conn->at(id).target_vect[it].weight;
      }
      i_conn += n_target;
-     std::cout << "sbal1\n";
    }
   }
-  std::cout << "sb2\n";
   
   cudaMemcpy(d_conn_target, h_conn_target, n_conn*sizeof(unsigned int),
 	     cudaMemcpyHostToDevice);
@@ -308,7 +301,6 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
 
   delete[] h_conn_weight;
 
-  std::cout << "sb3\n";
   unsigned int n_rev_conn = 0;
   std::vector<std::vector<unsigned int>> rev_connections(n_spike_buffers);
   for (unsigned int i_conn=0; i_conn<n_conn; i_conn++) {
@@ -317,18 +309,14 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
       n_rev_conn++;
       int target = h_conn_target[i_conn] & PORT_MASK;
       rev_connections[target].push_back(i_conn);
-      std::cout << "pushing rev. conn. i_conn target " << i_conn << " "
-		<< target << "\n";
     }
   }
-  std::cout << "sb4\n";
   
   delete[] h_conn_target;
   delete[] h_conn_syn_group;
   
   net_connection->SetNRevConnections(n_rev_conn);
 
-  std::cout << "sb5\n";
   if (n_rev_conn>0) {
     unsigned int *h_rev_conn = new unsigned int[n_rev_conn];
     int *h_target_rev_conn_size = new int[n_spike_buffers];
@@ -345,9 +333,6 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
       h_target_rev_conn[target] = &d_RevConnections[i_rev_conn];
       int n_target_rev_conn = rev_connections[target].size();
       h_target_rev_conn_size[target] = n_target_rev_conn;
-      std::cout << "target h_target_rev_conn_size n_target_rev_conn "
-		<< target << " " << h_target_rev_conn_size[target]
-		<< " " <<n_target_rev_conn << "\n";
       for (int i=0; i<n_target_rev_conn; i++) {
 	h_rev_conn[i_rev_conn] = rev_connections[target][i];
 	i_rev_conn++;
@@ -364,7 +349,6 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
     delete[] h_target_rev_conn_size;
     delete[] h_target_rev_conn;
   }
-  std::cout << "sb6\n";
   
   cudaMemcpy(d_ConnectionGroupSize, h_ConnectionGroupSize,
 	     n_spike_buffers*sizeof(int), cudaMemcpyHostToDevice);
@@ -384,14 +368,12 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   cudaMemcpy(d_ConnectionGroupTargetWeight, h_ConnectionGroupTargetWeight,
 	     n_spike_buffers*max_delay_num*sizeof(float*),
 	     cudaMemcpyHostToDevice);
-  std::cout << "sb7\n";
   if(ConnectionSpikeTimeFlag) {
     cudaMemcpy(d_ConnectionGroupTargetSpikeTime,
 	       h_ConnectionGroupTargetSpikeTime,
 	       n_spike_buffers*max_delay_num*sizeof(unsigned short*),
 	       cudaMemcpyHostToDevice);
   }
-  std::cout << "sb8\n";
   
   DeviceSpikeBufferInit<<<1,1>>>(n_spike_buffers, max_delay_num,
 			   max_spike_buffer_size,
@@ -411,7 +393,6 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
 				 );
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
-  std::cout << "sb9\n";
   
   InitLastSpikeTimeIdx
     <<<(n_spike_buffers+1023)/1024, 1024>>>
@@ -420,7 +401,6 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   gpuErrchk( cudaDeviceSynchronize() );
   gpuErrchk(cudaMemset(d_LastSpikeHeight, 0,
 		       n_spike_buffers*sizeof(unsigned short)));
-  std::cout << "sb10\n";
 
   delete[] h_ConnectionGroupSize;
   delete[] h_ConnectionGroupDelay;

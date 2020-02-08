@@ -1,37 +1,20 @@
+import sys
 import neuralgpu as ngpu
 
-parrot = ngpu.Create("parrot_neuron")
+syn_group = ngpu.CreateSynGroup("test_syn_model")
+ngpu.SetSynGroupParam(syn_group, "fact", 0.5)
+ngpu.SetSynGroupParam(syn_group, "offset", 2.5)
+print(ngpu.GetStatus(syn_group))
 
-spike = ngpu.Create("spike_generator")
-spike_time = [50.0, 400.0]
-spike_height = [1.0, 1.0]
-n_spikes = 2
+fact = ngpu.GetSynGroupParam(syn_group, "fact")
+print("fact: ", fact)
 
-# set spike times and height
-ngpu.SetStatus(spike, {"spike_time": spike_time, "spike_height":spike_height})
-delay = [50.0, 100.0, 150.0]
-weight = [1.0, 1.0, 1.0]
+print(ngpu.GetStatus(syn_group, "fact"))
 
-conn_spec={"rule": "all_to_all"}
-for syn in range(3):
-    syn_spec={ 'synapse_group': syn,
-              'receptor': 0, 'weight': weight[syn], 'delay': delay[syn]}
-    ngpu.Connect(spike, parrot, conn_spec, syn_spec)
+print(ngpu.GetStatus(syn_group, "offset"))
 
-record = ngpu.CreateRecord("", ["V"], [parrot[0]], [0]);
+print(ngpu.GetStatus(syn_group, ["fact", "offset"]))
 
-ngpu.Simulate(800.0)
+print(ngpu.GetStatus(syn_group, ["offset", "fact"]))
 
-data_list = ngpu.GetRecordData(record)
-t=[row[0] for row in data_list]
-V_m=[row[1] for row in data_list]
 
-import matplotlib.pyplot as plt
-
-plt.figure(1)
-plt.plot(t, V_m)
-
-plt.draw()
-plt.pause(1)
-raw_input("<Hit Enter To Close>")
-plt.close()

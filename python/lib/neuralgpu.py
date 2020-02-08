@@ -47,6 +47,10 @@ class ConnectionId(object):
         self.i_group = i_group
         self.i_conn = i_conn
 
+class SynGroup(object):
+    def __init__(self, i_syn_group):
+        self.i_syn_group = i_syn_group
+
 conn_rule_name = ("one_to_one", "all_to_all", "fixed_total_number",
                   "fixed_indegree", "fixed_outdegree")
     
@@ -1308,7 +1312,10 @@ def Connect(source, target, conn_dict, syn_dict):
     
     for param_name in syn_dict:
         if SynSpecIsIntParam(param_name):
-            SetSynSpecIntParam(param_name, syn_dict[param_name])
+            val = syn_dict[param_name]
+            if ((param_name=="synapse_group") & (type(val)==SynGroup)):
+                val = val.i_syn_group
+            SetSynSpecIntParam(param_name, val)
         elif SynSpecIsFloatParam(param_name):
             fpar = syn_dict[param_name]
             if (type(fpar)==dict):
@@ -1588,6 +1595,9 @@ def GetConnectionStatus(conn_id):
 
 def GetStatus(gen_object, var_key=None):
     "Get neuron group or connection status"
+    if type(gen_object)==SynGroup:
+        return GetSynGroupStatus(gen_object, var_key)
+    
     if type(gen_object)==NodeSeq:
         gen_object = gen_object.ToList()
     if (type(gen_object)==list) | (type(gen_object)==tuple):
@@ -1642,14 +1652,18 @@ def CreateSynGroup(model_name):
     i_syn_group = NeuralGPU_CreateSynGroup(c_model_name) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
-    return i_syn_group
+    return SynGroup(i_syn_group)
 
   
 NeuralGPU_GetSynGroupNParam = _neuralgpu.NeuralGPU_GetSynGroupNParam
 NeuralGPU_GetSynGroupNParam.argtypes = (ctypes.c_int,)
 NeuralGPU_GetSynGroupNParam.restype = ctypes.c_int
-def GetSynGroupNParam(i_syn_group):
+def GetSynGroupNParam(syn_group):
     "Get number of synapse parameters for a given synapse group"
+    if type(syn_group)!=SynGroup:
+        raise ValueError("Wrong argument type in GetSynGroupNParam")
+    i_syn_group = syn_group.i_syn_group
+    
     ret = NeuralGPU_GetSynGroupNParam(ctypes.c_int(i_syn_group))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
@@ -1659,11 +1673,15 @@ def GetSynGroupNParam(i_syn_group):
 NeuralGPU_GetSynGroupParamNames = _neuralgpu.NeuralGPU_GetSynGroupParamNames
 NeuralGPU_GetSynGroupParamNames.argtypes = (ctypes.c_int,)
 NeuralGPU_GetSynGroupParamNames.restype = ctypes.POINTER(c_char_p)
-def GetSynGroupParamNames(i_syn_group):
+def GetSynGroupParamNames(syn_group):
     "Get list of synapse group parameter names"
-    n_param = GetSynGroupNParam(i_syn_group)
+    if type(syn_group)!=SynGroup:
+        raise ValueError("Wrong argument type in GetSynGroupParamNames")
+    i_syn_group = syn_group.i_syn_group
+
+    n_param = GetSynGroupNParam(syn_group)
     param_name_pp = ctypes.cast(NeuralGPU_GetSynGroupParamNames(
-        ctypes.c_int(i_node)), ctypes.POINTER(c_char_p))
+        ctypes.c_int(i_syn_group)), ctypes.POINTER(c_char_p))
     param_name_list = []
     for i in range(n_param):
         param_name_p = param_name_pp[i]
@@ -1678,11 +1696,16 @@ def GetSynGroupParamNames(i_syn_group):
 NeuralGPU_IsSynGroupParam = _neuralgpu.NeuralGPU_IsSynGroupParam
 NeuralGPU_IsSynGroupParam.argtypes = (ctypes.c_int, c_char_p)
 NeuralGPU_IsSynGroupParam.restype = ctypes.c_int
-def IsSynGroupParam(i_node, param_name):
+def IsSynGroupParam(syn_group, param_name):
     "Check name of synapse group parameter"
+    if type(syn_group)!=SynGroup:
+        raise ValueError("Wrong argument type in IsSynGroupParam")
+    i_syn_group = syn_group.i_syn_group
+
     c_param_name = ctypes.create_string_buffer(str.encode(param_name),
                                                len(param_name)+1)
-    ret = (NeuralGPU_IsSynGroupParam(ctypes.c_int(i_node), c_param_name)!=0) 
+    ret = (NeuralGPU_IsSynGroupParam(ctypes.c_int(i_syn_group), \
+                                     c_param_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
@@ -1691,8 +1714,12 @@ def IsSynGroupParam(i_node, param_name):
 NeuralGPU_GetSynGroupParam = _neuralgpu.NeuralGPU_GetSynGroupParam
 NeuralGPU_GetSynGroupParam.argtypes = (ctypes.c_int, c_char_p)
 NeuralGPU_GetSynGroupParam.restype = ctypes.c_float
-def GetSynGroupParam(i_syn_group, param_name):
+def GetSynGroupParam(syn_group, param_name):
     "Get synapse group parameter value"
+    if type(syn_group)!=SynGroup:
+        raise ValueError("Wrong argument type in GetSynGroupParam")
+    i_syn_group = syn_group.i_syn_group
+
     c_param_name = ctypes.create_string_buffer(str.encode(param_name),
                                                len(param_name)+1)
     ret = NeuralGPU_GetSynGroupParam(ctypes.c_int(i_syn_group),
@@ -1707,8 +1734,12 @@ NeuralGPU_SetSynGroupParam = _neuralgpu.NeuralGPU_SetSynGroupParam
 NeuralGPU_SetSynGroupParam.argtypes = (ctypes.c_int, c_char_p,
                                        ctypes.c_float)
 NeuralGPU_SetSynGroupParam.restype = ctypes.c_int
-def SetSynGroupParam(i_syn_group, param_name, val):
+def SetSynGroupParam(syn_group, param_name, val):
     "Set synapse group parameter value"
+    if type(syn_group)!=SynGroup:
+        raise ValueError("Wrong argument type in SetSynGroupParam")
+    i_syn_group = syn_group.i_syn_group
+
     c_param_name = ctypes.create_string_buffer(str.encode(param_name),
                                                len(param_name)+1)
     ret = NeuralGPU_SetSynGroupParam(ctypes.c_int(i_syn_group),
@@ -1717,4 +1748,27 @@ def SetSynGroupParam(i_syn_group, param_name, val):
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
+
+def GetSynGroupStatus(syn_group, var_key=None):
+    "Get synapse group status"
+    if type(syn_group)!=SynGroup:
+        raise ValueError("Wrong argument type in GetSynGroupStatus")
+    if (type(var_key)==list) | (type(var_key)==tuple):
+        status_list = []
+        for var_elem in var_key:
+            var_value = GetSynGroupStatus(syn_group, var_elem)
+            status_list.append(var_value)
+        return status_list
+    elif (var_key==None):
+        status_dict = {}
+        name_list = GetSynGroupParamNames(syn_group)
+        for param_name in name_list:
+            val = GetSynGroupStatus(syn_group, param_name)
+            status_dict[param_name] = val
+        return status_dict
+    elif (type(var_key)==str):
+            return GetSynGroupParam(syn_group, var_key)        
+    else:
+        raise ValueError("Unknown key type in GetSynGroupStatus", type(var_key))
+
 

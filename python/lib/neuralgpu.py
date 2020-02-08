@@ -141,8 +141,16 @@ def SetSimTime(sim_time):
 NeuralGPU_Create = _neuralgpu.NeuralGPU_Create
 NeuralGPU_Create.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int)
 NeuralGPU_Create.restype = ctypes.c_int
-def Create(model_name, n_node=1, n_ports=1):
+def Create(model_name, n_node=1, n_ports=1, status_dict=None):
     "Create a neuron group"
+    if (type(status_dict)==dict):
+        node_group = Create(model_name, n_node, n_ports)
+        SetStatus(node_group, status_dict)
+        return node_group
+        
+    elif status_dict!=None:
+        raise ValueError("Wrong argument in Create")
+    
     c_model_name = ctypes.create_string_buffer(str.encode(model_name), len(model_name)+1)
     i_node =NeuralGPU_Create(c_model_name, ctypes.c_int(n_node), ctypes.c_int(n_ports))
     ret = NodeSeq(i_node, n_node)
@@ -1449,8 +1457,11 @@ def RemoteConnect(i_source_host, source, i_target_host, target,
     return ret
 
 
-def SetStatus(nodes, params, val=None):
-    "Set neuron group parameters or variables using dictionaries"
+def SetStatus(gen_object, params, val=None):
+    "Set neuron or synapse group parameters or variables using dictionaries"
+    if type(gen_object)==SynGroup:
+        return SetSynGroupStatus(gen_object, params, val)
+    nodes = gen_object    
     if val != None:
          SetNeuronStatus(nodes, params, val)
     elif type(params)==dict:
@@ -1465,7 +1476,7 @@ def SetStatus(nodes, params, val=None):
             for param_name in param_dict:
                 SetNeuronStatus(nodes, param_name, param_dict[param_name])
     else:
-        raise ValueError("Wrong argument in SetStatus")       
+        raise ValueError("Wrong argument in SetStatus")
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     
@@ -1592,9 +1603,8 @@ def GetConnectionStatus(conn_id):
     return conn_status_dict
 
 
-
 def GetStatus(gen_object, var_key=None):
-    "Get neuron group or connection status"
+    "Get neuron group, connection or synapse group status"
     if type(gen_object)==SynGroup:
         return GetSynGroupStatus(gen_object, var_key)
     
@@ -1645,8 +1655,15 @@ def GetStatus(gen_object, var_key=None):
 NeuralGPU_CreateSynGroup = _neuralgpu.NeuralGPU_CreateSynGroup
 NeuralGPU_CreateSynGroup.argtypes = (c_char_p,)
 NeuralGPU_CreateSynGroup.restype = ctypes.c_int
-def CreateSynGroup(model_name):
+def CreateSynGroup(model_name, status_dict=None):
     "Create a synapse group"
+    if (type(status_dict)==dict):
+        syn_group = CreateSynGroup(model_name)
+        SetStatus(syn_group, status_dict)
+        return syn_group
+    elif status_dict!=None:
+        raise ValueError("Wrong argument in CreateSynGroup")
+
     c_model_name = ctypes.create_string_buffer(str.encode(model_name), \
                                                len(model_name)+1)
     i_syn_group = NeuralGPU_CreateSynGroup(c_model_name) 
@@ -1771,4 +1788,17 @@ def GetSynGroupStatus(syn_group, var_key=None):
     else:
         raise ValueError("Unknown key type in GetSynGroupStatus", type(var_key))
 
+def SetSynGroupStatus(syn_group, params, val=None):
+    "Set synapse group parameters using dictionaries"
+    if type(syn_group)!=SynGroup:
+        raise ValueError("Wrong argument type in SetSynGroupStatus")
+    if ((type(params)==dict) & (val==None)):
+        for param_name in params:
+            SetSynGroupStatus(syn_group, param_name, params[param_name])
+    elif (type(params)==str):
+            return SetSynGroupParam(syn_group, params, val)        
+    else:
+        raise ValueError("Wrong argument in SetSynGroupStatus")       
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
 

@@ -1,12 +1,11 @@
 import sys
 import neuralgpu as ngpu
 
-neuron = ngpu.Create('aeif_cond_beta', 1, 3)
-ngpu.SetStatus(neuron, {"V_peak": 0.0, "a": 4.0, "b":80.5,
-                        "E_L":-70.6, "g_L":300.0})
-ngpu.SetStatus(neuron, {'E_rev':[20.0, 0.0, -85.0],
-                        'taus_decay':[40.0, 20.0, 30.0],
-                        'taus_rise':[20.0, 10.0, 5.0]})
+neuron = ngpu.Create('aeif_cond_beta', 1, 3, \
+                     {"V_peak": 0.0, "a": 4.0, "b":80.5, "E_L":-70.6,
+                      "g_L":300.0, 'E_rev':[20.0, 0.0, -85.0], \
+                      'taus_decay':[40.0, 20.0, 30.0], \
+                      'taus_rise':[20.0, 10.0, 5.0]})
 spike = ngpu.Create("spike_generator")
 spike_time = [10.0, 400.0]
 spike_height = [1.0, 0.5]

@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "base_neuron.h"
 #include "connect_spec.h"
 #include "connect.h"
+#include "syn_model.h"
 
 class PoissonGenerator;
 class Multimeter;
@@ -89,6 +90,7 @@ class NeuralGPU
   PoissonGenerator *poiss_generator_;
   Multimeter *multimeter_;
   std::vector<BaseNeuron*> node_vect_; // -> node_group_vect
+  std::vector<SynModel*> syn_group_vect_;
   
   NetConnection *net_connection_;
   ConnectMpi *connect_mpi_;
@@ -502,6 +504,20 @@ class NeuralGPU
   std::vector<ConnectionId> GetConnections(std::vector<int> source,
 					   std::vector<int> target,
 					   int syn_group=-1);
+
+  int CreateSynGroup(std::string model_name);
+
+  int GetSynGroupNParam(int syn_group);
+
+  std::vector<std::string> GetSynGroupParamNames(int syn_group);
+
+  bool IsSynGroupParam(int syn_group, std::string param_name);
+
+  int GetSynGroupParamIdx(int syn_group, std::string param_name);
+
+  float GetSynGroupParam(int syn_group, std::string param_name);
+
+  int SetSynGroupParam(int syn_group, std::string param_name, float val);
 
 };
 

@@ -228,6 +228,20 @@ extern "C" {
 				    unsigned char *syn_group, float *delay,
 				    float *weight);
 
+  int NeuralGPU_CreateSynGroup(char *model_name);
+  
+  int NeuralGPU_GetSynGroupNParam(int i_syn_group);
+  
+  char **NeuralGPU_GetSynGroupParamNames(int i_syn_group);
+  
+  int NeuralGPU_IsSynGroupParam(int i_syn_group, char *param_name);
+  
+  int NeuralGPU_GetSynGroupParamIdx(int i_syn_group, char *param_name);
+  
+  float NeuralGPU_GetSynGroupParam(int i_syn_group, char *param_name);
+  
+  int NeuralGPU_SetSynGroupParam(int i_syn_group, char *param_name, float val);
+
 #ifdef __cplusplus
 }
 #endif

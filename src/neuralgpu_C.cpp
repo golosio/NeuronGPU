@@ -747,5 +747,73 @@ extern "C" {
       ret = 0;
   } END_ERR_PROP return ret; }
 
+
+
+  int NeuralGPU_CreateSynGroup(char *model_name)
+  { int ret; BEGIN_ERR_PROP {
+    std::string model_name_str = std::string(model_name);
+    ret = NeuralGPU_instance->CreateSynGroup(model_name_str);
+  } END_ERR_PROP return ret; }
+
+
+  int NeuralGPU_GetSynGroupNParam(int i_syn_group)
+  { int ret; BEGIN_ERR_PROP {
+    ret = NeuralGPU_instance->GetSynGroupNParam(i_syn_group);
+  } END_ERR_PROP return ret; }
+
+  
+  char **NeuralGPU_GetSynGroupParamNames(int i_syn_group)
+  { char **ret; BEGIN_ERR_PROP {
+    std::vector<std::string> name_vect =
+      NeuralGPU_instance->GetSynGroupParamNames(i_syn_group);
+    char **name_array = (char**)malloc(name_vect.size()
+				       *sizeof(char*));
+    for (unsigned int i=0; i<name_vect.size(); i++) {
+      char *param_name = (char*)malloc((name_vect[i].length() + 1)
+				       *sizeof(char));
+      
+      strcpy(param_name, name_vect[i].c_str());
+      name_array[i] = param_name;
+    }
+    ret = name_array;
+    
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuralGPU_IsSynGroupParam(int i_syn_group, char *param_name)
+  { int ret; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuralGPU_instance->IsSynGroupParam(i_syn_group, param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuralGPU_GetSynGroupParamIdx(int i_syn_group, char *param_name)
+  { int ret; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuralGPU_instance->GetSynGroupParamIdx(i_syn_group, param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
+  float NeuralGPU_GetSynGroupParam(int i_syn_group, char *param_name)
+  { float ret; BEGIN_ERR_PROP {
+    
+    std::string param_name_str = std::string(param_name);
+    ret = NeuralGPU_instance->GetSynGroupParam(i_syn_group, param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuralGPU_SetSynGroupParam(int i_syn_group, char *param_name, float val)
+  { float ret; BEGIN_ERR_PROP {
+    
+    std::string param_name_str = std::string(param_name);
+    ret = NeuralGPU_instance->SetSynGroupParam(i_syn_group, param_name_str,
+					       val);
+  } END_ERR_PROP return ret; }
+
+
+
+  
 }
 

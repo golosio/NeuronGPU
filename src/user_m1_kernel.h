@@ -173,10 +173,10 @@ __device__
     w=0;
     return;
   }
-  if (refractory_step > 0) {
+  if (refractory_step > 0.0) {
     V_m = V_reset;
     if (end_time_step) {
-      refractory_step--;
+      refractory_step -= 1.0;
     }
   }
   else {

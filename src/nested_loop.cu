@@ -144,15 +144,18 @@ int NestedLoop::CumulSumNestedLoop(int Nx, int *d_Ny, int i_func)
     case 0:
       CumulSumNestedLoopKernel0<<<numBlocks, 1024>>>
 	(Nx, d_Ny_cumul_sum_, Ny_sum);
+      gpuErrchk(cudaPeekAtLastError());
+      gpuErrchk(cudaDeviceSynchronize());
       break;
     case 1:
       CumulSumNestedLoopKernel1<<<numBlocks, 1024>>>
 	(Nx, d_Ny_cumul_sum_, Ny_sum);
+      gpuErrchk(cudaPeekAtLastError());
+      gpuErrchk(cudaDeviceSynchronize());
       break;
     default:
       throw ngpu_exception("unknown nested loop function");
     }
-    gpuErrchk(cudaDeviceSynchronize());
 
     //TMP
     //printf("cst: %lf\n", getRealTime()-time_mark);

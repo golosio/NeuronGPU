@@ -18,12 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "node_group.h"
 #include "send_spike.h"
 #include "spike_buffer.h"
-				    //#include "rev_spike.h"
 #include "cuda_error.h"
 
 extern __constant__ int NeuralGPUTimeIdx;
 extern __constant__ NodeGroupStruct NodeGroupArray[];
 extern __device__ signed char *NodeGroupMap;
+
+extern __device__ void SynapseUpdate(int syn_group, float *w, int Dt);
 
 __device__ double atomicAddDouble(double* address, double val)
 {
@@ -72,10 +73,9 @@ __device__ void NestedLoopFunction0(int i_spike, int i_syn)
       = (unsigned short)(NeuralGPUTimeIdx & 0xffff);
     
     int Dt = NeuralGPUTimeIdx - LastSpikeTimeIdx[i_target];
-    // THIS IS TEMPORARY, JUST FOR TESTING
-    if (Dt>0 && Dt<100) {
-      ConnectionGroupTargetWeight[i_conn*NSpikeBuffer+i_source][i_syn]
-	= weight - Dt;
+     if (Dt>0 && Dt<MAX_SYN_DT) {
+       SynapseUpdate(syn_group, &ConnectionGroupTargetWeight
+		    [i_conn*NSpikeBuffer+i_source][i_syn], -Dt);
     }
   }
   ////////////////////////////////////////////////////////////////

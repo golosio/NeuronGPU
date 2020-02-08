@@ -19,6 +19,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "syn_model.h"
 #include "test_syn_model.h"
 
+int *d_SynGroupTypeMap;
+__device__ int *SynGroupTypeMap;
+
+float **d_SynGroupParamMap;
+__device__ float **SynGroupParamMap;
+
+__device__ void TestSynModelUpdate(float *w, int Dt, float *param);
+
+__device__ void SynapseUpdate(int syn_group, float *w, int Dt)
+{
+  int syn_type = SynGroupTypeMap[syn_group-1];
+  float *param = SynGroupParamMap[syn_group-1];
+  switch(syn_type) {
+  case i_test_syn_model:
+    TestSynModelUpdate(w, Dt, param);
+    break;
+  case i_stdp_model:
+    //STDPUpdate(w, Dt, param);
+    TestSynModelUpdate(w, Dt, param);
+    break;
+  }
+}
+
+
+__global__ void SynGroupInit(int *syn_group_type_map,
+			     float **syn_group_param_map)
+{
+  SynGroupTypeMap = syn_group_type_map;
+  SynGroupParamMap = syn_group_param_map;
+  
+}
+
 int SynModel::GetNParam()
 {
   return n_param_;
@@ -97,60 +129,91 @@ int NeuralGPU::CreateSynGroup(std::string model_name)
     throw ngpu_exception(std::string("Unknown synapse model name: ")
 			 + model_name);
   }
-  return (syn_group_vect_.size() - 1);
+  return syn_group_vect_.size(); // 0 is standard synapse
 }
 
 int NeuralGPU::GetSynGroupNParam(int syn_group)
 {
-  if (syn_group<0 || syn_group>(int)syn_group_vect_.size()) {
+  if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
   }
 
-  return syn_group_vect_[syn_group]->GetNParam();
+  return syn_group_vect_[syn_group-1]->GetNParam();
 }
 
 std::vector<std::string> NeuralGPU::GetSynGroupParamNames(int syn_group)
 {
-  if (syn_group<0 || syn_group>(int)syn_group_vect_.size()) {
+  if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
   }
 
-  return syn_group_vect_[syn_group]->GetParamNames();
+  return syn_group_vect_[syn_group-1]->GetParamNames();
 }
 
 bool NeuralGPU::IsSynGroupParam(int syn_group, std::string param_name)
 {
-  if (syn_group<0 || syn_group>(int)syn_group_vect_.size()) {
+  if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
   }
 
-  return syn_group_vect_[syn_group]->IsParam(param_name);
+  return syn_group_vect_[syn_group-1]->IsParam(param_name);
 }
 
 int NeuralGPU::GetSynGroupParamIdx(int syn_group, std::string param_name)
 {
-  if (syn_group<0 || syn_group>(int)syn_group_vect_.size()) {
+  if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
   }
 
-  return syn_group_vect_[syn_group]->GetParamIdx(param_name);
+  return syn_group_vect_[syn_group-1]->GetParamIdx(param_name);
 }
 
 float NeuralGPU::GetSynGroupParam(int syn_group, std::string param_name)
 {
-  if (syn_group<0 || syn_group>(int)syn_group_vect_.size()) {
+  if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
   }
 
-  return syn_group_vect_[syn_group]->GetParam(param_name);
+  return syn_group_vect_[syn_group-1]->GetParam(param_name);
 }
 
 int NeuralGPU::SetSynGroupParam(int syn_group, std::string param_name,
 				float val)
 {
-  if (syn_group<0 || syn_group>(int)syn_group_vect_.size()) {
+  if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
   }
 
-  return syn_group_vect_[syn_group]->SetParam(param_name, val);
+  return syn_group_vect_[syn_group-1]->SetParam(param_name, val);
 }
+
+
+int NeuralGPU::SynGroupCalibrate()
+{
+  int n_group = syn_group_vect_.size();
+  int *h_SynGroupTypeMap = new int[n_group];
+  float **h_SynGroupParamMap = new float*[n_group];
+
+  for (int syn_group=1; syn_group<=n_group; syn_group++) {
+    h_SynGroupTypeMap[syn_group-1] = syn_group_vect_[syn_group-1]->type_;
+    h_SynGroupParamMap[syn_group-1]
+      = syn_group_vect_[syn_group-1]->d_param_arr_;
+  }
+  gpuErrchk(cudaMalloc(&d_SynGroupTypeMap, n_group*sizeof(int)));
+  gpuErrchk(cudaMalloc(&d_SynGroupParamMap, n_group*sizeof(float*)));
+
+  gpuErrchk(cudaMemcpy(d_SynGroupTypeMap, h_SynGroupTypeMap,
+		       n_group*sizeof(int), cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(d_SynGroupParamMap, h_SynGroupParamMap,
+		       n_group*sizeof(float*), cudaMemcpyHostToDevice));
+
+  SynGroupInit<<<1,1>>>(d_SynGroupTypeMap, d_SynGroupParamMap);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  
+  delete[] h_SynGroupTypeMap;
+  delete[] h_SynGroupParamMap;
+
+  return 0;
+}
+

@@ -1630,3 +1630,17 @@ def GetStatus(gen_object, var_key=None):
     else:
         raise ValueError("Unknown key type in GetStatus", type(var_key))
 
+
+
+NeuralGPU_CreateSynGroup = _neuralgpu.NeuralGPU_CreateSynGroup
+NeuralGPU_CreateSynGroup.argtypes = (c_char_p,)
+NeuralGPU_CreateSynGroup.restype = ctypes.c_int
+def CreateSynGroup(model_name):
+    "Create a synapse group"
+    c_model_name = ctypes.create_string_buffer(str.encode(model_name), \
+                                               len(model_name)+1)
+    i_syn_group = NeuralGPU_CreateSynGroup(c_model_name) 
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return i_syn_group
+

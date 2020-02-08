@@ -519,6 +519,7 @@ class NeuralGPU
 
   int SetSynGroupParam(int syn_group, std::string param_name, float val);
 
+  int SynGroupCalibrate();
 };
 
 

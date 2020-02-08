@@ -241,7 +241,8 @@ int NeuralGPU::Calibrate()
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     node_vect_[i]->Calibrate(t_min_, time_resolution_);
   }
-
+  
+  SynGroupCalibrate();
 ///////////////////////////////////
 
   return 0;

@@ -13,10 +13,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
-				    //#include "neuralgpu.h"
 #include "spike_buffer.h"
 #include "cuda_error.h"
-
+#include "syn_model.h"
 
 #define SPIKE_TIME_DIFF_GUARD 15000 // must be less than 16384
 #define SPIKE_TIME_DIFF_THR 10000 // must be less than GUARD
@@ -26,6 +25,8 @@ extern __constant__ int NeuralGPUTimeIdx;
 unsigned int *d_RevSpikeNum;
 unsigned int *d_RevSpikeTarget;
 int *d_RevSpikeNConn;
+
+extern __device__ void SynapseUpdate(int syn_group, float *w, int Dt);
 
 __device__ unsigned int *RevSpikeNum;
 __device__ unsigned int *RevSpikeTarget;
@@ -44,9 +45,9 @@ __device__ void NestedLoopFunction1(int i_spike, int i_target_rev_conn)
     float *weight = &ConnectionWeight[i_conn];
     int spike_time_idx = ConnectionSpikeTime[i_conn];
     int Dt = ((int)NeuralGPUTimeIdx - spike_time_idx)&0xffff;
-    if (Dt<0) { // there was no spike from this connection
-      return;
-    }
+    //if (Dt<0) { // there was no spike from this connection
+    //  return;
+    //}
     // The following lines are for solving the problem of limited size of
     // connection spike time
     //if (Dt>SPIKE_TIME_DIFF_THR) { // there was no spike from this connection
@@ -59,10 +60,8 @@ __device__ void NestedLoopFunction1(int i_spike, int i_target_rev_conn)
     //	= (unsigned short)((NeuralGPUTimeIdx + SPIKE_TIME_DIFF_GUARD)&0xffff);
     //  return;
     //}
-    // STDP(Dt, &weight);
-    // TEST temporary:
-    if (Dt<100) {
-      *weight = *weight + Dt;
+    if (Dt>=0 && Dt<MAX_SYN_DT) {
+      SynapseUpdate(syn_group, weight, Dt);
     }
   }
 }

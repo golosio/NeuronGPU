@@ -5,6 +5,7 @@ tolerance = 1.0e-6
 dt_step = 0.1
 N = 5
 
+syn_group = ngpu.CreateSynGroup("test_syn_model")
 sg = ngpu.Create("spike_generator", N)
 neuron = ngpu.Create("aeif_cond_beta", 2*N)
 ngpu.SetStatus(neuron, {"n_refractory_steps": 100.0})
@@ -36,7 +37,7 @@ ngpu.Connect(sg, neuron1, conn_dict, syn_dict1)
 for i in range(N):
     delay_stdp = time_diff - dt_list[i]
     syn_dict_stdp={"weight":weight_stdp, "delay":delay_stdp, "receptor":0, \
-                   "synapse_group":1}
+                   "synapse_group":syn_group}
     ngpu.Connect([neuron0[i]], [neuron1[i]], conn_dict, syn_dict_stdp)
 
 ngpu.Simulate(200.0)
@@ -46,8 +47,8 @@ conn_status_dict = ngpu.GetStatus(conn_id, ["weight", "delay"])
 #print (conn_status_dict)
 for i in range(N):
     #print dt_list[i], conn_status_dict[i][0]
-    if abs(dt_list[i]*10 - conn_status_dict[i][0])>tolerance:
-        print("Expected weight: ", dt_list[i]*10, " simulated: ", \
+    if abs(dt_list[i] - conn_status_dict[i][0])>tolerance:
+        print("Expected weight: ", dt_list[i], " simulated: ", \
               conn_status_dict[i][0])
         sys.exit(1)
 

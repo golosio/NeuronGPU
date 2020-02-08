@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#define MAX_SYN_DT 16384
 enum SynModels {
   i_null_syn_model = 0, i_test_syn_model, i_stdp_model,
   N_SYN_MODELS
@@ -30,6 +31,7 @@ const std::string syn_model_name[N_SYN_MODELS] = {
 class SynModel
 {
  protected:
+  int type_;
   int n_param_;
   const std::string *param_name_;
   float *d_param_arr_;
@@ -41,6 +43,8 @@ class SynModel
   int GetParamIdx(std::string param_name);
   virtual float GetParam(std::string param_name);
   virtual int SetParam(std::string param_name, float val);
+
+  friend class NeuralGPU;
 };
 
 #endif

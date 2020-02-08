@@ -1644,3 +1644,77 @@ def CreateSynGroup(model_name):
         raise ValueError(GetErrorMessage())
     return i_syn_group
 
+  
+NeuralGPU_GetSynGroupNParam = _neuralgpu.NeuralGPU_GetSynGroupNParam
+NeuralGPU_GetSynGroupNParam.argtypes = (ctypes.c_int,)
+NeuralGPU_GetSynGroupNParam.restype = ctypes.c_int
+def GetSynGroupNParam(i_syn_group):
+    "Get number of synapse parameters for a given synapse group"
+    ret = NeuralGPU_GetSynGroupNParam(ctypes.c_int(i_syn_group))
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+  
+NeuralGPU_GetSynGroupParamNames = _neuralgpu.NeuralGPU_GetSynGroupParamNames
+NeuralGPU_GetSynGroupParamNames.argtypes = (ctypes.c_int,)
+NeuralGPU_GetSynGroupParamNames.restype = ctypes.POINTER(c_char_p)
+def GetSynGroupParamNames(i_syn_group):
+    "Get list of synapse group parameter names"
+    n_param = GetSynGroupNParam(i_syn_group)
+    param_name_pp = ctypes.cast(NeuralGPU_GetSynGroupParamNames(
+        ctypes.c_int(i_node)), ctypes.POINTER(c_char_p))
+    param_name_list = []
+    for i in range(n_param):
+        param_name_p = param_name_pp[i]
+        param_name = ctypes.cast(param_name_p, ctypes.c_char_p).value
+        param_name_list.append(param_name)
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return param_name_list
+
+
+NeuralGPU_IsSynGroupParam = _neuralgpu.NeuralGPU_IsSynGroupParam
+NeuralGPU_IsSynGroupParam.argtypes = (ctypes.c_int, c_char_p)
+NeuralGPU_IsSynGroupParam.restype = ctypes.c_int
+def IsSynGroupParam(i_node, param_name):
+    "Check name of synapse group parameter"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name),
+                                               len(param_name)+1)
+    ret = (NeuralGPU_IsSynGroupParam(ctypes.c_int(i_node), c_param_name)!=0) 
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+    
+NeuralGPU_GetSynGroupParam = _neuralgpu.NeuralGPU_GetSynGroupParam
+NeuralGPU_GetSynGroupParam.argtypes = (ctypes.c_int, c_char_p)
+NeuralGPU_GetSynGroupParam.restype = ctypes.c_float
+def GetSynGroupParam(i_syn_group, param_name):
+    "Get synapse group parameter value"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name),
+                                               len(param_name)+1)
+    ret = NeuralGPU_GetSynGroupParam(ctypes.c_int(i_syn_group),
+                                         c_param_name)
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+  
+NeuralGPU_SetSynGroupParam = _neuralgpu.NeuralGPU_SetSynGroupParam
+NeuralGPU_SetSynGroupParam.argtypes = (ctypes.c_int, c_char_p,
+                                       ctypes.c_float)
+NeuralGPU_SetSynGroupParam.restype = ctypes.c_int
+def SetSynGroupParam(i_syn_group, param_name, val):
+    "Set synapse group parameter value"
+    c_param_name = ctypes.create_string_buffer(str.encode(param_name),
+                                               len(param_name)+1)
+    ret = NeuralGPU_SetSynGroupParam(ctypes.c_int(i_syn_group),
+                                         c_param_name, ctypes.c_float(val))
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+

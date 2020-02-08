@@ -21,12 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SPIKE_TIME_DIFF_THR 10000 // must be less than GUARD
 
 extern __constant__ int NeuralGPUTimeIdx;
+extern __constant__ float NeuralGPUTimeResolution;
 
 unsigned int *d_RevSpikeNum;
 unsigned int *d_RevSpikeTarget;
 int *d_RevSpikeNConn;
 
-extern __device__ void SynapseUpdate(int syn_group, float *w, int Dt);
+extern __device__ void SynapseUpdate(int syn_group, float *w, float Dt);
 
 __device__ unsigned int *RevSpikeNum;
 __device__ unsigned int *RevSpikeTarget;
@@ -44,7 +45,7 @@ __device__ void NestedLoopFunction1(int i_spike, int i_target_rev_conn)
   if (syn_group>0) {
     float *weight = &ConnectionWeight[i_conn];
     int spike_time_idx = ConnectionSpikeTime[i_conn];
-    int Dt = ((int)NeuralGPUTimeIdx - spike_time_idx)&0xffff;
+    int Dt_int = ((int)NeuralGPUTimeIdx - spike_time_idx)&0xffff;
     //if (Dt<0) { // there was no spike from this connection
     //  return;
     //}
@@ -60,8 +61,8 @@ __device__ void NestedLoopFunction1(int i_spike, int i_target_rev_conn)
     //	= (unsigned short)((NeuralGPUTimeIdx + SPIKE_TIME_DIFF_GUARD)&0xffff);
     //  return;
     //}
-    if (Dt>=0 && Dt<MAX_SYN_DT) {
-      SynapseUpdate(syn_group, weight, Dt);
+    if (Dt_int>=0 && Dt_int<MAX_SYN_DT) {
+      SynapseUpdate(syn_group, weight, NeuralGPUTimeResolution*Dt_int);
     }
   }
 }

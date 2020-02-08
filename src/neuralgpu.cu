@@ -48,6 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VERBOSE_TIME
 
 __constant__ int NeuralGPUTimeIdx;
+__constant__ float NeuralGPUTimeResolution;
 
 NeuralGPU::NeuralGPU()
 {
@@ -243,6 +244,9 @@ int NeuralGPU::Calibrate()
   }
   
   SynGroupCalibrate();
+  
+  gpuErrchk(cudaMemcpyToSymbol(NeuralGPUTimeResolution, &time_resolution_,
+			       sizeof(float)));
 ///////////////////////////////////
 
   return 0;

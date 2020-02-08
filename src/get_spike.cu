@@ -21,10 +21,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cuda_error.h"
 
 extern __constant__ int NeuralGPUTimeIdx;
+extern __constant__ float NeuralGPUTimeResolution;
 extern __constant__ NodeGroupStruct NodeGroupArray[];
 extern __device__ signed char *NodeGroupMap;
 
-extern __device__ void SynapseUpdate(int syn_group, float *w, int Dt);
+extern __device__ void SynapseUpdate(int syn_group, float *w, float Dt);
 
 __device__ double atomicAddDouble(double* address, double val)
 {
@@ -72,10 +73,11 @@ __device__ void NestedLoopFunction0(int i_spike, int i_syn)
     ConnectionGroupTargetSpikeTime[i_conn*NSpikeBuffer+i_source][i_syn]
       = (unsigned short)(NeuralGPUTimeIdx & 0xffff);
     
-    int Dt = NeuralGPUTimeIdx - LastSpikeTimeIdx[i_target];
-     if (Dt>0 && Dt<MAX_SYN_DT) {
+    int Dt_int = NeuralGPUTimeIdx - LastSpikeTimeIdx[i_target];
+     if (Dt_int>0 && Dt_int<MAX_SYN_DT) {
        SynapseUpdate(syn_group, &ConnectionGroupTargetWeight
-		    [i_conn*NSpikeBuffer+i_source][i_syn], -Dt);
+		    [i_conn*NSpikeBuffer+i_source][i_syn],
+		     -NeuralGPUTimeResolution*Dt_int);
     }
   }
   ////////////////////////////////////////////////////////////////

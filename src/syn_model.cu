@@ -25,9 +25,9 @@ __device__ int *SynGroupTypeMap;
 float **d_SynGroupParamMap;
 __device__ float **SynGroupParamMap;
 
-__device__ void TestSynModelUpdate(float *w, int Dt, float *param);
+__device__ void TestSynModelUpdate(float *w, float Dt, float *param);
 
-__device__ void SynapseUpdate(int syn_group, float *w, int Dt)
+__device__ void SynapseUpdate(int syn_group, float *w, float Dt)
 {
   int syn_type = SynGroupTypeMap[syn_group-1];
   float *param = SynGroupParamMap[syn_group-1];

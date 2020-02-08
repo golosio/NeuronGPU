@@ -20,10 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace test_syn_model_ns;
 
-__device__ void TestSynModelUpdate(float *w, int Dt, float *param)
+__device__ void TestSynModelUpdate(float *w, float Dt, float *param)
 {
   float fact = param[0];
-  *w += fact*Dt;
+  float offset = param[1];
+  *w += offset + fact*Dt;
 }
 
 int TestSynModel::Init()
@@ -33,6 +34,7 @@ int TestSynModel::Init()
   param_name_ = test_syn_model_param_name;
   gpuErrchk(cudaMalloc(&d_param_arr_, n_param_*sizeof(float)));
   SetParam("fact", 0.1);
+  SetParam("offset", 0.0);
 
   return 0;
 }

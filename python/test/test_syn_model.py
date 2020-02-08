@@ -4,8 +4,13 @@ import neuralgpu as ngpu
 tolerance = 1.0e-6
 dt_step = 0.1
 N = 5
+fact = 0.2
+offset = 0.03
 
 syn_group = ngpu.CreateSynGroup("test_syn_model")
+ngpu.SetSynGroupParam(syn_group, "fact", fact)
+ngpu.SetSynGroupParam(syn_group, "offset", offset)
+
 sg = ngpu.Create("spike_generator", N)
 neuron = ngpu.Create("aeif_cond_beta", 2*N)
 ngpu.SetStatus(neuron, {"n_refractory_steps": 100.0})
@@ -47,8 +52,9 @@ conn_status_dict = ngpu.GetStatus(conn_id, ["weight", "delay"])
 #print (conn_status_dict)
 for i in range(N):
     #print dt_list[i], conn_status_dict[i][0]
-    if abs(dt_list[i] - conn_status_dict[i][0])>tolerance:
-        print("Expected weight: ", dt_list[i], " simulated: ", \
+    expect_w = dt_list[i]*fact + offset
+    if abs(expect_w - conn_status_dict[i][0])>tolerance:
+        print("Expected weight: ", expect_w, " simulated: ", \
               conn_status_dict[i][0])
         sys.exit(1)
 

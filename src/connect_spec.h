@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 
+#define STANDARD_SYNAPSE 0
+
 class NeuralGPU;
 
 template <class T>

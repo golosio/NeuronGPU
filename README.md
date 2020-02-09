@@ -1,16 +1,17 @@
 # NeuralGPU
-A GPU library for simulation of large scale networks of biological neurons
+A GPU-MPI library for simulation of large scale networks of biological neurons.
+Can be used in Python, in C++ and in C.
 
 # NeuralGPU software specifications
-* Simulated neuron model: multisynapse adaptive exponential integrate and fire model (AEIF, also called AdEx), see below, and two user definable models.
+* Simulated neuron models: multisynapse adaptive exponential integrate and fire model (AEIF, also called AdEx), and two user definable models.
+* Simulated devices: Poisson signal generator, spike generator, multimeter, spike detector, parrot neuron.
+* Synapse model: standard synapse, STDP (spike timing dependent plasticity), test synapse model
 * Synaptic current model: conductance based model with independent rise time and decay time described by alpha or beta function.
 * Differential equation integration method: 5th order Runge-Kutta with adaptive step-size control.
-* Synapse model: standard synapse.
-* Connection parameters: weight, delay, receptor port.
-* Connection rules: one-to-one, all-to-all, fixed indegree, fixed outdegree, user defined.
+* Connection rules: one-to-one, all-to-all, fixed indegree, fixed outdegree, fixed total  number, user defined.
+* Possibility to use arrays and distributions for connection weights and delays 
 * GPU Cluster: efficient implementation of GPU-MPI.
 * Numeric precision: 32 bit float.
-* Simulated devices: Poisson signal generator, spike generator, multimeter, spike detector, parrot neuron.
 * Simulation real time: on a machine with a single Nvidia GeForce RTX 2080 Ti GPU board, NeuralGPU is about 20 times faster than CPU code running on a PC with a CPU Intel CORE I9-9900K with with a frequency of 3.6GHz and 16 hardware threads.
 * Installation requirements:
 CUDA Toolkit

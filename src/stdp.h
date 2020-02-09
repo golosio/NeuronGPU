@@ -27,14 +27,13 @@ class STDP : public SynModel
 namespace stdp_ns
 {
   enum ParamIndexes {
-    i_tau_plus = 0, i_tau_minus, i_lambda, i_alpha, i_mu_plus, i_mu_minus,
-    i_Wmax, i_Kplus, i_Kminus,
+    i_tau_plus = 0, i_tau_minus, i_Wplus, i_alpha, i_mu_plus, i_mu_minus,
+    i_Wmax,
     N_PARAM
   };
 
   const std::string stdp_param_name[N_PARAM] = {
-    "tau_plus", "tau_minus", "lambda", "alpha", "mu_plus", "mu_minus", "Wmax",
-    "Kplus", "Kminus"
+    "tau_plus", "tau_minus", "Wplus", "alpha", "mu_plus", "mu_minus", "Wmax"
    
   };
 

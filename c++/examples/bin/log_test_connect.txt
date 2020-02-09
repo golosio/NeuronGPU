@@ -2,176 +2,176 @@
 Even to all
   i_source 0
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 100
   delay 1
 
   i_source 0
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 300
   delay 3
 
   i_source 0
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 500
   delay 5
 
   i_source 0
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 700
   delay 7
 
   i_source 0
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 900
   delay 9
 
   i_source 2
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2100
   delay 21
 
   i_source 2
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2300
   delay 23
 
   i_source 2
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2500
   delay 25
 
   i_source 2
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2700
   delay 27
 
   i_source 2
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2900
   delay 29
 
   i_source 4
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4100
   delay 41
 
   i_source 4
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4300
   delay 43
 
   i_source 4
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4500
   delay 45
 
   i_source 4
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4700
   delay 47
 
   i_source 4
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4900
   delay 49
 
   i_source 6
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6100
   delay 61
 
   i_source 6
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6300
   delay 63
 
   i_source 6
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6500
   delay 65
 
   i_source 6
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6700
   delay 67
 
   i_source 6
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6900
   delay 69
 
   i_source 8
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8100
   delay 81
 
   i_source 8
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8300
   delay 83
 
   i_source 8
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8500
   delay 85
 
   i_source 8
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8700
   delay 87
 
   i_source 8
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8900
   delay 89
 
@@ -180,176 +180,176 @@ Even to all
 All to odd
   i_source 0
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 100
   delay 1
 
   i_source 0
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 300
   delay 3
 
   i_source 0
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 500
   delay 5
 
   i_source 0
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 700
   delay 7
 
   i_source 0
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 900
   delay 9
 
   i_source 2
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2100
   delay 21
 
   i_source 2
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2300
   delay 23
 
   i_source 2
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2500
   delay 25
 
   i_source 2
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2700
   delay 27
 
   i_source 2
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2900
   delay 29
 
   i_source 4
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4100
   delay 41
 
   i_source 4
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4300
   delay 43
 
   i_source 4
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4500
   delay 45
 
   i_source 4
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4700
   delay 47
 
   i_source 4
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4900
   delay 49
 
   i_source 6
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6100
   delay 61
 
   i_source 6
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6300
   delay 63
 
   i_source 6
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6500
   delay 65
 
   i_source 6
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6700
   delay 67
 
   i_source 6
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6900
   delay 69
 
   i_source 8
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8100
   delay 81
 
   i_source 8
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8300
   delay 83
 
   i_source 8
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8500
   delay 85
 
   i_source 8
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8700
   delay 87
 
   i_source 8
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8900
   delay 89
 
@@ -358,71 +358,71 @@ All to odd
 Even to 3,4,5,6
   i_source 0
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 300
   delay 3
 
   i_source 0
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 500
   delay 5
 
   i_source 2
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2300
   delay 23
 
   i_source 2
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 2500
   delay 25
 
   i_source 4
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4300
   delay 43
 
   i_source 4
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4500
   delay 45
 
   i_source 6
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6300
   delay 63
 
   i_source 6
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6500
   delay 65
 
   i_source 8
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8300
   delay 83
 
   i_source 8
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 8500
   delay 85
 
@@ -431,71 +431,71 @@ Even to 3,4,5,6
 3,4,5,6 to odd
   i_source 4
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4100
   delay 41
 
   i_source 4
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4300
   delay 43
 
   i_source 4
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4500
   delay 45
 
   i_source 4
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4700
   delay 47
 
   i_source 4
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 4900
   delay 49
 
   i_source 6
   i_target 1
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6100
   delay 61
 
   i_source 6
   i_target 3
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6300
   delay 63
 
   i_source 6
   i_target 5
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6500
   delay 65
 
   i_source 6
   i_target 7
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6700
   delay 67
 
   i_source 6
   i_target 9
-  i_port 0
-  i_syn 0
+  port 0
+  syn_group 0
   weight 6900
   delay 69
 

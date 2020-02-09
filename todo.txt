@@ -1,15 +1,10 @@
-Implement stdp
-
-Produce build system and check it on different linux, mac (windows?)
+Produce build system and check it on different OSs: linux, mac, windows?
 
 Write tutorial
 
-implement other tests
+implement new tests and improve new ones
 
 implement other neuron models
 
 Make rk5 dynamic?
-
-
-
 

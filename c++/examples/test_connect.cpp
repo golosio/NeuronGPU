@@ -69,14 +69,14 @@ int main(int argc, char *argv[])
   for (unsigned int i=0; i<conn_stat_vect.size(); i++) {
     int i_source = conn_stat_vect[i].i_source;
     int i_target = conn_stat_vect[i].i_target;
-    int i_port = conn_stat_vect[i].i_port;
-    int i_syn = conn_stat_vect[i].i_syn;
+    int port = conn_stat_vect[i].port;
+    int syn_group = conn_stat_vect[i].syn_group;
     float weight = conn_stat_vect[i].weight;
     float delay = conn_stat_vect[i].delay;
     std::cout << "  i_source " << i_source << "\n";
     std::cout << "  i_target " << i_target << "\n";
-    std::cout << "  i_port " << i_port << "\n";
-    std::cout << "  i_syn " << i_syn << "\n";
+    std::cout << "  port " << port << "\n";
+    std::cout << "  syn_group " << syn_group << "\n";
     std::cout << "  weight " << weight << "\n";
     std::cout << "  delay " << delay << "\n";
     std::cout << "\n";
@@ -92,14 +92,14 @@ int main(int argc, char *argv[])
   for (unsigned int i=0; i<conn_stat_vect.size(); i++) {
     int i_source = conn_stat_vect[i].i_source;
     int i_target = conn_stat_vect[i].i_target;
-    int i_port = conn_stat_vect[i].i_port;
-    int i_syn = conn_stat_vect[i].i_syn;
+    int port = conn_stat_vect[i].port;
+    int syn_group = conn_stat_vect[i].syn_group;
     float weight = conn_stat_vect[i].weight;
     float delay = conn_stat_vect[i].delay;
     std::cout << "  i_source " << i_source << "\n";
     std::cout << "  i_target " << i_target << "\n";
-    std::cout << "  i_port " << i_port << "\n";
-    std::cout << "  i_syn " << i_syn << "\n";
+    std::cout << "  port " << port << "\n";
+    std::cout << "  syn_group " << syn_group << "\n";
     std::cout << "  weight " << weight << "\n";
     std::cout << "  delay " << delay << "\n";
     std::cout << "\n";
@@ -116,14 +116,14 @@ int main(int argc, char *argv[])
   for (unsigned int i=0; i<conn_stat_vect.size(); i++) {
     int i_source = conn_stat_vect[i].i_source;
     int i_target = conn_stat_vect[i].i_target;
-    int i_port = conn_stat_vect[i].i_port;
-    int i_syn = conn_stat_vect[i].i_syn;
+    int port = conn_stat_vect[i].port;
+    int syn_group = conn_stat_vect[i].syn_group;
     float weight = conn_stat_vect[i].weight;
     float delay = conn_stat_vect[i].delay;
     std::cout << "  i_source " << i_source << "\n";
     std::cout << "  i_target " << i_target << "\n";
-    std::cout << "  i_port " << i_port << "\n";
-    std::cout << "  i_syn " << i_syn << "\n";
+    std::cout << "  port " << port << "\n";
+    std::cout << "  syn_group " << syn_group << "\n";
     std::cout << "  weight " << weight << "\n";
     std::cout << "  delay " << delay << "\n";
     std::cout << "\n";
@@ -139,14 +139,14 @@ int main(int argc, char *argv[])
   for (unsigned int i=0; i<conn_stat_vect.size(); i++) {
     int i_source = conn_stat_vect[i].i_source;
     int i_target = conn_stat_vect[i].i_target;
-    int i_port = conn_stat_vect[i].i_port;
-    int i_syn = conn_stat_vect[i].i_syn;
+    int port = conn_stat_vect[i].port;
+    int syn_group = conn_stat_vect[i].syn_group;
     float weight = conn_stat_vect[i].weight;
     float delay = conn_stat_vect[i].delay;
     std::cout << "  i_source " << i_source << "\n";
     std::cout << "  i_target " << i_target << "\n";
-    std::cout << "  i_port " << i_port << "\n";
-    std::cout << "  i_syn " << i_syn << "\n";
+    std::cout << "  port " << port << "\n";
+    std::cout << "  syn_group " << syn_group << "\n";
     std::cout << "  weight " << weight << "\n";
     std::cout << "  delay " << delay << "\n";
     std::cout << "\n";

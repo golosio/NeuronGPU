@@ -24,28 +24,22 @@ __device__ void STDPUpdate(float *weight_pt, float Dt, float *param)
 {
   float tau_plus = param[i_tau_plus];
   float tau_minus = param[i_tau_minus];
-  float lambda = param[i_lambda];
+  float Wplus = param[i_Wplus];
   float alpha = param[i_alpha];
   float mu_plus = param[i_mu_plus];
   float mu_minus = param[i_mu_minus];
   float Wmax = param[i_Wmax];
-  float Kplus = param[i_Kplus];
-  float Kminus = param[i_Kminus];
 
   float w = *weight_pt;
   if (Dt>=0) {
-    float fact = Kplus*exp(-Dt/tau_plus);
-    //float norm_w = ((w/Wmax) + (lambda*pow(1.0 - (w/Wmax), mu_plus)))*fact);
-    //*weight_pt = norm_w < 1.0 ? norm_w * Wmax : Wmax;
-    float Dw = pow(1.0 - w/Wmax, mu_plus)*fact;
-    *weight_pt = w + Dw;
+    float fact = Wplus*exp(-Dt/tau_plus);
+    float w1 = w + fact*pow(1.0 - w/Wmax, mu_plus);
+    *weight_pt = w1 < Wmax ? w1 : Wmax;
   }
   else {
-    float fact = -Kminus*exp(Dt/tau_minus);
-    //float norm_w = ((w/Wmax) - (alpha*lambda*pow(w/Wmax, mu_minus)*fact);
-    //*weight_pt = norm_w > 0.0 ? norm_w * Wmax : 0.0;
-    float Dw = pow(w/Wmax, mu_minus)*fact;
-    *weight_pt = w + Dw;
+    float fact = -alpha*Wplus*exp(Dt/tau_minus);
+    float w1 = w + fact*pow(w/Wmax, mu_minus);
+    *weight_pt =     *weight_pt = w1 >0.0 ? w1 : 0.0;
   }
 }
 
@@ -57,13 +51,11 @@ int STDP::Init()
   gpuErrchk(cudaMalloc(&d_param_arr_, n_param_*sizeof(float)));
   SetParam("tau_plus", 20.0);
   SetParam("tau_minus", 20.0);
-  SetParam("lambda", 0.01);
+  SetParam("Wplus", 0.01);
   SetParam("alpha", 1.0);
   SetParam("mu_plus", 1.0);
   SetParam("mu_minus", 1.0);
   SetParam("Wmax", 100.0);
-  SetParam("Kplus", 0.03);
-  SetParam("Kminus", 1.035*0.03);
 
   return 0;
 }

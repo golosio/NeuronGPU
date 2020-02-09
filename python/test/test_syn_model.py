@@ -30,7 +30,7 @@ ngpu.SetStatus(sg, {"spike_time": spike_time, "spike_height":spike_height})
 delay0 = 1.0
 delay1 = delay0 + time_diff
 weight_sg = 17.9
-weight_stdp = 0.0
+weight_test = 0.0
 
 conn_dict={"rule": "one_to_one"}
 syn_dict0={"weight":weight_sg, "delay":delay0, "receptor":0, "synapse_group":0}
@@ -40,10 +40,10 @@ ngpu.Connect(sg, neuron0, conn_dict, syn_dict0)
 ngpu.Connect(sg, neuron1, conn_dict, syn_dict1)
 
 for i in range(N):
-    delay_stdp = time_diff - dt_list[i]
-    syn_dict_stdp={"weight":weight_stdp, "delay":delay_stdp, "receptor":0, \
+    delay_test = time_diff - dt_list[i]
+    syn_dict_test={"weight":weight_test, "delay":delay_test, "receptor":0, \
                    "synapse_group":syn_group}
-    ngpu.Connect([neuron0[i]], [neuron1[i]], conn_dict, syn_dict_stdp)
+    ngpu.Connect([neuron0[i]], [neuron1[i]], conn_dict, syn_dict_test)
 
 ngpu.Simulate(200.0)
 

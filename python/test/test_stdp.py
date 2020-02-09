@@ -1,14 +1,15 @@
 import sys
 import neuralgpu as ngpu
 
-dt_step = 1.0
+dt_step = 5.0
 N = 50
 
 syn_group = ngpu.CreateSynGroup("stdp")
 
 sg = ngpu.Create("spike_generator", N)
-neuron = ngpu.Create("aeif_cond_beta", 2*N)
+neuron = ngpu.Create("aeif_cond_beta", 2*N, 2)
 ngpu.SetStatus(neuron, {"n_refractory_steps": 10000.0})
+ngpu.SetStatus(neuron, {"taus_rise":[2.0, 1000.0], "taus_decay":[20.0, 2000]})
 neuron0 = neuron[0:N-1]
 neuron1 = neuron[N:2*N-1]
 dt_list = []
@@ -36,7 +37,7 @@ ngpu.Connect(sg, neuron1, conn_dict, syn_dict1)
 
 for i in range(N):
     delay_stdp = time_diff - dt_list[i]
-    syn_dict_stdp={"weight":weight_stdp, "delay":delay_stdp, "receptor":0, \
+    syn_dict_stdp={"weight":weight_stdp, "delay":delay_stdp, "receptor":1, \
                    "synapse_group":syn_group}
     ngpu.Connect([neuron0[i]], [neuron1[i]], conn_dict, syn_dict_stdp)
 

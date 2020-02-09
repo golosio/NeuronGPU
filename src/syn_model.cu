@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuralgpu.h"
 #include "syn_model.h"
 #include "test_syn_model.h"
+#include "stdp.h"
 
 int *d_SynGroupTypeMap;
 __device__ int *SynGroupTypeMap;
@@ -26,6 +27,8 @@ float **d_SynGroupParamMap;
 __device__ float **SynGroupParamMap;
 
 __device__ void TestSynModelUpdate(float *w, float Dt, float *param);
+
+__device__ void STDPUpdate(float *w, float Dt, float *param);
 
 __device__ void SynapseUpdate(int syn_group, float *w, float Dt)
 {
@@ -36,8 +39,7 @@ __device__ void SynapseUpdate(int syn_group, float *w, float Dt)
     TestSynModelUpdate(w, Dt, param);
     break;
   case i_stdp_model:
-    //STDPUpdate(w, Dt, param);
-    TestSynModelUpdate(w, Dt, param);
+    STDPUpdate(w, Dt, param);
     break;
   }
 }
@@ -124,6 +126,10 @@ int NeuralGPU::CreateSynGroup(std::string model_name)
   if (model_name == syn_model_name[i_test_syn_model]) {
     TestSynModel *test_syn_model_group = new TestSynModel;
     syn_group_vect_.push_back(test_syn_model_group);
+  }
+  else if (model_name == syn_model_name[i_stdp_model]) {
+    STDP *stdp_group = new STDP;
+    syn_group_vect_.push_back(stdp_group);
   }
   else {
     throw ngpu_exception(std::string("Unknown synapse model name: ")

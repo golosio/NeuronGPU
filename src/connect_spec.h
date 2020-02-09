@@ -59,15 +59,6 @@ public:
   friend class NeuralGPU;
 };
 
-enum SynapseTypes
-  {
-   STANDARD_SYNAPSE=0, STDP, N_SYNAPSE_TYPE
-  };
-
-const std::string synapse_type_name[N_SYNAPSE_TYPE] =
-  {
-   "standard_synapse", "stdp"
-  };
 
 class SynSpec
 {

@@ -252,7 +252,12 @@ int NeuralGPU::Calibrate()
   return 0;
 }
 
-int NeuralGPU::Simulate(float sim_time)
+int NeuralGPU::Simulate(float sim_time) {
+  sim_time_ = sim_time;
+  return Simulate();
+}
+
+int NeuralGPU::Simulate()
 {
   double SpikeBufferUpdate_time = 0;
   double poisson_generator_time = 0;
@@ -266,8 +271,6 @@ int NeuralGPU::Simulate(float sim_time)
   double SpikeReset_time = 0;
   double ExternalSpikeReset_time = 0;
   double time_mark;
-
-  sim_time_ = sim_time;
   
   if (!calibrate_flag_) {
     Calibrate();

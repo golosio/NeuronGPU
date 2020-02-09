@@ -23,6 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
+extern __constant__ float NeuralGPUTimeResolution;
+
 namespace user_m1_ns
 {
 enum ScalVarIndexes {
@@ -49,7 +51,7 @@ enum ScalParamIndexes {
   i_I_e,
   i_V_peak,
   i_V_reset,
-  i_n_refractory_steps,
+  i_t_ref,
   i_refractory_step,
   N_SCAL_PARAM
 };
@@ -84,7 +86,7 @@ const std::string user_m1_scal_param_name[N_SCAL_PARAM] = {
   "I_e",
   "V_peak",
   "V_reset",
-  "n_refractory_steps",
+  "t_ref",
   "refractory_step"
 };
 
@@ -121,7 +123,7 @@ const std::string user_m1_port_param_name[N_PORT_PARAM] = {
 #define I_e param[i_I_e]
 #define V_peak param[i_V_peak]
 #define V_reset param[i_V_reset]
-#define n_refractory_steps param[i_n_refractory_steps]
+#define t_ref param[i_t_ref]
 #define refractory_step param[i_refractory_step]
 
 #define E_rev(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_E_rev]
@@ -185,7 +187,10 @@ __device__
       PushSpike(data_struct.i_node_0_ + neuron_idx, 1.0);
       V_m = V_reset;
       w += b; // spike-driven adaptation
-      refractory_step = n_refractory_steps;
+      refractory_step = (int)round(t_ref/NeuralGPUTimeResolution);
+      if (refractory_step<0) {
+	refractory_step = 0;
+      }
     }
   }
 }

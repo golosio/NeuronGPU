@@ -344,7 +344,10 @@ class NeuralGPU
 			float *spike_height);
 
   int Calibrate();
-  int Simulate(float sim_time=1000.0);
+  
+  int Simulate();
+
+  int Simulate(float sim_time);
 
   int ConnectMpiInit(int argc, char *argv[]);
 

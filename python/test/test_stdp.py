@@ -37,7 +37,7 @@ syn_group = ngpu.CreateSynGroup \
 
 sg = ngpu.Create("spike_generator", N)
 neuron = ngpu.Create("aeif_cond_beta", 2*N)
-ngpu.SetStatus(neuron, {"n_refractory_steps": 10000.0})
+ngpu.SetStatus(neuron, {"t_ref": 1000.0})
 neuron0 = neuron[0:N-1]
 neuron1 = neuron[N:2*N-1]
 dt_list = []

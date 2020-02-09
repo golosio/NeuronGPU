@@ -13,6 +13,8 @@ for fn in test_brunel_mpi.py test_brunel_outdegree_mpi.py; do
 done
 for fn in syn_group connect getarr setvar2 setvar3; do
     python test_$fn.py > tmp
-    diff -qs tmp log_$fn.txt
+    diff -qs tmp log_$fn.txt >> log.txt
+    res=$?
+    echo ${pass_str[$res]}    
 done
 rm tmp

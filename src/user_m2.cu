@@ -39,7 +39,7 @@ void NodeInit(int n_var, int n_param, float x, float *y, float *param,
   I_e = 0.0;
   V_peak = 0.0;
   V_reset = -60.0;
-  n_refractory_steps = 1;
+  t_ref = 0.0;
   
   V_m = E_L;
   w = 0;

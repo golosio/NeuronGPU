@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RK5INTERFACEH
 
 #include "aeif_cond_beta_rk5.h"
+#include "aeif_psc_exp_rk5.h"
 
 
 #endif

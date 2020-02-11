@@ -47,13 +47,12 @@ for i in range(N):
     dt_list.append(dt_step*(-0.5*(N-1) + i))
     delay_stdp_list.append(time_diff - dt_list[i])
 
-spike_time = [50.0]
-spike_height = [1.0]
+spike_times = [50.0]
 n_spikes = 1
 
 
 # set spike times and height
-ngpu.SetStatus(sg, {"spike_time": spike_time, "spike_height":spike_height})
+ngpu.SetStatus(sg, {"spike_times": spike_times})
 delay0 = 1.0
 delay1 = delay0 + time_diff
 weight_sg = 17.9 # to make it spike immediately and only once

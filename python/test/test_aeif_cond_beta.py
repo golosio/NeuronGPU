@@ -7,12 +7,13 @@ neuron = ngpu.Create('aeif_cond_beta', 1, 3, \
                       'taus_decay':[40.0, 20.0, 30.0], \
                       'taus_rise':[20.0, 10.0, 5.0]})
 spike = ngpu.Create("spike_generator")
-spike_time = [10.0, 400.0]
-spike_height = [1.0, 0.5]
+spike_times = [10.0, 400.0]
+spike_heights = [1.0, 0.5]
 n_spikes = 2
 
-# set spike times and height
-ngpu.SetStatus(spike, {"spike_time": spike_time, "spike_height":spike_height})
+# set spike times and heights
+ngpu.SetStatus(spike, {"spike_times": spike_times, \
+                       "spike_heights":spike_heights})
 delay = [1.0, 100.0, 130.0]
 weight = [0.1, 0.2, 0.15]
 

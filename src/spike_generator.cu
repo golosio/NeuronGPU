@@ -31,7 +31,7 @@ enum {
 };
 
 const std::string spike_gen_array_param_name[N_SPIKE_GEN_ARRAY_PARAM]
-= {"spike_time", "spike_height"};
+= {"spike_times", "spike_heights"};
 
 __global__
 void spike_generatorUpdate(int i_node_0, int n_node, int i_time,

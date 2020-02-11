@@ -26,7 +26,7 @@ n_spikes = 1
 time_diff = 10.0
 
 # set spike times and height
-ngpu.SetStatus(sg, {"spike_time": spike_time, "spike_height":spike_height})
+ngpu.SetStatus(sg, {"spike_times": spike_time, "spike_heights":spike_height})
 delay0 = 1.0
 delay1 = delay0 + time_diff
 weight_sg = 17.9

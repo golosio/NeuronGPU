@@ -45,12 +45,12 @@ int main(int argc, char *argv[])
 
   NodeSeq sg = ngpu.Create("spike_generator"); // create spike generator
 
-  float spike_time[] = {10.0, 400.0};
-  float spike_height[] = {1.0, 0.5};
+  float spike_times[] = {10.0, 400.0};
+  float spike_heights[] = {1.0, 0.5};
   int n_spikes = 2;
   // set spike times and height
-  ngpu.SetNeuronParam(sg, "spike_time", spike_time, n_spikes);
-  ngpu.SetNeuronParam(sg, "spike_height", spike_height, n_spikes);
+  ngpu.SetNeuronParam(sg, "spike_times", spike_times, n_spikes);
+  ngpu.SetNeuronParam(sg, "spike_heights", spike_heights, n_spikes);
   
   float delay[] = {1.0, 100.0, 130.0};
   float weight[] = {0.1, 0.2, 0.15};

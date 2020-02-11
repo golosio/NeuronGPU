@@ -3,12 +3,12 @@ A GPU-MPI library for simulation of large scale networks of biological neurons.
 Can be used in Python, in C++ and in C.
 
 # NeuralGPU software specifications
-* Simulated neuron models: multisynapse adaptive exponential integrate and fire model (AEIF, also called AdEx), and two user definable models.
+* Simulated neuron models: different multisynapse AdEx models with current or conductance based synapses, and two user definable models.
 * Simulated devices: Poisson signal generator, spike generator, multimeter, spike detector, parrot neuron.
 * Synapse model: standard synapse, STDP (spike timing dependent plasticity), test synapse model
-* Synaptic current model: conductance based model with independent rise time and decay time described by alpha or beta function.
+* Synaptic current models: conductance based models with synaptic rise time and decay time described by the alpha or by the beta function, current based models with synaptic rise time and decay time described by exp, alpha or delta functions. 
 * Differential equation integration method: 5th order Runge-Kutta with adaptive step-size control.
-* Connection rules: one-to-one, all-to-all, fixed indegree, fixed outdegree, fixed total  number, user defined.
+* Connection rules: one-to-one, all-to-all, fixed indegree, fixed outdegree, fixed total number, user defined.
 * Possibility to use arrays and distributions for connection weights and delays 
 * GPU Cluster: efficient implementation of GPU-MPI.
 * Numeric precision: 32 bit float.

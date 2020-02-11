@@ -12,22 +12,28 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURONMODELSH
-#define NEURONMODELSH
+#ifndef AEIFCONDALPHARK5H
+#define AEIFCONDALPHARK5H
 
-enum NeuronModels {
-  i_null_model = 0, i_aeif_cond_beta_model, i_aeif_cond_alpha_model,
-  i_aeif_psc_exp_model, i_aeif_psc_alpha_model, i_aeif_psc_delta_model,
-  i_poisson_generator_model, i_spike_generator_model, i_parrot_neuron_model,
-  i_spike_detector_model, i_user_m1_model, i_user_m2_model,
-  N_NEURON_MODELS
-};
+struct aeif_cond_alpha_rk5;
 
-const std::string neuron_model_name[N_NEURON_MODELS] = {
-  "", "aeif_cond_beta", "aeif_cond_alpha", "aeif_psc_exp", "aeif_psc_alpha",
-  "aeif_psc_delta", "poisson_generator", "spike_generator",
-  "parrot_neuron", "spike_detector", "user_m1", "user_m2"
-};
+
+template<int NVAR, int NPARAM>
+__device__
+void Derivatives(float x, float *y, float *dydx, float *param,
+		 aeif_cond_alpha_rk5 data_struct);
+
+template<int NVAR, int NPARAM>
+__device__
+void ExternalUpdate(float x, float *y, float *param, bool end_time_step,
+		    aeif_cond_alpha_rk5 data_struct);
+
+__device__
+void NodeInit(int n_var, int n_param, float x, float *y,
+	      float *param, aeif_cond_alpha_rk5 data_struct);
+
+__device__
+void NodeCalibrate(int n_var, int n_param, float x, float *y,
+		   float *param, aeif_cond_alpha_rk5 data_struct);
 
 #endif
-

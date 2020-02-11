@@ -20,7 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_models.h"
 #include "neuralgpu.h"
 #include "aeif_cond_beta.h"
+#include "aeif_cond_alpha.h"
 #include "aeif_psc_exp.h"
+#include "aeif_psc_alpha.h"
 #include "aeif_psc_delta.h"
 #include "poiss_gen.h"
 #include "spike_generator.h"
@@ -43,9 +45,17 @@ NodeSeq NeuralGPU::Create(std::string model_name, int n_node /*=1*/,
     aeif_cond_beta *aeif_cond_beta_group = new aeif_cond_beta;
     node_vect_.push_back(aeif_cond_beta_group);
   }
+  else if (model_name == neuron_model_name[i_aeif_cond_alpha_model]) {
+    aeif_cond_alpha *aeif_cond_alpha_group = new aeif_cond_alpha;
+    node_vect_.push_back(aeif_cond_alpha_group);
+  }
   else if (model_name == neuron_model_name[i_aeif_psc_exp_model]) {
     aeif_psc_exp *aeif_psc_exp_group = new aeif_psc_exp;
     node_vect_.push_back(aeif_psc_exp_group);
+  }
+  else if (model_name == neuron_model_name[i_aeif_psc_alpha_model]) {
+    aeif_psc_alpha *aeif_psc_alpha_group = new aeif_psc_alpha;
+    node_vect_.push_back(aeif_psc_alpha_group);
   }
   else if (model_name == neuron_model_name[i_aeif_psc_delta_model]) {
     n_port = 1;

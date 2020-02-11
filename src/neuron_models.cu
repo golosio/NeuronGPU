@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuralgpu.h"
 #include "aeif_cond_beta.h"
 #include "aeif_psc_exp.h"
+#include "aeif_psc_delta.h"
 #include "poiss_gen.h"
 #include "spike_generator.h"
 #include "parrot_neuron.h"
@@ -45,6 +46,11 @@ NodeSeq NeuralGPU::Create(std::string model_name, int n_node /*=1*/,
   else if (model_name == neuron_model_name[i_aeif_psc_exp_model]) {
     aeif_psc_exp *aeif_psc_exp_group = new aeif_psc_exp;
     node_vect_.push_back(aeif_psc_exp_group);
+  }
+  else if (model_name == neuron_model_name[i_aeif_psc_delta_model]) {
+    n_port = 1;
+    aeif_psc_delta *aeif_psc_delta_group = new aeif_psc_delta;
+    node_vect_.push_back(aeif_psc_delta_group);
   }
   else if (model_name == neuron_model_name[i_user_m1_model]) {
     user_m1 *user_m1_group = new user_m1;

@@ -5,8 +5,8 @@ n_neurons = 3
 
 # create n_neurons neurons with 2 receptor ports
 neuron = ngpu.Create('aeif_cond_beta', n_neurons, 2)
-ngpu.SetStatus(neuron, {'taus_decay':[60.0, 10.0],
-                        'taus_rise':[40.0, 5.0]})
+ngpu.SetStatus(neuron, {'tau_decay':[60.0, 10.0],
+                        'tau_rise':[40.0, 5.0]})
 
 neuron0 = neuron[0:0]
 neuron1 = neuron[1:1]
@@ -18,8 +18,8 @@ ngpu.SetStatus(neuron2, {'g1':[0.1, 0.0]})
 
 
 # reading parameters and variables test
-read_td = ngpu.GetNeuronStatus(neuron, "taus_decay")
-read_tr = ngpu.GetNeuronStatus(neuron, "taus_rise")
+read_td = ngpu.GetNeuronStatus(neuron, "tau_decay")
+read_tr = ngpu.GetNeuronStatus(neuron, "tau_rise")
 read_Vm = ngpu.GetNeuronStatus(neuron, "V_m")
 read_Vth = ngpu.GetNeuronStatus(neuron, "V_th")
 read_g1 = ngpu.GetNeuronStatus(neuron, "g1")
@@ -32,8 +32,8 @@ print("read_g1", read_g1)
 
 # reading parameters and variables from neuron list test
 neuron_list = [neuron[1], neuron[2], neuron[0]]
-read1_td = ngpu.GetNeuronStatus(neuron_list, "taus_decay")
-read1_tr = ngpu.GetNeuronStatus(neuron_list, "taus_rise")
+read1_td = ngpu.GetNeuronStatus(neuron_list, "tau_decay")
+read1_tr = ngpu.GetNeuronStatus(neuron_list, "tau_rise")
 read1_Vm = ngpu.GetNeuronStatus(neuron_list, "V_m")
 read1_Vth = ngpu.GetNeuronStatus(neuron_list, "V_th")
 read1_g1 = ngpu.GetNeuronStatus(neuron_list, "g1")

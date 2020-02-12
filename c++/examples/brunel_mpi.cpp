@@ -73,11 +73,11 @@ int main(int argc, char *argv[])
   
   // the following parameters are set to the same values on all hosts
   float E_rev[] = {0.0, -85.0};
-  float taus_decay[] = {1.0, 1.0};
-  float taus_rise[] = {1.0, 1.0};
+  float tau_decay[] = {1.0, 1.0};
+  float tau_rise[] = {1.0, 1.0};
   ngpu.SetNeuronParam(neuron, "E_rev", E_rev, 2);
-  ngpu.SetNeuronParam(neuron, "taus_decay", taus_decay, 2);
-  ngpu.SetNeuronParam(neuron, "taus_rise", taus_rise, 2);
+  ngpu.SetNeuronParam(neuron, "tau_decay", tau_decay, 2);
+  ngpu.SetNeuronParam(neuron, "tau_rise", tau_rise, 2);
 
   // Excitatory local connections, defined on all hosts
   // connect excitatory neurons to port 0 of all neurons

@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 #include "dir_connect.h"
+#include <stdint.h>
 
 class NeuralGPU;
 
@@ -58,7 +59,7 @@ class BaseNeuron
   const std::string *array_param_name_;
   
   DirectConnection *d_dir_conn_array_;
-  long n_dir_conn_; // = 0;
+  uint64_t n_dir_conn_; // = 0;
   bool has_dir_conn_; // = false;
 
  public:

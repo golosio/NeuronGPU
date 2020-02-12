@@ -13,6 +13,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -912,7 +913,7 @@ int NeuralGPU::BuildDirectConnections()
 	  }
 	}
       }
-      long n_dir_conn = dir_conn_vect.size();
+      uint64_t n_dir_conn = dir_conn_vect.size();
       node_vect_[iv]->n_dir_conn_ = n_dir_conn;
       
       DirectConnection *d_dir_conn_array;

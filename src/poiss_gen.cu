@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <iostream>
 //#include <stdio.h>
+#include <stdint.h>
 #include <curand.h>
 #include <curand_kernel.h>
 
@@ -28,11 +29,11 @@ extern __device__ signed char *NodeGroupMap;
 
 extern __device__ double atomicAddDouble(double* address, double val);
 
-__global__ void SetupPoissKernel(curandState *curand_state, long n_dir_conn,
+__global__ void SetupPoissKernel(curandState *curand_state, uint64_t n_dir_conn,
 				 unsigned long long seed)
 {
-  long blockId   = (long)blockIdx.y * gridDim.x + blockIdx.x;
-  long i_conn = blockId * blockDim.x + threadIdx.x;
+  uint64_t blockId   = (uint64_t)blockIdx.y * gridDim.x + blockIdx.x;
+  uint64_t i_conn = blockId * blockDim.x + threadIdx.x;
   if (i_conn<n_dir_conn) {
     curand_init(seed, i_conn, 0, &curand_state[i_conn]);
   }
@@ -42,10 +43,10 @@ __global__ void PoissGenSendSpikeKernel(curandState *curand_state, float t,
 					float time_step, float *param_arr,
 					int n_param,
 					DirectConnection *dir_conn_array,
-					long n_dir_conn)
+					uint64_t n_dir_conn)
 {
-  long blockId   = (long)blockIdx.y * gridDim.x + blockIdx.x;
-  long i_conn = blockId * blockDim.x + threadIdx.x;
+  uint64_t blockId   = (uint64_t)blockIdx.y * gridDim.x + blockIdx.x;
+  uint64_t i_conn = blockId * blockDim.x + threadIdx.x;
   if (i_conn<n_dir_conn) {
     DirectConnection dir_conn = dir_conn_array[i_conn];
     int irel = dir_conn.irel_source_;

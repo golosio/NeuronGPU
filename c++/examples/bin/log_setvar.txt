@@ -3,31 +3,31 @@ Neuron n. 0
 	V_m: -80.000000
 	V_th: -50.400002
 	g1: 0.000000
-	taus_rise: 40.000000
-	taus_decay: 60.000000
+	tau_rise: 40.000000
+	tau_decay: 60.000000
 	g1: 0.000000
-	taus_rise: 5.000000
-	taus_decay: 10.000000
+	tau_rise: 5.000000
+	tau_decay: 10.000000
 
 Neuron n. 1
 	V_m: -70.599998
 	V_th: -50.400002
 	g1: 0.000000
-	taus_rise: 40.000000
-	taus_decay: 60.000000
+	tau_rise: 40.000000
+	tau_decay: 60.000000
 	g1: 0.100000
-	taus_rise: 5.000000
-	taus_decay: 10.000000
+	tau_rise: 5.000000
+	tau_decay: 10.000000
 
 Neuron n. 2
 	V_m: -70.599998
 	V_th: -50.400002
 	g1: 0.100000
-	taus_rise: 40.000000
-	taus_decay: 60.000000
+	tau_rise: 40.000000
+	tau_decay: 60.000000
 	g1: 0.000000
-	taus_rise: 5.000000
-	taus_decay: 10.000000
+	tau_rise: 5.000000
+	tau_decay: 10.000000
 
 Calibrating ...
 Simulating ...

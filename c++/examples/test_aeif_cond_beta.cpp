@@ -33,11 +33,11 @@ int main(int argc, char *argv[])
 
   // neuron parameters
   float E_rev[] = {20.0, 0.0, -85.0};
-  float taus_decay[] = {40.0, 20.0, 30.0};
-  float taus_rise[] = {20.0, 10.0, 5.0};
+  float tau_decay[] = {40.0, 20.0, 30.0};
+  float tau_rise[] = {20.0, 10.0, 5.0};
   ngpu.SetNeuronParam(neuron, "E_rev", E_rev, 3);
-  ngpu.SetNeuronParam(neuron, "taus_decay", taus_decay, 3);
-  ngpu.SetNeuronParam(neuron, "taus_rise", taus_rise, 3);
+  ngpu.SetNeuronParam(neuron, "tau_decay", tau_decay, 3);
+  ngpu.SetNeuronParam(neuron, "tau_rise", tau_rise, 3);
   ngpu.SetNeuronParam(neuron, "a", 4.0);
   ngpu.SetNeuronParam(neuron, "b", 80.5);
   ngpu.SetNeuronParam(neuron, "E_L", -70.6);
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   ngpu.SetNeuronParam(sg, "spike_heights", spike_heights, n_spikes);
   
   float delay[] = {1.0, 100.0, 130.0};
-  float weight[] = {0.1, 0.2, 0.15};
+  float weight[] = {0.1, 0.2, 0.5};
 
   for (int i_port=0; i_port<3; i_port++) {
     ConnSpec conn_spec(ALL_TO_ALL);

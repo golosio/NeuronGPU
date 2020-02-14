@@ -54,17 +54,17 @@ int main(int argc, char *argv[])
   
   // neuron parameters
   float E_rev[] = {0.0, 0.0, 0.0};
-  float taus_decay[] = {1.0, 1.0, 1.0};
-  float taus_rise[] = {1.0, 1.0, 1.0};
+  float tau_decay[] = {1.0, 1.0, 1.0};
+  float tau_rise[] = {1.0, 1.0, 1.0};
   ngpu.SetNeuronParam(neur_group1, "E_rev", E_rev, 3);
-  ngpu.SetNeuronParam(neur_group1, "taus_decay", taus_decay, 3);
-  ngpu.SetNeuronParam(neur_group1, "taus_rise", taus_rise, 3);
+  ngpu.SetNeuronParam(neur_group1, "tau_decay", tau_decay, 3);
+  ngpu.SetNeuronParam(neur_group1, "tau_rise", tau_rise, 3);
   ngpu.SetNeuronParam(neur_group2, "E_rev", E_rev, 1);
-  ngpu.SetNeuronParam(neur_group2, "taus_decay", taus_decay, 1);
-  ngpu.SetNeuronParam(neur_group2, "taus_rise", taus_rise, 1);
+  ngpu.SetNeuronParam(neur_group2, "tau_decay", tau_decay, 1);
+  ngpu.SetNeuronParam(neur_group2, "tau_rise", tau_rise, 1);
   ngpu.SetNeuronParam(neur_group3, "E_rev", E_rev, 2);
-  ngpu.SetNeuronParam(neur_group3, "taus_decay", taus_decay, 2);
-  ngpu.SetNeuronParam(neur_group3, "taus_rise", taus_rise, 2);
+  ngpu.SetNeuronParam(neur_group3, "tau_decay", tau_decay, 2);
+  ngpu.SetNeuronParam(neur_group3, "tau_rise", tau_rise, 2);
 
   int i11 = neur_group1[rand()%n_neur1];
   int i12 = neur_group2[rand()%n_neur2];

@@ -1,8 +1,7 @@
 import neuralgpu as ngpu
 
-neuron = ngpu.Create("aeif_cond_beta", 1, 1, {"t_ref":100})
-
-ngpu.SetStatus(neuron, {"I_e":1000.0})
+neuron = ngpu.Create("aeif_cond_beta", 1, 1)
+ngpu.SetStatus(neuron, {"t_ref":100.0, "I_e":1000.0})
 
 record = ngpu.CreateRecord("", ["V_m"], [neuron[0]], [0])
 

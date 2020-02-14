@@ -37,7 +37,7 @@ V_m=[row[1] for row in data_list]
 #    for i in range(len(t)):
 #        f.write("%s\t%s\n" % (t[i], V_m[i]))
 
-data = np.loadtxt('test_aeif_cond_beta_nest.txt', delimiter="\t")
+data = np.loadtxt('../test/test_aeif_cond_beta_nest.txt', delimiter="\t")
 t1=[x[0] for x in data ]
 V_m1=[x[1] for x in data ]
 print len(t)
@@ -46,7 +46,19 @@ print len(t1)
 dV=[V_m[i*10+20]-V_m1[i] for i in range(len(t1))]
 rmse =np.std(dV)/abs(np.mean(V_m))
 print("rmse : ", rmse, " tolerance: ", tolerance)
-if rmse>tolerance:
-    sys.exit(1)
+#if rmse>tolerance:
+#    sys.exit(1)
 
-sys.exit(0)
+#sys.exit(0)
+import matplotlib.pyplot as plt
+
+fig1 = plt.figure(1)
+plt.plot(t, V_m)
+fig1.suptitle("NeuralGPU")
+fig2 = plt.figure(2)
+plt.plot(t1, V_m1)
+fig2.suptitle("NEST")
+plt.draw()
+plt.pause(1)
+raw_input("<Hit Enter To Close>")
+plt.close()

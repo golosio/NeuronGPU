@@ -58,8 +58,8 @@ enum ScalParamIndexes {
 
 enum PortParamIndexes {
   i_E_rev = 0,
-  i_taus_rise,
-  i_taus_decay,
+  i_tau_rise,
+  i_tau_decay,
   i_g0,
   N_PORT_PARAM
 };
@@ -92,8 +92,8 @@ const std::string aeif_cond_beta_scal_param_name[N_SCAL_PARAM] = {
 
 const std::string aeif_cond_beta_port_param_name[N_PORT_PARAM] = {
   "E_rev",
-  "taus_rise",
-  "taus_decay",
+  "tau_rise",
+  "tau_decay",
   "g0"  
 };
 
@@ -127,8 +127,8 @@ const std::string aeif_cond_beta_port_param_name[N_PORT_PARAM] = {
 #define refractory_step param[i_refractory_step]
 
 #define E_rev(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_E_rev]
-#define taus_rise(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_taus_rise]
-#define taus_decay(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_taus_decay]
+#define tau_rise(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_rise]
+#define tau_decay(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_decay]
 #define g0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_g0]
 
 
@@ -152,8 +152,8 @@ __device__
   dwdt = (a*(V - E_L) - w) / tau_w;
   for (int i=0; i<n_port; i++) {
     // Synaptic conductance derivative
-    dg1dt(i) = -g1(i) / taus_rise(i);
-    dgdt(i) = g1(i) - g(i) / taus_decay(i);
+    dg1dt(i) = -g1(i) / tau_rise(i);
+    dgdt(i) = g1(i) - g(i) / tau_decay(i);
   }
 }
 

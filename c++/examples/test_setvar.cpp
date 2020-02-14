@@ -30,10 +30,10 @@ int main(int argc, char *argv[])
   
   // create n_neurons neurons with 2 receptor ports
   NodeSeq neuron = ngpu.Create("aeif_cond_beta", n_neurons, 2);
-  float taus_decay[] = {60.0, 10.0};
-  float taus_rise[] = {40.0, 5.0};
-  ngpu.SetNeuronParam(neuron, "taus_decay", taus_decay, 2);
-  ngpu.SetNeuronParam(neuron, "taus_rise", taus_rise, 2);
+  float tau_decay[] = {60.0, 10.0};
+  float tau_rise[] = {40.0, 5.0};
+  ngpu.SetNeuronParam(neuron, "tau_decay", tau_decay, 2);
+  ngpu.SetNeuronParam(neuron, "tau_rise", tau_rise, 2);
   
   NodeSeq neuron0 = neuron.Subseq(0,0);
   NodeSeq neuron1 = neuron.Subseq(1,1);
@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
   ngpu.SetNeuronVar(neuron2, "g1", g12, 2);
 
   // reading parameters and variables test
-  float *read_td = ngpu.GetNeuronParam(neuron, "taus_decay");
-  float *read_tr = ngpu.GetNeuronParam(neuron, "taus_rise");
+  float *read_td = ngpu.GetNeuronParam(neuron, "tau_decay");
+  float *read_tr = ngpu.GetNeuronParam(neuron, "tau_rise");
   float *read_Vm = ngpu.GetNeuronVar(neuron, "V_m");
   float *read_Vth = ngpu.GetNeuronParam(neuron, "V_th");
   float *read_g1 = ngpu.GetNeuronVar(neuron, "g1");
@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
     printf("\tV_th: %f\n", read_Vth[in]); 
     for (int ip=0; ip<2; ip++) {
       printf("\tg1: %f\n", read_g1[in*2+ip]);
-      printf("\ttaus_rise: %f\n", read_tr[in*2+ip]);
-      printf("\ttaus_decay: %f\n", read_td[in*2+ip]); 
+      printf("\ttau_rise: %f\n", read_tr[in*2+ip]);
+      printf("\ttau_decay: %f\n", read_td[in*2+ip]); 
     }
     printf("\n");
   }

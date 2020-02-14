@@ -1,8 +1,9 @@
 """ Python interface for NeuralGPU"""
 import sys, platform
 import ctypes, ctypes.util
+import os
 
-lib_path="/home/golosio/lib/libneuralgpu_C.so"
+lib_path=os.environ["NEURALGPU_PATH"]+"/lib/libneuralgpu_C.so"
 _neuralgpu=ctypes.CDLL(lib_path)
 
 c_float_p = ctypes.POINTER(ctypes.c_float)

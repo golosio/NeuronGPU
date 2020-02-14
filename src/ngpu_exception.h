@@ -23,20 +23,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <cstring>
 #include <exception>
-using namespace std;
 
 ///////////////////////////////////
 // ngpu_exception class definition
 // in case of errors displays a message and stop the execution
 //////////////////////////////////
-class ngpu_exception: public exception
+class ngpu_exception: public std::exception
 {
   const char *Message; // error message
   
  public:
   // constructors
   ngpu_exception(const char *ch)  {Message=strdup(ch);}
-  ngpu_exception(string s)  {Message=strdup(s.c_str());}
+  ngpu_exception(std::string s)  {Message=strdup(s.c_str());}
   // throw method
   virtual const char* what() const throw()
   {

@@ -19,8 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ngpu_exception.h"
 #include "connect.h"
 
-using namespace std;
-
 extern bool ConnectionSpikeTimeFlag; // provare a mettere nella classe?
 
 int NetConnection::Connect(int i_source, int i_target, unsigned char port,
@@ -44,14 +42,14 @@ int NetConnection::Connect(int i_source, int i_target, unsigned char port,
 int NetConnection::Insert(int d_int, int i_source, TargetSyn tg)
 {
   int id;
-  vector<ConnGroup> &conn = connection_[i_source];
+  std::vector<ConnGroup> &conn = connection_[i_source];
   int conn_size = conn.size();
   for (id=0; id<conn_size && d_int>conn[id].delay; id++) {}
   if (id==conn_size || d_int!=conn[id].delay) {
     ConnGroup new_conn;
     new_conn.delay = d_int;
     new_conn.target_vect.push_back(tg);
-    vector<ConnGroup>::iterator it = conn.begin() + id;
+    std::vector<ConnGroup>::iterator it = conn.begin() + id;
     conn.insert(it, new_conn);
   }
   else {
@@ -64,26 +62,26 @@ int NetConnection::Insert(int d_int, int i_source, TargetSyn tg)
 int NetConnection::Print()
 {
   for (unsigned int i_source=0; i_source<connection_.size(); i_source++) {
-    cout << "Source node: " << i_source << endl;
+    std::cout << "Source node: " << i_source << std::endl;
     ConnGroupPrint(i_source);
-    cout << endl;
+    std::cout << std::endl;
   }
   return 0;
 }
 
 int NetConnection::ConnGroupPrint(int i_source)
 {
-  vector<ConnGroup> &conn = connection_[i_source];
+  std::vector<ConnGroup> &conn = connection_[i_source];
   for (unsigned int id=0; id<conn.size(); id++) {
-    cout << "\tDelay: " << conn[id].delay << endl;
+    std::cout << "\tDelay: " << conn[id].delay << std::endl;
     std::vector<TargetSyn> tv = conn[id].target_vect;
-    cout << "\tTargets: " << endl;
+    std::cout << "\tTargets: " << std::endl;
     for (unsigned int i=0; i<tv.size(); i++) {
-      cout << "(" << tv[i].node << "," << (int)tv[i].port
+      std::cout << "(" << tv[i].node << "," << (int)tv[i].port
 	 << "," << (int)tv[i].syn_group
 	   << "," << tv[i].weight << ")  ";
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   
   return 0;
@@ -93,7 +91,7 @@ int NetConnection::MaxDelayNum()
 {
   int max_delay_num = 0;
   for (unsigned int i_node=0; i_node<connection_.size(); i_node++) {
-    vector<ConnGroup> &conn = connection_[i_node];
+    std::vector<ConnGroup> &conn = connection_[i_node];
     int n_delays = conn.size();
     if (n_delays > max_delay_num) max_delay_num = n_delays;
   }
@@ -114,7 +112,7 @@ unsigned int NetConnection::NConnections()
 {
   unsigned int n_conn = 0;
   for (unsigned int i_node=0; i_node<connection_.size(); i_node++) {
-    vector<ConnGroup> &conn = connection_[i_node];
+    std::vector<ConnGroup> &conn = connection_[i_node];
     for (unsigned int id=0; id<conn.size(); id++) {
       unsigned int n_target = conn.at(id).target_vect.size();
       n_conn += n_target;
@@ -141,7 +139,7 @@ ConnectionStatus NetConnection::GetConnectionStatus(ConnectionId conn_id)
   int i_source = conn_id.i_source_;
   int i_group = conn_id.i_group_;
   int i_conn = conn_id.i_conn_;
-  vector<ConnGroup> &conn = connection_[i_source];
+  std::vector<ConnGroup> &conn = connection_[i_source];
   std::vector<TargetSyn> tv = conn[i_group].target_vect;
   
   ConnectionStatus conn_stat;

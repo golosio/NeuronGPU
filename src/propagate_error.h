@@ -14,7 +14,7 @@
     NeuralGPU_instance->SetErrorMessage(e.what());			 \
     NeuralGPU_instance->SetErrorCode(2);				 \
   }								         \
-  catch (bad_alloc&) {                                                   \
+  catch (std::bad_alloc&) {						 \
     NeuralGPU_instance->SetErrorFlag(true);			         \
     NeuralGPU_instance->SetErrorMessage("Memory allocation error.");     \
     NeuralGPU_instance->SetErrorCode(1);			         \

@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AEIFCONDALPHAKERNELH
 
 #include <string>
-#include <math.h>
+				    //#include <cmath>
 #include "spike_buffer.h"
 #include "node_group.h"
 #include "aeif_cond_alpha.h"
@@ -184,7 +184,7 @@ __device__
       PushSpike(data_struct.i_node_0_ + neuron_idx, 1.0);
       V_m = V_reset;
       w += b; // spike-driven adaptation
-      refractory_step = (int)round(t_ref/NeuralGPUTimeResolution);
+      refractory_step = (int)::round(t_ref/NeuralGPUTimeResolution);
       if (refractory_step<0) {
 	refractory_step = 0;
       }

@@ -20,8 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "spike_mpi.h"
 #include "connect_mpi.h"
 
-using namespace std;
-
 __constant__ bool NeuralGPUMpiFlag;
 
 __device__ int NExternalTargetHost;
@@ -133,7 +131,7 @@ int ConnectMpi::ExternalSpikeInit(int n_node, int max_spike_num, int n_hosts,
   gpuErrchk(cudaMalloc(&d_ExternalNodeId, n_node*sizeof(int*)));
  
   for (int i_source=0; i_source<n_node; i_source++) {
-    vector< ExternalConnectionNode > *conn = &extern_connection_[i_source];
+    std::vector< ExternalConnectionNode > *conn = &extern_connection_[i_source];
     int Nth = conn->size();
     h_NExternalNodeTargetHost[i_source] = Nth;
     if (Nth>0) {

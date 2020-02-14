@@ -23,7 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "spike_mpi.h"
 
 #define LAST_SPIKE_TIME_GUARD 0x70000000
-//using namespace std;
 
 extern __constant__ int NeuralGPUTimeIdx;
 
@@ -261,7 +260,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   
   unsigned int i_conn = 0;
   for (unsigned int i_source=0; i_source<n_spike_buffers; i_source++) {
-    vector<ConnGroup> *conn = &(net_connection->connection_[i_source]);
+    std::vector<ConnGroup> *conn = &(net_connection->connection_[i_source]);
     h_ConnectionGroupSize[i_source] = conn->size();
     for (unsigned int id=0; id<conn->size(); id++) {
       h_ConnectionGroupDelay[id*n_spike_buffers+i_source] = conn->at(id).delay;

@@ -14,7 +14,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 #include <curand.h>
 #include <curand_kernel.h>
 #include "rk5.h"

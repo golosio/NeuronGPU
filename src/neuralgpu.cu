@@ -43,8 +43,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define THREAD_IDX 0
 #endif
 
-				    //using namespace std;
-
 #define VERBOSE_TIME
 
 __constant__ int NeuralGPUTimeIdx;
@@ -898,7 +896,7 @@ int NeuralGPU::BuildDirectConnections()
       int i0 = node_vect_[iv]->i_node_0_;
       int n = node_vect_[iv]->n_node_;
       for (int i_source=i0; i_source<i0+n; i_source++) {
-	vector<ConnGroup> &conn = net_connection_->connection_[i_source];
+	std::vector<ConnGroup> &conn = net_connection_->connection_[i_source];
 	for (unsigned int id=0; id<conn.size(); id++) {
 	  std::vector<TargetSyn> tv = conn[id].target_vect;
 	  for (unsigned int i=0; i<tv.size(); i++) {

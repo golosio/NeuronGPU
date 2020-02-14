@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "connect_mpi.h"
 
-using namespace std;
 
 int ConnectMpi::MPI_Recv_int(int *int_val, int n, int sender_id)
 {

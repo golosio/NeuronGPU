@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AEIFCONDBETAKERNELH
 
 #include <string>
-#include <math.h>
+#include <cmath>
 #include "spike_buffer.h"
 #include "node_group.h"
 #include "aeif_cond_beta.h"

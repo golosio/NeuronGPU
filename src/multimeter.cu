@@ -17,8 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "multimeter.h"
 #include "cuda_error.h"
 
-using namespace std;
-
 const   std::string SpikeVarName = "spike";
 
 Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
@@ -62,7 +60,7 @@ int Record::CloseFile()
 int Record::WriteRecord(float t)
 {
   float var;
-  vector<float> vect;
+  std::vector<float> vect;
   
   if (out_file_flag_) {
     fprintf(fp_,"%f", t);

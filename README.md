@@ -1,6 +1,15 @@
 # NeuralGPU
-A GPU-MPI library for simulation of large scale networks of biological neurons.
+A GPU-MPI library for simulation of large-scale networks of spiking neurons.
 Can be used in Python, in C++ and in C.
+
+*With this library it is possible to run relatively fast simulations of large-scale networks of spiking neurons. For instance, on a single Nvidia GeForce RTX 2080 Ti GPU board it is possible to simulate the activity of 1 million multisynapse AdEx neurons with 1000 synapse per neurons, for a total of 1 billion synapse, in little more than 100 seconds per second of neural activity.
+The MPI communication is also very efficient.
+The python interface is very similar to that of the NEST simulator: the most used commands are practically identical, dictionaries are used to define neurons, connections and synapsis properties in the same way.
+
+For the installation, follow the instructions in the file INSTALLATION
+
+To start using it,, have a look at the examples in the python/examples and c++/examples folders.
+
 
 # NeuralGPU software specifications
 * Simulated neuron models: different multisynapse AdEx models with current or conductance based synapses, and two user definable models.
@@ -13,27 +22,4 @@ Can be used in Python, in C++ and in C.
 * GPU Cluster: efficient implementation of GPU-MPI.
 * Numeric precision: 32 bit float.
 * Simulation real time: on a machine with a single Nvidia GeForce RTX 2080 Ti GPU board, NeuralGPU is about 20 times faster than CPU code running on a PC with a CPU Intel CORE I9-9900K with with a frequency of 3.6GHz and 16 hardware threads.
-* Installation requirements:
-CUDA Toolkit
-openmpi
-openmpi-devel (libopenmpi-dev in ubuntu),
 
-To install the library, from a terminal extract the source code and  type:
-cd NeuralGPU
-./make.sh /home/username/lib
-where /home/username/lib should be replaced by the folder where you whish to install the library
-
-To install the python interface type:
-./make_C.sh /home/username/lib
-
-Be sure to include the directory where you installed the library in your
-shared library path. For instance in Linux you can add to your .bashrc file
-the following line:
-export LD_LIBRARY_PATH=/home/username/lib:\$LD_LIBRARY_PATH
-
-To setup the environment for using the python interface, run the script
-setenv.sh
-which you can find in the python folder
-
-To start, have a look at the examples in the python/examples and c++/examples
-folders.

@@ -1,0 +1,59 @@
+On Ubuntu 18.04 - 19.10
+Quick installation (if you encounter problems, try the step-by-step
+installation)
+1) Update your graphic drivers if necessary
+WARNING!!!! IF YOU ARE NOT USING THE DEFAULT GRAPHIC DRIVERS FROM
+UBUNTU REPOSITORY OR YOU HAVE MADE CHANGES TO HOW THOSE DRIVERS ARE
+USED OR YOU HAVE A PERSONALIZED SETTINGS FOR THOSE DRIVERS, SKIP THIS
+STEP
+In a terminal, type:
+./update_drivers.sh
+Before continuing with the installation you must reboot the system.
+Type:sudo reboot
+to restart ubuntu. After reboot, open a terminal again, cd to the
+installation folder and type
+./install.sh
+If everything goes well, you're done!
+
+Step-by-step installation (you can try this if quick installation did not work)
+1) Update your graphic drivers if necessary
+WARNING!!!! IF YOU ARE NOT USING THE DEFAULT GRAPHIC DRIVERS FROM
+UBUNTU REPOSITORY OR YOU HAVE MADE CHANGES TO HOW THOSE DRIVERS ARE
+USED OR YOU HAVE A PERSONALIZED SETTINGS FOR THOSE DRIVERS, SKIP THIS
+STEP
+In a terminal, type:
+sudo add-apt-repository ppa:graphics-drivers/ppa
+sudo apt update
+sudo ubuntu-drivers autoinstall
+
+type "sudo reboot" to restart ubuntu, then again on a terminal type:
+sudo apt install nvidia-cuda-toolkit
+
+if this does not work on  ubuntu 18.04 you might have to do:
+sudo apt install nvidia-cuda-toolkit gcc-6
+
+Check the installation
+nvcc --version
+
+Install necessary packages
+sudo apt install -y openmpi-bin libopenmpi-dev libomp-dev wget g++
+python python-matplotlib
+
+make a lib directory in your home if you do not have it:
+mkdir -p $USER/lib
+
+Edit your .bashrc file:
+gedit /home/$USER/.bashrc
+
+where you can use an editor of your choice instead of gedit, and add
+the following lines at the end of the file:
+. $HOME/neuralgpu/bin/neuralgpu_env.sh
+
+Download the source tarball and uncompress it:
+wget https://
+tar -xvzf neuralgpu-1.02.tgz
+
+Compile the source:
+cd NeuralGPU/
+./make.sh
+If everything goes well, you're done!

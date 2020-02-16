@@ -50,7 +50,7 @@ fi
 cd src
 
 echo "Compiling the library"
-nvcc -ccbin=mpic++ --compiler-options -Wall --compiler-options '-fPIC' --compiler-options '-fopenmp' -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true --shared -o ../lib/libneuralgpu.so aeif_cond_alpha.cu aeif_psc_alpha.cu aeif_psc_exp.cu aeif_psc_delta.cu stdp.cu syn_model.cu test_syn_model.cu neuralgpu.cu nested_loop.cu rev_spike.cu spike_buffer.cu connect.cu user_m1.cu user_m2.cu aeif_cond_beta.cu rk5.cu neuron_models.cu spike_detector.cu parrot_neuron.cu spike_generator.cu poiss_gen.cu base_neuron.cu connect_rules.cpp scan.cu connect_mpi.cu poisson.cu send_spike.cu get_spike.cu spike_mpi.cu getRealTime.cu multimeter.cu random.cu prefix_scan.cu node_group.cu -lm -lcurand
+nvcc -ccbin=mpic++ --compiler-options '-O3 -Wall -fPIC -fopenmp' -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true --shared -o ../lib/libneuralgpu.so aeif_cond_alpha.cu aeif_psc_alpha.cu aeif_psc_exp.cu aeif_psc_delta.cu stdp.cu syn_model.cu test_syn_model.cu neuralgpu.cu nested_loop.cu rev_spike.cu spike_buffer.cu connect.cu user_m1.cu user_m2.cu aeif_cond_beta.cu rk5.cu neuron_models.cu spike_detector.cu parrot_neuron.cu spike_generator.cu poiss_gen.cu base_neuron.cu connect_rules.cpp scan.cu connect_mpi.cu poisson.cu send_spike.cu get_spike.cu spike_mpi.cu getRealTime.cu multimeter.cu random.cu prefix_scan.cu node_group.cu -lm -lcurand
 
 if [ $? -ne 0 ]; then
     cd ..

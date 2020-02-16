@@ -19,7 +19,7 @@ H_FILES += $(wildcard $(SRC_DIR)/*.cuh)
 all: ${TARGET_LIB}
 
 $(TARGET_LIB): $(SRC_FILES)
-	$(NVCC) -ccbin=${CC} --compiler-options  '${CXXFLAGS}' ${CUDAFLAGS} ${LDFLAGS} -o $@ $^
+	$(NVCC) -ccbin=${CC} --compiler-options  '${CXXFLAGS}' ${CUDAFLAGS} ${LDFLAGS} -o $@ $^ ${LIBS}
 
 .PHONY: clean
 clean:

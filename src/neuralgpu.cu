@@ -869,7 +869,7 @@ float *NeuralGPU::RandomNormalClipped(size_t n, float mean, float stddev,
   }
   int i_extra = 0;
   float *arr = curand_normal(*random_generator_, n, mean, stddev);
-  float *arr_extra;
+  float *arr_extra = NULL;
   for (size_t i=0; i<n; i++) {
     while (arr[i]<vmin || arr[i]>vmax) {
       if (i_extra==0) {
@@ -883,7 +883,7 @@ float *NeuralGPU::RandomNormalClipped(size_t n, float mean, float stddev,
       }
     }
   }
-  if (i_extra != 0) {
+  if (arr_extra != NULL) {
     delete[](arr_extra);
   }
   return arr; 

@@ -222,7 +222,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
     new unsigned char*[n_spike_buffers*max_delay_num];
   h_ConnectionGroupTargetWeight = new float*[n_spike_buffers
 					     *max_delay_num];
-  unsigned short **h_ConnectionGroupTargetSpikeTime;
+  unsigned short **h_ConnectionGroupTargetSpikeTime = NULL;
 
   gpuErrchk(cudaMalloc(&d_ConnectionGroupSize, n_spike_buffers*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_ConnectionGroupDelay,
@@ -406,7 +406,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   delete[] h_ConnectionGroupTargetNode;
   delete[] h_ConnectionGroupTargetSynGroup;
   //delete[] h_ConnectionGroupTargetWeight;
-  if(ConnectionSpikeTimeFlag) {
+  if(h_ConnectionGroupTargetSpikeTime != NULL) {
     delete[] h_ConnectionGroupTargetSpikeTime;
   }
   

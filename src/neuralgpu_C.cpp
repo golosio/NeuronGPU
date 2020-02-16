@@ -54,37 +54,37 @@ extern "C" {
   unsigned int *RandomInt(size_t n);
   
   int NeuralGPU_SetRandomSeed(unsigned long long seed)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->SetRandomSeed(seed);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SetTimeResolution(float time_res)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->SetTimeResolution(time_res);
   } END_ERR_PROP return ret; }
 
   float NeuralGPU_GetTimeResolution()
-  { float ret; BEGIN_ERR_PROP {
+  { float ret = 0.0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetTimeResolution();
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SetMaxSpikeBufferSize(int max_size)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->SetMaxSpikeBufferSize(max_size);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_GetMaxSpikeBufferSize()
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetMaxSpikeBufferSize();
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SetSimTime(float sim_time)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->SetSimTime(sim_time);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_Create(char *model_name, int n_neuron, int n_port)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string model_name_str = std::string(model_name);
     NodeSeq neur = NeuralGPU_instance->Create(model_name_str, n_neuron,
 						    n_port);
@@ -92,7 +92,7 @@ extern "C" {
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_CreatePoissonGenerator(int n_node, float rate)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     NodeSeq pg = NeuralGPU_instance->CreatePoissonGenerator(n_node, rate);
 
     ret = pg[0];
@@ -101,7 +101,7 @@ extern "C" {
   int NeuralGPU_CreateRecord(char *file_name, char *var_name_arr[],
 			     int *i_node_arr, int *port_arr,
 			     int n_node)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string file_name_str = std::string(file_name);
     std::vector<std::string> var_name_vect;
     for (int i=0; i<n_node; i++) {
@@ -114,7 +114,7 @@ extern "C" {
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_GetRecordDataRows(int i_record)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::vector<std::vector<float>> *data_vect_pt
       = NeuralGPU_instance->GetRecordData(i_record);
 
@@ -122,7 +122,7 @@ extern "C" {
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_GetRecordDataColumns(int i_record)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::vector<std::vector<float>> *data_vect_pt
       = NeuralGPU_instance->GetRecordData(i_record);
     
@@ -130,7 +130,7 @@ extern "C" {
   } END_ERR_PROP return ret; }
 
   float **NeuralGPU_GetRecordData(int i_record)
-  { float **ret; BEGIN_ERR_PROP {
+  { float **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::vector<float>> *data_vect_pt
       = NeuralGPU_instance->GetRecordData(i_record);
     int nr = data_vect_pt->size();
@@ -142,7 +142,7 @@ extern "C" {
 
   int NeuralGPU_SetNeuronScalParam(int i_node, int n_neuron, char *param_name,
 				   float val)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->SetNeuronParam(i_node, n_neuron,
@@ -152,7 +152,7 @@ extern "C" {
   int NeuralGPU_SetNeuronArrayParam(int i_node, int n_neuron,
 				    char *param_name, float *param,
 				    int array_size)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
       std::string param_name_str = std::string(param_name);    
       ret = NeuralGPU_instance->SetNeuronParam(i_node, n_neuron,
 					       param_name_str, param,
@@ -161,7 +161,7 @@ extern "C" {
 
   int NeuralGPU_SetNeuronPtScalParam(int *i_node, int n_neuron,
 				     char *param_name,float val)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->SetNeuronParam(i_node, n_neuron,
 					     param_name_str, val);
@@ -170,7 +170,7 @@ extern "C" {
   int NeuralGPU_SetNeuronPtArrayParam(int *i_node, int n_neuron,
 				     char *param_name, float *param,
 				     int array_size)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);    
     ret = NeuralGPU_instance->SetNeuronParam(i_node, n_neuron,
 					     param_name_str, param,
@@ -178,21 +178,21 @@ extern "C" {
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_IsNeuronScalParam(int i_node, char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     
     ret = NeuralGPU_instance->IsNeuronScalParam(i_node, param_name_str);
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_IsNeuronPortParam(int i_node, char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     
     ret = NeuralGPU_instance->IsNeuronPortParam(i_node, param_name_str);
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_IsNeuronArrayParam(int i_node, char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     
     ret = NeuralGPU_instance->IsNeuronArrayParam(i_node, param_name_str);
@@ -201,7 +201,7 @@ extern "C" {
 
   int NeuralGPU_SetNeuronScalVar(int i_node, int n_neuron, char *var_name,
 				   float val)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     
     std::string var_name_str = std::string(var_name);
     ret = NeuralGPU_instance->SetNeuronVar(i_node, n_neuron,
@@ -211,7 +211,7 @@ extern "C" {
   int NeuralGPU_SetNeuronArrayVar(int i_node, int n_neuron,
 				    char *var_name, float *var,
 				    int array_size)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
       std::string var_name_str = std::string(var_name);    
       ret = NeuralGPU_instance->SetNeuronVar(i_node, n_neuron,
 					       var_name_str, var,
@@ -220,7 +220,7 @@ extern "C" {
 
   int NeuralGPU_SetNeuronPtScalVar(int *i_node, int n_neuron,
 				     char *var_name,float val)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string var_name_str = std::string(var_name);
     ret = NeuralGPU_instance->SetNeuronVar(i_node, n_neuron,
 					     var_name_str, val);
@@ -229,7 +229,7 @@ extern "C" {
   int NeuralGPU_SetNeuronPtArrayVar(int *i_node, int n_neuron,
 				     char *var_name, float *var,
 				     int array_size)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string var_name_str = std::string(var_name);    
     ret = NeuralGPU_instance->SetNeuronVar(i_node, n_neuron,
 					     var_name_str, var,
@@ -237,21 +237,21 @@ extern "C" {
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_IsNeuronScalVar(int i_node, char *var_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string var_name_str = std::string(var_name);
     
     ret = NeuralGPU_instance->IsNeuronScalVar(i_node, var_name_str);
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_IsNeuronPortVar(int i_node, char *var_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string var_name_str = std::string(var_name);
     
     ret = NeuralGPU_instance->IsNeuronPortVar(i_node, var_name_str);
   } END_ERR_PROP return ret; }
   
   int NeuralGPU_IsNeuronArrayVar(int i_node, char *var_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string var_name_str = std::string(var_name);
     
     ret = NeuralGPU_instance->IsNeuronArrayVar(i_node, var_name_str);
@@ -259,7 +259,7 @@ extern "C" {
   
 
   int NeuralGPU_GetNeuronParamSize(int i_node, char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     
     ret = NeuralGPU_instance->GetNeuronParamSize(i_node, param_name_str);
@@ -267,7 +267,7 @@ extern "C" {
   
   
   int NeuralGPU_GetNeuronVarSize(int i_node, char *var_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string var_name_str = std::string(var_name);
     
     ret = NeuralGPU_instance->GetNeuronVarSize(i_node, var_name_str);
@@ -276,7 +276,7 @@ extern "C" {
   
   float *NeuralGPU_GetNeuronParam(int i_node, int n_neuron,
 				  char *param_name)
-  { float *ret; BEGIN_ERR_PROP {
+  { float *ret = NULL; BEGIN_ERR_PROP {
     
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->GetNeuronParam(i_node, n_neuron,
@@ -286,7 +286,7 @@ extern "C" {
 
   float *NeuralGPU_GetNeuronPtParam(int *i_node, int n_neuron,
 				 char *param_name)
-  { float *ret; BEGIN_ERR_PROP {
+  { float *ret = NULL; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->GetNeuronParam(i_node, n_neuron,
 					     param_name_str);
@@ -294,7 +294,7 @@ extern "C" {
 
 
   float *NeuralGPU_GetArrayParam(int i_node, char *param_name)
-  { float *ret; BEGIN_ERR_PROP {
+  { float *ret = NULL; BEGIN_ERR_PROP {
     
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->GetArrayParam(i_node, param_name_str);
@@ -303,7 +303,7 @@ extern "C" {
   
   float *NeuralGPU_GetNeuronVar(int i_node, int n_neuron,
 				char *param_name)
-  { float *ret; BEGIN_ERR_PROP {
+  { float *ret = NULL; BEGIN_ERR_PROP {
     
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->GetNeuronVar(i_node, n_neuron,
@@ -313,14 +313,14 @@ extern "C" {
 
   float *NeuralGPU_GetNeuronPtVar(int *i_node, int n_neuron,
 				 char *param_name)
-  { float *ret; BEGIN_ERR_PROP {
+  { float *ret = NULL; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->GetNeuronVar(i_node, n_neuron,
 					   param_name_str);
   } END_ERR_PROP return ret; }
 
   float *NeuralGPU_GetArrayVar(int i_node, char *var_name)
-  { float *ret; BEGIN_ERR_PROP {
+  { float *ret = NULL; BEGIN_ERR_PROP {
     
     std::string var_name_str = std::string(var_name);
     ret = NeuralGPU_instance->GetArrayVar(i_node, var_name_str);
@@ -328,57 +328,57 @@ extern "C" {
 
 
   int NeuralGPU_Calibrate()
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Calibrate();
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_Simulate()
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Simulate();
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_ConnectMpiInit(int argc, char *argv[])
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->ConnectMpiInit(argc, argv);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_MpiId()
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->MpiId();
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_MpiNp()
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->MpiNp();
   } END_ERR_PROP return ret; }
   int NeuralGPU_ProcMaster()
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->ProcMaster();
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_MpiFinalize()
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->MpiFinalize();
   } END_ERR_PROP return ret; }
 
   unsigned int *NeuralGPU_RandomInt(size_t n)
-  { unsigned int *ret; BEGIN_ERR_PROP {
+  { unsigned int *ret = NULL; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->RandomInt(n);
   } END_ERR_PROP return ret; }
   
   float *NeuralGPU_RandomUniform(size_t n)
-  { float* ret; BEGIN_ERR_PROP {
+  { float* ret = NULL; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->RandomUniform(n);
   } END_ERR_PROP return ret; }
   
   float *NeuralGPU_RandomNormal(size_t n, float mean, float stddev)
-  { float *ret; BEGIN_ERR_PROP {
+  { float *ret = NULL; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->RandomNormal(n, mean, stddev);
   } END_ERR_PROP return ret; }
   
   float *NeuralGPU_RandomNormalClipped(size_t n, float mean, float stddev,
 				       float vmin, float vmax)
-  { float *ret; BEGIN_ERR_PROP {
+  { float *ret = NULL; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->RandomNormalClipped(n, mean, stddev, vmin,
 							 vmax);
   } END_ERR_PROP return ret; }
@@ -386,93 +386,93 @@ extern "C" {
   int NeuralGPU_Connect(int i_source_node, int i_target_node,
 			unsigned char port, unsigned char syn_group,
 			float weight, float delay)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Connect(i_source_node, i_target_node,
 				      port, syn_group, weight, delay);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_ConnSpecInit()
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = ConnSpec_instance.Init();
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SetConnSpecParam(char *param_name, int value)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = ConnSpec_instance.SetParam(param_name_str, value);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_ConnSpecIsParam(char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = ConnSpec::IsParam(param_name_str);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SynSpecInit()
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = SynSpec_instance.Init();
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SetSynSpecIntParam(char *param_name, int value)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = SynSpec_instance.SetParam(param_name_str, value);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SetSynSpecFloatParam(char *param_name, float value)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = SynSpec_instance.SetParam(param_name_str, value);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SetSynSpecFloatPtParam(char *param_name, float *array_pt)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = SynSpec_instance.SetParam(param_name_str, array_pt);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SynSpecIsIntParam(char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = SynSpec_instance.IsIntParam(param_name_str);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SynSpecIsFloatParam(char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = SynSpec_instance.IsFloatParam(param_name_str);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_SynSpecIsFloatPtParam(char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     ret = SynSpec_instance.IsFloatPtParam(param_name_str);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_ConnectSeqSeq(int i_source, int n_source, int i_target,
 			      int n_target)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
 				      ConnSpec_instance, SynSpec_instance); 
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_ConnectSeqGroup(int i_source, int n_source, int *i_target,
 				int n_target)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
 				      ConnSpec_instance, SynSpec_instance); 
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_ConnectGroupSeq(int *i_source, int n_source, int i_target,
 				int n_target)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
 				      ConnSpec_instance, SynSpec_instance);
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_ConnectGroupGroup(int *i_source, int n_source, int *i_target,
 				  int n_target)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->Connect(i_source, n_source, i_target, n_target,
 				      ConnSpec_instance, SynSpec_instance);
   } END_ERR_PROP return ret; }
@@ -480,7 +480,7 @@ extern "C" {
   int NeuralGPU_RemoteConnectSeqSeq(int i_source_host, int i_source,
 				    int n_source, int i_target_host,
 				    int i_target, int n_target)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
 					    i_target_host, i_target, n_target,
 					    ConnSpec_instance,
@@ -490,7 +490,7 @@ extern "C" {
   int NeuralGPU_RemoteConnectSeqGroup(int i_source_host, int i_source,
 				      int n_source, int i_target_host,
 				      int *i_target, int n_target)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
 					    i_target_host, i_target, n_target,
 					    ConnSpec_instance,
@@ -500,7 +500,7 @@ extern "C" {
   int NeuralGPU_RemoteConnectGroupSeq(int i_source_host, int *i_source,
 				      int n_source, int i_target_host,
 				      int i_target, int n_target)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
 					    i_target_host, i_target, n_target,
 					    ConnSpec_instance,
@@ -511,7 +511,7 @@ extern "C" {
   int NeuralGPU_RemoteConnectGroupGroup(int i_source_host, int *i_source,
 					int n_source, int i_target_host,
 					int *i_target, int n_target)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->RemoteConnect(i_source_host, i_source, n_source,
 					    i_target_host, i_target, n_target,
 					    ConnSpec_instance,
@@ -520,7 +520,7 @@ extern "C" {
 
 
   char **NeuralGPU_GetScalVarNames(int i_node)
-  { char **ret; BEGIN_ERR_PROP {
+  { char **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::string> var_name_vect =
       NeuralGPU_instance->GetScalVarNames(i_node);
     char **var_name_array = (char**)malloc(var_name_vect.size()
@@ -537,13 +537,13 @@ extern "C" {
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_GetNScalVar(int i_node)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetNScalVar(i_node);
   } END_ERR_PROP return ret; }
 
 
   char **NeuralGPU_GetPortVarNames(int i_node)
-  { char **ret; BEGIN_ERR_PROP {
+  { char **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::string> var_name_vect =
       NeuralGPU_instance->GetPortVarNames(i_node);
     char **var_name_array = (char**)malloc(var_name_vect.size()
@@ -561,13 +561,13 @@ extern "C" {
 
   
   int NeuralGPU_GetNPortVar(int i_node)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetNPortVar(i_node);
   } END_ERR_PROP return ret; }
 
   
   char **NeuralGPU_GetScalParamNames(int i_node)
-  { char **ret; BEGIN_ERR_PROP {
+  { char **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::string> var_name_vect =
       NeuralGPU_instance->GetScalParamNames(i_node);
     char **var_name_array = (char**)malloc(var_name_vect.size()
@@ -585,13 +585,13 @@ extern "C" {
 
   
   int NeuralGPU_GetNScalParam(int i_node)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetNScalParam(i_node);
   } END_ERR_PROP return ret; }
 
 
   char **NeuralGPU_GetPortParamNames(int i_node)
-  { char **ret; BEGIN_ERR_PROP {
+  { char **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::string> var_name_vect =
       NeuralGPU_instance->GetPortParamNames(i_node);
     char **var_name_array = (char**)malloc(var_name_vect.size()
@@ -609,13 +609,13 @@ extern "C" {
 
   
   int NeuralGPU_GetNPortParam(int i_node)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetNPortParam(i_node);
   } END_ERR_PROP return ret; }
 
 
   char **NeuralGPU_GetArrayParamNames(int i_node)
-  { char **ret; BEGIN_ERR_PROP {
+  { char **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::string> var_name_vect =
       NeuralGPU_instance->GetArrayParamNames(i_node);
     char **var_name_array = (char**)malloc(var_name_vect.size()
@@ -633,12 +633,12 @@ extern "C" {
 
   
   int NeuralGPU_GetNArrayParam(int i_node)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetNArrayParam(i_node);
   } END_ERR_PROP return ret; }
 
   char **NeuralGPU_GetArrayVarNames(int i_node)
-  { char **ret; BEGIN_ERR_PROP {
+  { char **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::string> var_name_vect =
       NeuralGPU_instance->GetArrayVarNames(i_node);
     char **var_name_array = (char**)malloc(var_name_vect.size()
@@ -655,14 +655,14 @@ extern "C" {
   } END_ERR_PROP return ret; }
 
   int NeuralGPU_GetNArrayVar(int i_node)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetNArrayVar(i_node);
   } END_ERR_PROP return ret; }
 
 
   int *NeuralGPU_GetSeqSeqConnections(int i_source, int n_source, int i_target,
 				      int n_target, int syn_group, int *n_conn)
-  { int *ret; BEGIN_ERR_PROP {
+  { int *ret = NULL; BEGIN_ERR_PROP {
       std::vector<ConnectionId> conn_id_vect =
 	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
 					   n_target, syn_group);
@@ -679,7 +679,7 @@ extern "C" {
   int *NeuralGPU_GetSeqGroupConnections(int i_source, int n_source,
 					int *i_target, int n_target,
 					int syn_group, int *n_conn)
-  { int *ret; BEGIN_ERR_PROP {
+  { int *ret = NULL; BEGIN_ERR_PROP {
       std::vector<ConnectionId> conn_id_vect =
 	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
 					   n_target, syn_group);
@@ -696,7 +696,7 @@ extern "C" {
   int *NeuralGPU_GetGroupSeqConnections(int *i_source, int n_source,
 					int i_target, int n_target,
 					int syn_group, int *n_conn)
-  { int *ret; BEGIN_ERR_PROP {
+  { int *ret = NULL; BEGIN_ERR_PROP {
       std::vector<ConnectionId> conn_id_vect =
 	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
 					   n_target, syn_group);
@@ -713,7 +713,7 @@ extern "C" {
   int *NeuralGPU_GetGroupGroupConnections(int *i_source, int n_source,
 					 int *i_target, int n_target,
 					 int syn_group, int *n_conn)
-  { int *ret; BEGIN_ERR_PROP {
+  { int *ret = NULL; BEGIN_ERR_PROP {
       std::vector<ConnectionId> conn_id_vect =
 	NeuralGPU_instance->GetConnections(i_source, n_source, i_target,
 					   n_target, syn_group);
@@ -731,7 +731,7 @@ extern "C" {
 				    int *i_target, unsigned char *port,
 				    unsigned char *syn_group, float *delay,
 				    float *weight)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
       ConnectionId conn_id;
       conn_id.i_source_ = i_source;
       conn_id.i_group_ = i_group;
@@ -750,20 +750,20 @@ extern "C" {
 
 
   int NeuralGPU_CreateSynGroup(char *model_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string model_name_str = std::string(model_name);
     ret = NeuralGPU_instance->CreateSynGroup(model_name_str);
   } END_ERR_PROP return ret; }
 
 
   int NeuralGPU_GetSynGroupNParam(int i_syn_group)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuralGPU_instance->GetSynGroupNParam(i_syn_group);
   } END_ERR_PROP return ret; }
 
   
   char **NeuralGPU_GetSynGroupParamNames(int i_syn_group)
-  { char **ret; BEGIN_ERR_PROP {
+  { char **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::string> name_vect =
       NeuralGPU_instance->GetSynGroupParamNames(i_syn_group);
     char **name_array = (char**)malloc(name_vect.size()
@@ -781,7 +781,7 @@ extern "C" {
 
   
   int NeuralGPU_IsSynGroupParam(int i_syn_group, char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     
     ret = NeuralGPU_instance->IsSynGroupParam(i_syn_group, param_name_str);
@@ -789,7 +789,7 @@ extern "C" {
 
   
   int NeuralGPU_GetSynGroupParamIdx(int i_syn_group, char *param_name)
-  { int ret; BEGIN_ERR_PROP {
+  { int ret = 0; BEGIN_ERR_PROP {
     std::string param_name_str = std::string(param_name);
     
     ret = NeuralGPU_instance->GetSynGroupParamIdx(i_syn_group, param_name_str);
@@ -797,7 +797,7 @@ extern "C" {
 
   
   float NeuralGPU_GetSynGroupParam(int i_syn_group, char *param_name)
-  { float ret; BEGIN_ERR_PROP {
+  { float ret = 0.0; BEGIN_ERR_PROP {
     
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->GetSynGroupParam(i_syn_group, param_name_str);
@@ -805,7 +805,7 @@ extern "C" {
 
   
   int NeuralGPU_SetSynGroupParam(int i_syn_group, char *param_name, float val)
-  { float ret; BEGIN_ERR_PROP {
+  { float ret = 0.0; BEGIN_ERR_PROP {
     
     std::string param_name_str = std::string(param_name);
     ret = NeuralGPU_instance->SetSynGroupParam(i_syn_group, param_name_str,

@@ -97,7 +97,7 @@ int poiss_gen::Calibrate(float, float)
 {
   cudaMalloc(&d_curand_state_, n_dir_conn_*sizeof(curandState));
 
-  int grid_dim_x, grid_dim_y;
+  unsigned int grid_dim_x, grid_dim_y;
 
   if (n_dir_conn_<65536*1024) { // max grid dim * max block dim
     grid_dim_x = (n_dir_conn_+1023)/1024;
@@ -129,7 +129,7 @@ int poiss_gen::Update(int it, float t1)
 
 int poiss_gen::SendDirectSpikes(float t, float time_step)
 {
-  int grid_dim_x, grid_dim_y;
+  unsigned int grid_dim_x, grid_dim_y;
   
   if (n_dir_conn_<65536*1024) { // max grid dim * max block dim
     grid_dim_x = (n_dir_conn_+1023)/1024;

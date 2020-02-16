@@ -1,5 +1,5 @@
 import sys
-import neuralgpu as ngpu
+import neurongpu as ngpu
 import numpy as np
 tolerance = 0.0005
 neuron = ngpu.Create('aeif_cond_alpha', 1, 3)

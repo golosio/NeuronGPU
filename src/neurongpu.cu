@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "poisson.h"
 #include "getRealTime.h"
 #include "random.h"
-#include "neuralgpu.h"
+#include "neurongpu.h"
 #include "nested_loop.h"
 #include "dir_connect.h"
 #include "rev_spike.h"
@@ -46,10 +46,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define VERBOSE_TIME
 
-__constant__ int NeuralGPUTimeIdx;
-__constant__ float NeuralGPUTimeResolution;
+__constant__ int NeuronGPUTimeIdx;
+__constant__ float NeuronGPUTimeResolution;
 
-NeuralGPU::NeuralGPU()
+NeuronGPU::NeuronGPU()
 {
   random_generator_ = new curandGenerator_t;
   CURAND_CALL(curandCreateGenerator(random_generator_,
@@ -78,7 +78,7 @@ NeuralGPU::NeuralGPU()
   NestedLoop::Init();
 }
 
-NeuralGPU::~NeuralGPU()
+NeuronGPU::~NeuronGPU()
 {
   delete poiss_generator_;
   delete multimeter_;
@@ -96,7 +96,7 @@ NeuralGPU::~NeuralGPU()
 
 }
 
-int NeuralGPU::SetRandomSeed(unsigned long long seed)
+int NeuronGPU::SetRandomSeed(unsigned long long seed)
 {
   kernel_seed_ = seed + 12345;
   CURAND_CALL(curandDestroyGenerator(*random_generator_));
@@ -109,7 +109,7 @@ int NeuralGPU::SetRandomSeed(unsigned long long seed)
   return 0;
 }
 
-int NeuralGPU::SetTimeResolution(float time_res)
+int NeuronGPU::SetTimeResolution(float time_res)
 {
   time_resolution_ = time_res;
   net_connection_->time_resolution_ = time_res;
@@ -117,19 +117,19 @@ int NeuralGPU::SetTimeResolution(float time_res)
   return 0;
 }
 
-int NeuralGPU::SetMaxSpikeBufferSize(int max_size)
+int NeuronGPU::SetMaxSpikeBufferSize(int max_size)
 {
   max_spike_buffer_size_ = max_size;
   
   return 0;
 }
 
-int NeuralGPU::GetMaxSpikeBufferSize()
+int NeuronGPU::GetMaxSpikeBufferSize()
 {
   return max_spike_buffer_size_;
 }
 
-int NeuralGPU::CreateNodeGroup(int n_node, int n_port)
+int NeuronGPU::CreateNodeGroup(int n_node, int n_port)
 {
   int i_node_0 = node_group_map_.size();
   if ((int)connect_mpi_->extern_connection_.size() != i_node_0) {
@@ -167,7 +167,7 @@ int NeuralGPU::CreateNodeGroup(int n_node, int n_port)
   return i_node_0;
 }
 
-NodeSeq NeuralGPU::CreatePoissonGenerator(int n_node, float rate)
+NodeSeq NeuronGPU::CreatePoissonGenerator(int n_node, float rate)
 {
   CheckUncalibrated("Poisson generator cannot be created after calibration");
   if (n_poiss_node_ != 0) {
@@ -190,7 +190,7 @@ NodeSeq NeuralGPU::CreatePoissonGenerator(int n_node, float rate)
 }
 
 
-int NeuralGPU::CheckUncalibrated(std::string message)
+int NeuronGPU::CheckUncalibrated(std::string message)
 {
   if (calibrate_flag_ == true) {
     throw ngpu_exception(message);
@@ -199,7 +199,7 @@ int NeuralGPU::CheckUncalibrated(std::string message)
   return 0;
 }
 
-int NeuralGPU::Calibrate()
+int NeuronGPU::Calibrate()
 {
   CheckUncalibrated("Calibration can be made only once");
   calibrate_flag_ = true;
@@ -213,7 +213,7 @@ int NeuralGPU::Calibrate()
   }
   neural_time_ = t_min_;
   
-  gpuErrchk(cudaMemcpyToSymbol(NeuralGPUMpiFlag, &mpi_flag_, sizeof(bool)));
+  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUMpiFlag, &mpi_flag_, sizeof(bool)));
 	    
   NodeGroupArrayInit();
   
@@ -244,19 +244,19 @@ int NeuralGPU::Calibrate()
   
   SynGroupCalibrate();
   
-  gpuErrchk(cudaMemcpyToSymbol(NeuralGPUTimeResolution, &time_resolution_,
+  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTimeResolution, &time_resolution_,
 			       sizeof(float)));
 ///////////////////////////////////
 
   return 0;
 }
 
-int NeuralGPU::Simulate(float sim_time) {
+int NeuronGPU::Simulate(float sim_time) {
   sim_time_ = sim_time;
   return Simulate();
 }
 
-int NeuralGPU::Simulate()
+int NeuronGPU::Simulate()
 {
   double SpikeBufferUpdate_time = 0;
   double poisson_generator_time = 0;
@@ -305,7 +305,7 @@ int NeuralGPU::Simulate()
     time_mark = getRealTime();
     neural_time_ = neur_t0 + time_resolution_*(it+1);
     int time_idx = (int)round(neur_t0/time_resolution_) + it + 1;
-    gpuErrchk(cudaMemcpyToSymbol(NeuralGPUTimeIdx, &time_idx, sizeof(int)));
+    gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTimeIdx, &time_idx, sizeof(int)));
 
     
     for (unsigned int i=0; i<node_vect_.size(); i++) {
@@ -440,7 +440,7 @@ int NeuralGPU::Simulate()
   return 0;
 }
 
-int NeuralGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
+int NeuronGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
 			    int *i_node_arr, int *port_arr,
 			    int n_node)
 {
@@ -461,7 +461,7 @@ int NeuralGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
 
 }
 
-int NeuralGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
+int NeuronGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
 			    int *i_node_arr, int n_node)
 {
   std::vector<int> port_vect(n_node, 0);
@@ -469,12 +469,12 @@ int NeuralGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
 		      port_vect.data(), n_node);
 }
 
-std::vector<std::vector<float>> *NeuralGPU::GetRecordData(int i_record)
+std::vector<std::vector<float>> *NeuronGPU::GetRecordData(int i_record)
 {
   return multimeter_->GetRecordData(i_record);
 }
 
-int NeuralGPU::GetNodeSequenceOffset(int i_node, int n_node, int &i_group)
+int NeuronGPU::GetNodeSequenceOffset(int i_node, int n_node, int &i_group)
 {
   if (i_node<0 || (i_node+n_node > (int)node_group_map_.size())) {
     throw ngpu_exception("Unrecognized node in getting node sequence offset");
@@ -487,7 +487,7 @@ int NeuralGPU::GetNodeSequenceOffset(int i_node, int n_node, int &i_group)
   return node_vect_[i_group]->i_node_0_;
 }
   
-std::vector<int> NeuralGPU::GetNodeArrayWithOffset(int *i_node, int n_node,
+std::vector<int> NeuronGPU::GetNodeArrayWithOffset(int *i_node, int n_node,
 						   int &i_group)
 {
   int in0 = i_node[0];
@@ -512,7 +512,7 @@ std::vector<int> NeuralGPU::GetNodeArrayWithOffset(int *i_node, int n_node,
   return nodes;
 }
 
-int NeuralGPU::SetNeuronParam(int i_node, int n_node,
+int NeuronGPU::SetNeuronParam(int i_node, int n_node,
 			      std::string param_name, float val)
 {
   int i_group;
@@ -521,7 +521,7 @@ int NeuralGPU::SetNeuronParam(int i_node, int n_node,
   return node_vect_[i_group]->SetScalParam(i_neuron, n_node, param_name, val);
 }
 
-int NeuralGPU::SetNeuronParam(int *i_node, int n_node,
+int NeuronGPU::SetNeuronParam(int *i_node, int n_node,
 			      std::string param_name, float val)
 {
   int i_group;
@@ -531,7 +531,7 @@ int NeuralGPU::SetNeuronParam(int *i_node, int n_node,
 					   param_name, val);
 }
 
-int NeuralGPU::SetNeuronParam(int i_node, int n_node, std::string param_name,
+int NeuronGPU::SetNeuronParam(int i_node, int n_node, std::string param_name,
 			      float *param, int array_size)
 {
   int i_group;
@@ -546,7 +546,7 @@ int NeuralGPU::SetNeuronParam(int i_node, int n_node, std::string param_name,
   }
 }
 
-int NeuralGPU::SetNeuronParam( int *i_node, int n_node,
+int NeuronGPU::SetNeuronParam( int *i_node, int n_node,
 			       std::string param_name, float *param,
 			       int array_size)
 {
@@ -563,7 +563,7 @@ int NeuralGPU::SetNeuronParam( int *i_node, int n_node,
   }    
 }
 
-int NeuralGPU::IsNeuronScalParam(int i_node, std::string param_name)
+int NeuronGPU::IsNeuronScalParam(int i_node, std::string param_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -571,7 +571,7 @@ int NeuralGPU::IsNeuronScalParam(int i_node, std::string param_name)
   return node_vect_[i_group]->IsScalParam(param_name);
 }
 
-int NeuralGPU::IsNeuronPortParam(int i_node, std::string param_name)
+int NeuronGPU::IsNeuronPortParam(int i_node, std::string param_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -579,7 +579,7 @@ int NeuralGPU::IsNeuronPortParam(int i_node, std::string param_name)
   return node_vect_[i_group]->IsPortParam(param_name);
 }
 
-int NeuralGPU::IsNeuronArrayParam(int i_node, std::string param_name)
+int NeuronGPU::IsNeuronArrayParam(int i_node, std::string param_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -587,7 +587,7 @@ int NeuralGPU::IsNeuronArrayParam(int i_node, std::string param_name)
   return node_vect_[i_group]->IsArrayParam(param_name);
 }
 
-int NeuralGPU::SetNeuronVar(int i_node, int n_node,
+int NeuronGPU::SetNeuronVar(int i_node, int n_node,
 			      std::string var_name, float val)
 {
   int i_group;
@@ -596,7 +596,7 @@ int NeuralGPU::SetNeuronVar(int i_node, int n_node,
   return node_vect_[i_group]->SetScalVar(i_neuron, n_node, var_name, val);
 }
 
-int NeuralGPU::SetNeuronVar(int *i_node, int n_node,
+int NeuronGPU::SetNeuronVar(int *i_node, int n_node,
 			      std::string var_name, float val)
 {
   int i_group;
@@ -606,7 +606,7 @@ int NeuralGPU::SetNeuronVar(int *i_node, int n_node,
 					   var_name, val);
 }
 
-int NeuralGPU::SetNeuronVar(int i_node, int n_node, std::string var_name,
+int NeuronGPU::SetNeuronVar(int i_node, int n_node, std::string var_name,
 			      float *var, int array_size)
 {
   int i_group;
@@ -621,7 +621,7 @@ int NeuralGPU::SetNeuronVar(int i_node, int n_node, std::string var_name,
   }
 }
 
-int NeuralGPU::SetNeuronVar( int *i_node, int n_node,
+int NeuronGPU::SetNeuronVar( int *i_node, int n_node,
 			       std::string var_name, float *var,
 			       int array_size)
 {
@@ -638,7 +638,7 @@ int NeuralGPU::SetNeuronVar( int *i_node, int n_node,
   }    
 }
 
-int NeuralGPU::IsNeuronScalVar(int i_node, std::string var_name)
+int NeuronGPU::IsNeuronScalVar(int i_node, std::string var_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -646,7 +646,7 @@ int NeuralGPU::IsNeuronScalVar(int i_node, std::string var_name)
   return node_vect_[i_group]->IsScalVar(var_name);
 }
 
-int NeuralGPU::IsNeuronPortVar(int i_node, std::string var_name)
+int NeuronGPU::IsNeuronPortVar(int i_node, std::string var_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -654,7 +654,7 @@ int NeuralGPU::IsNeuronPortVar(int i_node, std::string var_name)
   return node_vect_[i_group]->IsPortVar(var_name);
 }
 
-int NeuralGPU::IsNeuronArrayVar(int i_node, std::string var_name)
+int NeuronGPU::IsNeuronArrayVar(int i_node, std::string var_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -663,7 +663,7 @@ int NeuralGPU::IsNeuronArrayVar(int i_node, std::string var_name)
 }
 
 
-int NeuralGPU::GetNeuronParamSize(int i_node, std::string param_name)
+int NeuronGPU::GetNeuronParamSize(int i_node, std::string param_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -675,7 +675,7 @@ int NeuralGPU::GetNeuronParamSize(int i_node, std::string param_name)
   }
 }
 
-int NeuralGPU::GetNeuronVarSize(int i_node, std::string var_name)
+int NeuronGPU::GetNeuronVarSize(int i_node, std::string var_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -688,7 +688,7 @@ int NeuralGPU::GetNeuronVarSize(int i_node, std::string var_name)
 }
 
 
-float *NeuralGPU::GetNeuronParam(int i_node, int n_node,
+float *NeuronGPU::GetNeuronParam(int i_node, int n_node,
 				 std::string param_name)
 {
   int i_group;
@@ -712,7 +712,7 @@ float *NeuralGPU::GetNeuronParam(int i_node, int n_node,
   }
 }
 
-float *NeuralGPU::GetNeuronParam( int *i_node, int n_node,
+float *NeuronGPU::GetNeuronParam( int *i_node, int n_node,
 				  std::string param_name)
 {
   int i_group;
@@ -739,7 +739,7 @@ float *NeuralGPU::GetNeuronParam( int *i_node, int n_node,
   }
 }
 
-float *NeuralGPU::GetArrayParam(int i_node, std::string param_name)
+float *NeuronGPU::GetArrayParam(int i_node, std::string param_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -747,7 +747,7 @@ float *NeuralGPU::GetArrayParam(int i_node, std::string param_name)
   return node_vect_[i_group]->GetArrayParam(i_neuron, param_name);
 }
 
-float *NeuralGPU::GetNeuronVar(int i_node, int n_node,
+float *NeuronGPU::GetNeuronVar(int i_node, int n_node,
 			       std::string var_name)
 {
   int i_group;
@@ -771,7 +771,7 @@ float *NeuralGPU::GetNeuronVar(int i_node, int n_node,
   }
 }
 
-float *NeuralGPU::GetNeuronVar(int *i_node, int n_node,
+float *NeuronGPU::GetNeuronVar(int *i_node, int n_node,
 			       std::string var_name)
 {
   int i_group;
@@ -798,7 +798,7 @@ float *NeuralGPU::GetNeuronVar(int *i_node, int n_node,
   }
 }
 
-float *NeuralGPU::GetArrayVar(int i_node, std::string var_name)
+float *NeuronGPU::GetArrayVar(int i_node, std::string var_name)
 {
   int i_group;
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
@@ -806,7 +806,7 @@ float *NeuralGPU::GetArrayVar(int i_node, std::string var_name)
   return node_vect_[i_group]->GetArrayVar(i_neuron, var_name);
 }
 
-int NeuralGPU::ConnectMpiInit(int argc, char *argv[])
+int NeuronGPU::ConnectMpiInit(int argc, char *argv[])
 {
   CheckUncalibrated("MPI connections cannot be initialized after calibration");
   int err = connect_mpi_->MpiInit(argc, argv);
@@ -817,22 +817,22 @@ int NeuralGPU::ConnectMpiInit(int argc, char *argv[])
   return err;
 }
 
-int NeuralGPU::MpiId()
+int NeuronGPU::MpiId()
 {
   return connect_mpi_->mpi_id_;
 }
 
-int NeuralGPU::MpiNp()
+int NeuronGPU::MpiNp()
 {
   return connect_mpi_->mpi_np_;
 }
 
-int NeuralGPU::ProcMaster()
+int NeuronGPU::ProcMaster()
 {
   return connect_mpi_->ProcMaster();
 }
 
-int NeuralGPU::MpiFinalize()
+int NeuronGPU::MpiFinalize()
 {
   if (mpi_flag_) {
     int finalized;
@@ -845,22 +845,22 @@ int NeuralGPU::MpiFinalize()
   return 0;
 }
 
-unsigned int *NeuralGPU::RandomInt(size_t n)
+unsigned int *NeuronGPU::RandomInt(size_t n)
 {
   return curand_int(*random_generator_, n);
 }
 
-float *NeuralGPU::RandomUniform(size_t n)
+float *NeuronGPU::RandomUniform(size_t n)
 {
   return curand_uniform(*random_generator_, n);
 }
 
-float *NeuralGPU::RandomNormal(size_t n, float mean, float stddev)
+float *NeuronGPU::RandomNormal(size_t n, float mean, float stddev)
 {
   return curand_normal(*random_generator_, n, mean, stddev);
 }
 
-float *NeuralGPU::RandomNormalClipped(size_t n, float mean, float stddev,
+float *NeuronGPU::RandomNormalClipped(size_t n, float mean, float stddev,
 				      float vmin, float vmax)
 {
   int n_extra = n/10;
@@ -889,7 +889,7 @@ float *NeuralGPU::RandomNormalClipped(size_t n, float mean, float stddev,
   return arr; 
 }
 
-int NeuralGPU::BuildDirectConnections()
+int NeuronGPU::BuildDirectConnections()
 {
   for (unsigned int iv=0; iv<node_vect_.size(); iv++) {
     if (node_vect_[iv]->has_dir_conn_==true) {
@@ -928,7 +928,7 @@ int NeuralGPU::BuildDirectConnections()
 }
 
 
-std::vector<std::string> NeuralGPU::GetScalVarNames(int i_node)
+std::vector<std::string> NeuronGPU::GetScalVarNames(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading variable names");
@@ -938,7 +938,7 @@ std::vector<std::string> NeuralGPU::GetScalVarNames(int i_node)
   return node_vect_[i_group]->GetScalVarNames();
 }
 
-int NeuralGPU::GetNScalVar(int i_node)
+int NeuronGPU::GetNScalVar(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading number of "
@@ -949,7 +949,7 @@ int NeuralGPU::GetNScalVar(int i_node)
   return node_vect_[i_group]->GetNScalVar();
 }
 
-std::vector<std::string> NeuralGPU::GetPortVarNames(int i_node)
+std::vector<std::string> NeuronGPU::GetPortVarNames(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading variable names");
@@ -959,7 +959,7 @@ std::vector<std::string> NeuralGPU::GetPortVarNames(int i_node)
   return node_vect_[i_group]->GetPortVarNames();
 }
 
-int NeuralGPU::GetNPortVar(int i_node)
+int NeuronGPU::GetNPortVar(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading number of "
@@ -971,7 +971,7 @@ int NeuralGPU::GetNPortVar(int i_node)
 }
 
 
-std::vector<std::string> NeuralGPU::GetScalParamNames(int i_node)
+std::vector<std::string> NeuronGPU::GetScalParamNames(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading parameter names");
@@ -981,7 +981,7 @@ std::vector<std::string> NeuralGPU::GetScalParamNames(int i_node)
   return node_vect_[i_group]->GetScalParamNames();
 }
 
-int NeuralGPU::GetNScalParam(int i_node)
+int NeuronGPU::GetNScalParam(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading number of "
@@ -992,7 +992,7 @@ int NeuralGPU::GetNScalParam(int i_node)
   return node_vect_[i_group]->GetNScalParam();
 }
 
-std::vector<std::string> NeuralGPU::GetPortParamNames(int i_node)
+std::vector<std::string> NeuronGPU::GetPortParamNames(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading parameter names");
@@ -1002,7 +1002,7 @@ std::vector<std::string> NeuralGPU::GetPortParamNames(int i_node)
   return node_vect_[i_group]->GetPortParamNames();
 }
 
-int NeuralGPU::GetNPortParam(int i_node)
+int NeuronGPU::GetNPortParam(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading number of "
@@ -1014,7 +1014,7 @@ int NeuralGPU::GetNPortParam(int i_node)
 }
 
 
-std::vector<std::string> NeuralGPU::GetArrayParamNames(int i_node)
+std::vector<std::string> NeuronGPU::GetArrayParamNames(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading array parameter names");
@@ -1024,7 +1024,7 @@ std::vector<std::string> NeuralGPU::GetArrayParamNames(int i_node)
   return node_vect_[i_group]->GetArrayParamNames();
 }
 
-int NeuralGPU::GetNArrayParam(int i_node)
+int NeuronGPU::GetNArrayParam(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading number of array "
@@ -1036,7 +1036,7 @@ int NeuralGPU::GetNArrayParam(int i_node)
 }
 
 
-std::vector<std::string> NeuralGPU::GetArrayVarNames(int i_node)
+std::vector<std::string> NeuronGPU::GetArrayVarNames(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading array variable names");
@@ -1046,7 +1046,7 @@ std::vector<std::string> NeuralGPU::GetArrayVarNames(int i_node)
   return node_vect_[i_group]->GetArrayVarNames();
 }
 
-int NeuralGPU::GetNArrayVar(int i_node)
+int NeuronGPU::GetNArrayVar(int i_node)
 {
   if (i_node<0 || i_node>(int)node_group_map_.size()) {
     throw ngpu_exception("Unrecognized node in reading number of array "
@@ -1057,7 +1057,7 @@ int NeuralGPU::GetNArrayVar(int i_node)
   return node_vect_[i_group]->GetNArrayVar();
 }
 
-ConnectionStatus NeuralGPU::GetConnectionStatus(ConnectionId conn_id) {
+ConnectionStatus NeuronGPU::GetConnectionStatus(ConnectionId conn_id) {
   ConnectionStatus conn_stat = net_connection_->GetConnectionStatus(conn_id);
   if (calibrate_flag_ == true) {
     int i_source = conn_id.i_source_;
@@ -1073,7 +1073,7 @@ ConnectionStatus NeuralGPU::GetConnectionStatus(ConnectionId conn_id) {
   return conn_stat;
 }
 
-std::vector<ConnectionStatus> NeuralGPU::GetConnectionStatus(std::vector
+std::vector<ConnectionStatus> NeuronGPU::GetConnectionStatus(std::vector
 							     <ConnectionId>
 							     &conn_id_vect) {
   std::vector<ConnectionStatus> conn_stat_vect;
@@ -1084,7 +1084,7 @@ std::vector<ConnectionStatus> NeuralGPU::GetConnectionStatus(std::vector
   return conn_stat_vect;
 }
   
-std::vector<ConnectionId> NeuralGPU::GetConnections(int i_source, int n_source,
+std::vector<ConnectionId> NeuronGPU::GetConnections(int i_source, int n_source,
 						    int i_target, int n_target,
 						    int syn_group) {
   if (n_source<=0) {
@@ -1100,7 +1100,7 @@ std::vector<ConnectionId> NeuralGPU::GetConnections(int i_source, int n_source,
 					      n_target, syn_group);    
 }
 
-std::vector<ConnectionId> NeuralGPU::GetConnections(int *i_source, int n_source,
+std::vector<ConnectionId> NeuronGPU::GetConnections(int *i_source, int n_source,
 						    int i_target, int n_target,
 						    int syn_group) {
   if (n_target<=0) {
@@ -1114,7 +1114,7 @@ std::vector<ConnectionId> NeuralGPU::GetConnections(int *i_source, int n_source,
 }
 
 
-std::vector<ConnectionId> NeuralGPU::GetConnections(int i_source, int n_source,
+std::vector<ConnectionId> NeuronGPU::GetConnections(int i_source, int n_source,
 						    int *i_target, int n_target,
 						    int syn_group) {
   if (n_source<=0) {
@@ -1126,7 +1126,7 @@ std::vector<ConnectionId> NeuralGPU::GetConnections(int i_source, int n_source,
 					      n_target, syn_group);    
 }
 
-std::vector<ConnectionId> NeuralGPU::GetConnections(int *i_source, int n_source,
+std::vector<ConnectionId> NeuronGPU::GetConnections(int *i_source, int n_source,
 						    int *i_target, int n_target,
 						    int syn_group) {
   
@@ -1136,14 +1136,14 @@ std::vector<ConnectionId> NeuralGPU::GetConnections(int *i_source, int n_source,
 }
 
 
-std::vector<ConnectionId> NeuralGPU::GetConnections(NodeSeq source,
+std::vector<ConnectionId> NeuronGPU::GetConnections(NodeSeq source,
 						    NodeSeq target,
 						    int syn_group) {
   return net_connection_->GetConnections<int>(source.i0, source.n, target.i0,
 					      target.n, syn_group);
 }
 
-std::vector<ConnectionId> NeuralGPU::GetConnections(std::vector<int> source,
+std::vector<ConnectionId> NeuronGPU::GetConnections(std::vector<int> source,
 						    NodeSeq target,
 						    int syn_group) {
   return net_connection_->GetConnections<int*>(source.data(), source.size(),
@@ -1152,7 +1152,7 @@ std::vector<ConnectionId> NeuralGPU::GetConnections(std::vector<int> source,
 }
 
 
-std::vector<ConnectionId> NeuralGPU::GetConnections(NodeSeq source,
+std::vector<ConnectionId> NeuronGPU::GetConnections(NodeSeq source,
 						    std::vector<int> target,
 						    int syn_group) {
   return net_connection_->GetConnections<int>(source.i0, source.n,
@@ -1160,7 +1160,7 @@ std::vector<ConnectionId> NeuralGPU::GetConnections(NodeSeq source,
 					      syn_group);
 }
 
-std::vector<ConnectionId> NeuralGPU::GetConnections(std::vector<int> source,
+std::vector<ConnectionId> NeuronGPU::GetConnections(std::vector<int> source,
 						    std::vector<int> target,
 						    int syn_group) {
   return net_connection_->GetConnections<int*>(source.data(), source.size(),

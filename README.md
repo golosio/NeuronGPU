@@ -1,4 +1,4 @@
-# NeuralGPU
+# NeuronGPU
 A GPU-MPI library for simulation of large-scale networks of spiking neurons.
 Can be used in Python, in C++ and in C.
 
@@ -11,7 +11,7 @@ For the installation, follow the instructions in the file INSTALLATION
 To start using it,, have a look at the examples in the python/examples and c++/examples folders.
 
 
-# NeuralGPU software specifications
+# NeuronGPU software specifications
 * Simulated neuron models: different multisynapse AdEx models with current or conductance based synapses, and two user definable models.
 * Simulated devices: Poisson signal generator, spike generator, multimeter, spike detector, parrot neuron.
 * Synapse model: standard synapse, STDP (spike timing dependent plasticity), test synapse model
@@ -21,5 +21,5 @@ To start using it,, have a look at the examples in the python/examples and c++/e
 * Possibility to use arrays and distributions for connection weights and delays 
 * GPU Cluster: efficient implementation of GPU-MPI.
 * Numeric precision: 32 bit float.
-* Simulation real time: on a machine with a single Nvidia GeForce RTX 2080 Ti GPU board, NeuralGPU is about 20 times faster than CPU code running on a PC with a CPU Intel CORE I9-9900K with with a frequency of 3.6GHz and 16 hardware threads.
+* Simulation real time: on a machine with a single Nvidia GeForce RTX 2080 Ti GPU board, NeuronGPU is about 20 times faster than CPU code running on a PC with a CPU Intel CORE I9-9900K with with a frequency of 3.6GHz and 16 hardware threads.
 

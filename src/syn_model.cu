@@ -15,7 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "ngpu_exception.h"
 #include "cuda_error.h"
-#include "neuralgpu.h"
+#include "neurongpu.h"
 #include "syn_model.h"
 #include "test_syn_model.h"
 #include "stdp.h"
@@ -120,7 +120,7 @@ int SynModel::SetParam(std::string param_name, float val)
 }
 
   
-int NeuralGPU::CreateSynGroup(std::string model_name)
+int NeuronGPU::CreateSynGroup(std::string model_name)
 {
   CheckUncalibrated("Nodes cannot be created after calibration");
   if (model_name == syn_model_name[i_test_syn_model]) {
@@ -138,7 +138,7 @@ int NeuralGPU::CreateSynGroup(std::string model_name)
   return syn_group_vect_.size(); // 0 is standard synapse
 }
 
-int NeuralGPU::GetSynGroupNParam(int syn_group)
+int NeuronGPU::GetSynGroupNParam(int syn_group)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -147,7 +147,7 @@ int NeuralGPU::GetSynGroupNParam(int syn_group)
   return syn_group_vect_[syn_group-1]->GetNParam();
 }
 
-std::vector<std::string> NeuralGPU::GetSynGroupParamNames(int syn_group)
+std::vector<std::string> NeuronGPU::GetSynGroupParamNames(int syn_group)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -156,7 +156,7 @@ std::vector<std::string> NeuralGPU::GetSynGroupParamNames(int syn_group)
   return syn_group_vect_[syn_group-1]->GetParamNames();
 }
 
-bool NeuralGPU::IsSynGroupParam(int syn_group, std::string param_name)
+bool NeuronGPU::IsSynGroupParam(int syn_group, std::string param_name)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -165,7 +165,7 @@ bool NeuralGPU::IsSynGroupParam(int syn_group, std::string param_name)
   return syn_group_vect_[syn_group-1]->IsParam(param_name);
 }
 
-int NeuralGPU::GetSynGroupParamIdx(int syn_group, std::string param_name)
+int NeuronGPU::GetSynGroupParamIdx(int syn_group, std::string param_name)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -174,7 +174,7 @@ int NeuralGPU::GetSynGroupParamIdx(int syn_group, std::string param_name)
   return syn_group_vect_[syn_group-1]->GetParamIdx(param_name);
 }
 
-float NeuralGPU::GetSynGroupParam(int syn_group, std::string param_name)
+float NeuronGPU::GetSynGroupParam(int syn_group, std::string param_name)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -183,7 +183,7 @@ float NeuralGPU::GetSynGroupParam(int syn_group, std::string param_name)
   return syn_group_vect_[syn_group-1]->GetParam(param_name);
 }
 
-int NeuralGPU::SetSynGroupParam(int syn_group, std::string param_name,
+int NeuronGPU::SetSynGroupParam(int syn_group, std::string param_name,
 				float val)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
@@ -194,7 +194,7 @@ int NeuralGPU::SetSynGroupParam(int syn_group, std::string param_name,
 }
 
 
-int NeuralGPU::SynGroupCalibrate()
+int NeuronGPU::SynGroupCalibrate()
 {
   int n_group = syn_group_vect_.size();
   int *h_SynGroupTypeMap = new int[n_group];

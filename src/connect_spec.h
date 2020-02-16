@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define STANDARD_SYNAPSE 0
 
-class NeuralGPU;
+class NeuronGPU;
 
 template <class T>
 class RemoteNode
@@ -58,7 +58,7 @@ public:
   int GetParam(std::string param_name);
   static bool IsParam(std::string param_name);
 
-  friend class NeuralGPU;
+  friend class NeuronGPU;
 };
 
 
@@ -88,7 +88,7 @@ class SynSpec
   static bool IsFloatParam(std::string param_name);
   static bool IsFloatPtParam(std::string param_name);
 
-  friend class NeuralGPU;
+  friend class NeuronGPU;
 };
 
 #endif

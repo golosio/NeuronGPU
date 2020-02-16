@@ -1,4 +1,4 @@
-import neuralgpu as ngpu
+import neurongpu as ngpu
 
 neuron = ngpu.Create("aeif_cond_beta")
 

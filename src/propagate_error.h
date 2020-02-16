@@ -2,31 +2,31 @@
 #define PROPAGATEERRORH
 
 #define BEGIN_ERR_PROP			   \
-  checkNeuralGPUInstance();		   \
-  NeuralGPU_instance->SetErrorFlag(false); \
-  NeuralGPU_instance->SetErrorMessage(""); \
-  NeuralGPU_instance->SetErrorCode(0);	   \
+  checkNeuronGPUInstance();		   \
+  NeuronGPU_instance->SetErrorFlag(false); \
+  NeuronGPU_instance->SetErrorMessage(""); \
+  NeuronGPU_instance->SetErrorCode(0);	   \
   try
 
 #define END_ERR_PROP							 \
   catch (ngpu_exception &e){                                             \
-    NeuralGPU_instance->SetErrorFlag(true);				 \
-    NeuralGPU_instance->SetErrorMessage(e.what());			 \
-    NeuralGPU_instance->SetErrorCode(2);				 \
+    NeuronGPU_instance->SetErrorFlag(true);				 \
+    NeuronGPU_instance->SetErrorMessage(e.what());			 \
+    NeuronGPU_instance->SetErrorCode(2);				 \
   }								         \
   catch (std::bad_alloc&) {						 \
-    NeuralGPU_instance->SetErrorFlag(true);			         \
-    NeuralGPU_instance->SetErrorMessage("Memory allocation error.");     \
-    NeuralGPU_instance->SetErrorCode(1);			         \
+    NeuronGPU_instance->SetErrorFlag(true);			         \
+    NeuronGPU_instance->SetErrorMessage("Memory allocation error.");     \
+    NeuronGPU_instance->SetErrorCode(1);			         \
   }									 \
   catch (...) {                                                          \
-    NeuralGPU_instance->SetErrorFlag(true);				 \
-    NeuralGPU_instance->SetErrorMessage("Error in NeuralGPU function."); \
-    NeuralGPU_instance->SetErrorCode(255);				 \
+    NeuronGPU_instance->SetErrorFlag(true);				 \
+    NeuronGPU_instance->SetErrorMessage("Error in NeuronGPU function."); \
+    NeuronGPU_instance->SetErrorCode(255);				 \
   }                                                                      \
-  if (NeuralGPU_instance->OnException() == ON_EXCEPTION_EXIT) {          \
-    std::cerr << NeuralGPU_instance->GetErrorMessage();                  \
-    exit(NeuralGPU_instance->GetErrorCode());                            \
+  if (NeuronGPU_instance->OnException() == ON_EXCEPTION_EXIT) {          \
+    std::cerr << NeuronGPU_instance->GetErrorMessage();                  \
+    exit(NeuronGPU_instance->GetErrorCode());                            \
   }
 
 #endif

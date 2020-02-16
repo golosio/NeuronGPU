@@ -1,2 +1,2 @@
-g++ -Wall -L ../../lib -I ../../src -o bin/brunel_outdegree brunel_outdegree.cpp -lm -lneuralgpu
+g++ -Wall -L ../../lib -I ../../src -o bin/brunel_outdegree brunel_outdegree.cpp -lm -lneurongpu
 

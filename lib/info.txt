@@ -1,1 +1,1 @@
-Dinamic library libneuralgpu should be produced in this directory.
+Dinamic library libneurongpu should be produced in this directory.

@@ -1,5 +1,5 @@
 import sys
-import neuralgpu as ngpu
+import neurongpu as ngpu
 import numpy as np
 tolerance = 0.0005
 neuron = ngpu.Create('aeif_psc_exp', 1, 2)
@@ -55,7 +55,7 @@ import matplotlib.pyplot as plt
 
 fig1 = plt.figure(1)
 plt.plot(t, V_m)
-fig1.suptitle("NeuralGPU")
+fig1.suptitle("NeuronGPU")
 fig2 = plt.figure(2)
 plt.plot(t1, V_m1)
 fig2.suptitle("NEST")

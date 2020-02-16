@@ -44,7 +44,7 @@ class SynModel
   virtual float GetParam(std::string param_name);
   virtual int SetParam(std::string param_name, float val);
 
-  friend class NeuralGPU;
+  friend class NeuronGPU;
 };
 
 #endif

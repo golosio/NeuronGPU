@@ -1,6 +1,6 @@
 import sys
 import ctypes
-import neuralgpu as ngpu
+import neurongpu as ngpu
 from random import randrange
 
 

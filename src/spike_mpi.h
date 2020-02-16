@@ -15,7 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SPIKEMPIH
 #define SPIKEMPIH
 
-extern __constant__ bool NeuralGPUMpiFlag;
+extern __constant__ bool NeuronGPUMpiFlag;
 
 extern __device__ int NExternalTargetHost;
 extern __device__ int MaxSpikePerHost;

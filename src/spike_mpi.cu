@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "spike_mpi.h"
 #include "connect_mpi.h"
 
-__constant__ bool NeuralGPUMpiFlag;
+__constant__ bool NeuronGPUMpiFlag;
 
 __device__ int NExternalTargetHost;
 __device__ int MaxSpikePerHost;

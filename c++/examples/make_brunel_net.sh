@@ -1,2 +1,2 @@
-g++ -Wall -L ../../lib -I ../../src -o bin/brunel_net brunel_net.cpp -lm -lneuralgpu
+g++ -Wall -L ../../lib -I ../../src -o bin/brunel_net brunel_net.cpp -lm -lneurongpu
 

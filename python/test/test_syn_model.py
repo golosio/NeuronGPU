@@ -1,5 +1,5 @@
 import sys
-import neuralgpu as ngpu
+import neurongpu as ngpu
 
 tolerance = 1.0e-6
 dt_step = 0.1

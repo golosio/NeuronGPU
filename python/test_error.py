@@ -1,4 +1,4 @@
-import neuralgpu as ngpu
+import neurongpu as ngpu
 
 try:
     print ("ok0")

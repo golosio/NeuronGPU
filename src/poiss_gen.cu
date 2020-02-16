@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <curand.h>
 #include <curand_kernel.h>
 
-#include "neuralgpu.h"
+#include "neurongpu.h"
 #include "neuron_models.h"
 #include "poiss_gen.h"
 #include "poiss_gen_variables.h"

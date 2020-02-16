@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-extern __constant__ float NeuralGPUTimeResolution;
+extern __constant__ float NeuronGPUTimeResolution;
 
 namespace aeif_psc_alpha_ns
 {
@@ -181,7 +181,7 @@ __device__
       PushSpike(data_struct.i_node_0_ + neuron_idx, 1.0);
       V_m = V_reset;
       w += b; // spike-driven adaptation
-      refractory_step = (int)round(t_ref/NeuralGPUTimeResolution);
+      refractory_step = (int)round(t_ref/NeuronGPUTimeResolution);
       if (refractory_step<0) {
 	refractory_step = 0;
       }

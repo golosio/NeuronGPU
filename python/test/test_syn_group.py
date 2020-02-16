@@ -1,5 +1,5 @@
 import sys
-import neuralgpu as ngpu
+import neurongpu as ngpu
 
 syn_group = ngpu.CreateSynGroup("test_syn_model", {"fact":1.0, "offset":2.0})
 print(ngpu.GetStatus(syn_group))

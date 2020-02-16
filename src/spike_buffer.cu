@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LAST_SPIKE_TIME_GUARD 0x70000000
 
-extern __constant__ int NeuralGPUTimeIdx;
+extern __constant__ int NeuronGPUTimeIdx;
 
 __device__ int MaxSpikeBufferSize;
 __device__ int NSpikeBuffer;
@@ -126,9 +126,9 @@ __device__ unsigned int **TargetRevConnection;
 
 __device__ void PushSpike(int i_spike_buffer, float height)
 {
-  LastSpikeTimeIdx[i_spike_buffer] = NeuralGPUTimeIdx;
+  LastSpikeTimeIdx[i_spike_buffer] = NeuronGPUTimeIdx;
   LastSpikeHeight[i_spike_buffer] = height;
-  if (NeuralGPUMpiFlag) {
+  if (NeuronGPUMpiFlag) {
     PushExternalSpike(i_spike_buffer, height);
   }
   if (ConnectionGroupSize[i_spike_buffer]>0) {

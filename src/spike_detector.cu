@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#include <stdio.h>
 
 #include "cuda_error.h"
-#include "neuralgpu.h"
+#include "neurongpu.h"
 #include "neuron_models.h"
 #include "spike_detector.h"
 				    //#include "spike_buffer.h"

@@ -12,8 +12,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEURALGPUCLASSH
-#define NEURALGPUCLASSH
+#ifndef NEURONGPUCLASSH
+#define NEURONGPUCLASSH
 
 #include <iostream>
 #include <vector>
@@ -79,7 +79,7 @@ typedef Sequence NodeSeq;
 
 enum {ON_EXCEPTION_EXIT=0, ON_EXCEPTION_HANDLE};
 
-class NeuralGPU
+class NeuronGPU
 {
   float time_resolution_; // time resolution in ms
   curandGenerator_t *random_generator_;
@@ -196,9 +196,9 @@ class NeuralGPU
 
     
  public:
-  NeuralGPU();
+  NeuronGPU();
 
-  ~NeuralGPU();
+  ~NeuronGPU();
 
   int SetRandomSeed(unsigned long long seed);
 

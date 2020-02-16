@@ -1,2 +1,2 @@
-g++ -Wall -L ../../lib -I ../../src -o bin/test_connect test_connect.cpp -lm -lneuralgpu
+g++ -Wall -L ../../lib -I ../../src -o bin/test_connect test_connect.cpp -lm -lneurongpu
 

@@ -14,14 +14,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
 
-#include "neuralgpu.h"
+#include "neurongpu.h"
 #include "node_group.h"
 #include "send_spike.h"
 #include "spike_buffer.h"
 #include "cuda_error.h"
 
-extern __constant__ int NeuralGPUTimeIdx;
-extern __constant__ float NeuralGPUTimeResolution;
+extern __constant__ int NeuronGPUTimeIdx;
+extern __constant__ float NeuronGPUTimeResolution;
 extern __constant__ NodeGroupStruct NodeGroupArray[];
 extern __device__ signed char *NodeGroupMap;
 
@@ -71,13 +71,13 @@ __device__ void NestedLoopFunction0(int i_spike, int i_syn)
   atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i], d_val);
   if (syn_group>0) {
     ConnectionGroupTargetSpikeTime[i_conn*NSpikeBuffer+i_source][i_syn]
-      = (unsigned short)(NeuralGPUTimeIdx & 0xffff);
+      = (unsigned short)(NeuronGPUTimeIdx & 0xffff);
     
-    int Dt_int = NeuralGPUTimeIdx - LastSpikeTimeIdx[i_target];
+    int Dt_int = NeuronGPUTimeIdx - LastSpikeTimeIdx[i_target];
      if (Dt_int>0 && Dt_int<MAX_SYN_DT) {
        SynapseUpdate(syn_group, &ConnectionGroupTargetWeight
 		    [i_conn*NSpikeBuffer+i_source][i_syn],
-		     -NeuralGPUTimeResolution*Dt_int);
+		     -NeuronGPUTimeResolution*Dt_int);
     }
   }
   ////////////////////////////////////////////////////////////////
@@ -109,7 +109,7 @@ __global__ void GetSpikes(int i_group, int array_size, int n_port, int n_var,
   }
 }
 
-int NeuralGPU::ClearGetSpikeArrays()
+int NeuronGPU::ClearGetSpikeArrays()
 {
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     BaseNeuron *bn = node_vect_[i];
@@ -122,7 +122,7 @@ int NeuralGPU::ClearGetSpikeArrays()
   return 0;
 }
 
-int NeuralGPU::FreeGetSpikeArrays()
+int NeuronGPU::FreeGetSpikeArrays()
 {
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     BaseNeuron *bn = node_vect_[i];

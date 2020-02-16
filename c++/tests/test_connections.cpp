@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include "neuralgpu.h"
+#include "neurongpu.h"
 
 using namespace std;
 
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
   // Intializes C random number generator
   // srand((unsigned) time(&t));
 
-  NeuralGPU ngpu;
+  NeuronGPU ngpu;
   cout << "Building ...\n";
 
   ngpu.SetRandomSeed(1234ULL); // seed for GPU random numbers

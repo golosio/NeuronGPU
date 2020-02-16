@@ -1,4 +1,0 @@
-export NEURALGPU_PATH=__instdir__
-export LD_LIBRARY_PATH=$NEURALGPU_PATH/lib:$LD_LIBRARY_PATH
-export PYTHONPATH=$NEURALGPU_PATH/python/lib::
-

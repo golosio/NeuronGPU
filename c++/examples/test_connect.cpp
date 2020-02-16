@@ -16,13 +16,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <string>
 
-#include "neuralgpu.h"
+#include "neurongpu.h"
 
 int main(int argc, char *argv[])
 {
   const int N = 5;
   
-  NeuralGPU ngpu;
+  NeuronGPU ngpu;
 
   NodeSeq neuron = ngpu.Create("aeif_cond_beta", 2*N);
   std::vector<int> neuron_even;

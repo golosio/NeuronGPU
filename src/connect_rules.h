@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONNECTRULESH
 
 #include <iostream>
-#include "neuralgpu.h"
+#include "neurongpu.h"
 #include "connect_mpi.h"
 
 #ifdef _OPENMP
@@ -41,7 +41,7 @@ int RemoteNode<int*>::GetINode(int in)
 }
 
 template <class T1, class T2>
-int NeuralGPU::_Connect(T1 source, int n_source, T2 target, int n_target,
+int NeuronGPU::_Connect(T1 source, int n_source, T2 target, int n_target,
 			ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   CheckUncalibrated("Connections cannot be created after calibration");
@@ -85,7 +85,7 @@ int NeuralGPU::_Connect(T1 source, int n_source, T2 target, int n_target,
 }
 
 template<class T1, class T2>
-int NeuralGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
+int NeuronGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
 			      int i_array, SynSpec &syn_spec)
 {
   float weight;
@@ -107,7 +107,7 @@ int NeuralGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
 }
 
 template<class T1, class T2>
-int NeuralGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
+int NeuronGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
 			      float weight, float delay, int i_array,
 			      SynSpec &syn_spec)
 {
@@ -116,7 +116,7 @@ int NeuralGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
 
 
 template <class T1, class T2>
-int NeuralGPU::_ConnectOneToOne(T1 source, T2 target, int n_node,
+int NeuronGPU::_ConnectOneToOne(T1 source, T2 target, int n_node,
 				SynSpec &syn_spec)	       
 {
   for (int in=0; in<n_node; in++) {
@@ -127,7 +127,7 @@ int NeuralGPU::_ConnectOneToOne(T1 source, T2 target, int n_node,
 }
 
 template <class T1, class T2>
-int NeuralGPU::_ConnectAllToAll
+int NeuronGPU::_ConnectAllToAll
 (T1 source, int n_source, T2 target, int n_target, SynSpec &syn_spec)
 {
 #ifdef _OPENMP
@@ -157,7 +157,7 @@ int NeuralGPU::_ConnectAllToAll
 }
 
 template <class T1, class T2>
-int NeuralGPU::_ConnectFixedTotalNumber
+int NeuronGPU::_ConnectFixedTotalNumber
 (T1 source, int n_source, T2 target, int n_target, int n_conn,
  SynSpec &syn_spec)
 {
@@ -190,7 +190,7 @@ int NeuralGPU::_ConnectFixedTotalNumber
 
 
 template <class T1, class T2>
-int NeuralGPU::_ConnectFixedIndegree
+int NeuronGPU::_ConnectFixedIndegree
 (
  T1 source, int n_source, T2 target, int n_target, int indegree,
  SynSpec &syn_spec
@@ -278,7 +278,7 @@ int NeuralGPU::_ConnectFixedIndegree
 
 
 template <class T1, class T2>
-int NeuralGPU::_ConnectFixedOutdegree
+int NeuronGPU::_ConnectFixedOutdegree
 (
  T1 source, int n_source, T2 target, int n_target, int outdegree,
  SynSpec &syn_spec
@@ -365,7 +365,7 @@ int NeuralGPU::_ConnectFixedOutdegree
 
 
 template <class T1, class T2>
-int NeuralGPU::_RemoteConnect(RemoteNode<T1> source, int n_source,
+int NeuronGPU::_RemoteConnect(RemoteNode<T1> source, int n_source,
 			      RemoteNode<T2> target, int n_target,
 			      ConnSpec &conn_spec, SynSpec &syn_spec)
 {
@@ -406,7 +406,7 @@ int NeuralGPU::_RemoteConnect(RemoteNode<T1> source, int n_source,
 
 
 template <class T1, class T2>
-  int NeuralGPU::_RemoteConnectOneToOne
+  int NeuronGPU::_RemoteConnectOneToOne
   (RemoteNode<T1> source, RemoteNode<T2> target, int n_node,
    SynSpec &syn_spec)
 {
@@ -472,7 +472,7 @@ template <class T1, class T2>
 
 
 template <class T1, class T2>
-  int NeuralGPU::_RemoteConnectAllToAll
+  int NeuronGPU::_RemoteConnectAllToAll
   (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
    SynSpec &syn_spec)
 {
@@ -542,7 +542,7 @@ template <class T1, class T2>
 }
 
 template <class T1, class T2>
-  int NeuralGPU::_RemoteConnectFixedTotalNumber
+  int NeuronGPU::_RemoteConnectFixedTotalNumber
   (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
    int n_conn, SynSpec &syn_spec)
 {
@@ -610,7 +610,7 @@ template <class T1, class T2>
 }
 
 template <class T1, class T2>
-  int NeuralGPU::_RemoteConnectFixedIndegree
+  int NeuronGPU::_RemoteConnectFixedIndegree
   (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
    int indegree, SynSpec &syn_spec)
 {
@@ -731,7 +731,7 @@ template <class T1, class T2>
 
 
 template <class T1, class T2>
-  int NeuralGPU::_RemoteConnectFixedOutdegree
+  int NeuronGPU::_RemoteConnectFixedOutdegree
   (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
    int outdegree, SynSpec &syn_spec)
 {

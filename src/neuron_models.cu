@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ngpu_exception.h"
 #include "cuda_error.h"
 #include "neuron_models.h"
-#include "neuralgpu.h"
+#include "neurongpu.h"
 #include "aeif_cond_beta.h"
 #include "aeif_cond_alpha.h"
 #include "aeif_psc_exp.h"
@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "user_m1.h"
 #include "user_m2.h"
 
-NodeSeq NeuralGPU::Create(std::string model_name, int n_node /*=1*/,
+NodeSeq NeuronGPU::Create(std::string model_name, int n_node /*=1*/,
 			  int n_port /*=1*/)
 {
   CheckUncalibrated("Nodes cannot be created after calibration");

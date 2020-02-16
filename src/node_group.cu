@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cuda_error.h"
 #include "node_group.h"
-#include "neuralgpu.h"
+#include "neurongpu.h"
 
 __constant__ NodeGroupStruct NodeGroupArray[MAX_N_NODE_GROUPS];
 __device__ signed char *NodeGroupMap;
@@ -27,7 +27,7 @@ void NodeGroupMapInit(signed char *node_group_map)
   NodeGroupMap = node_group_map;
 }
 
-int NeuralGPU::NodeGroupArrayInit()
+int NeuronGPU::NodeGroupArrayInit()
 {
   gpuErrchk(cudaMalloc(&d_node_group_map_,
 		       node_group_map_.size()*sizeof(signed char)));
@@ -53,7 +53,7 @@ int NeuralGPU::NodeGroupArrayInit()
   return 0;
 }
 
-double *NeuralGPU::InitGetSpikeArray (int n_node, int n_port)
+double *NeuronGPU::InitGetSpikeArray (int n_node, int n_port)
 {
   double *d_get_spike_array = NULL;
   if (n_node*n_port > 0) {
@@ -64,7 +64,7 @@ double *NeuralGPU::InitGetSpikeArray (int n_node, int n_port)
   return d_get_spike_array;
 }
 
-int NeuralGPU::FreeNodeGroupMap()
+int NeuronGPU::FreeNodeGroupMap()
 {
   //gpuErrchk(cudaFree(d_node_group_map_));
 	    

@@ -47,13 +47,13 @@ gedit /home/$USER/.bashrc
 
 where you can use an editor of your choice instead of gedit, and add
 the following lines at the end of the file:
-. $HOME/neuralgpu/bin/neuralgpu_env.sh
+. $HOME/neurongpu/bin/neurongpu_env.sh
 
 Download the source tarball and uncompress it:
 wget https://
-tar -xvzf neuralgpu-1.02.tgz
+tar -xvzf neurongpu-1.02.tgz
 
 Compile the source:
-cd NeuralGPU/
+cd NeuronGPU/
 ./make.sh
 If everything goes well, you're done!

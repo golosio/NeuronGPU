@@ -5,7 +5,7 @@ CUDAFLAGS= -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device
 LIBS= -lm -lcurand
 LDFLAGS = -shared   # linking flags
 RM = rm -f   # rm command
-TARGET_LIB = ./lib/libneuralgpu.so  # target lib
+TARGET_LIB = ./lib/libneurongpu.so  # target lib
 
 SRC_DIR   = src
 

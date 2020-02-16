@@ -20,12 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "dir_connect.h"
 #include <stdint.h>
 
-class NeuralGPU;
+class NeuronGPU;
 
 class BaseNeuron
 {
  protected:
-  friend class NeuralGPU;
+  friend class NeuronGPU;
   int node_type_;
   int i_node_0_;
   int n_node_;

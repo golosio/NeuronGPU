@@ -1,0 +1,135 @@
+#####
+#
+# SYNOPSIS
+#
+# CT_CHECK_CUDA_SDK
+#
+# DESCRIPTION
+#
+# This macro tries to find the headers and libraries for the
+# CUDA SDK to build client applications.
+#
+# If includes are found, the variable CDSDKINCPATH will be set. If
+# libraries are found, the variable CDSDKLIBPATH will be set. if no check
+# was successful, the script exits with a error message.
+#
+# LAST MODIFICATION
+#
+# 2011-01-04
+#
+# COPYLEFT
+#
+# Copyright Â© 2011 <www.platos-cave.org>
+#
+# Copying and distribution of this file, with or without
+# modification, are permitted in any medium without royalty provided
+# the copyright notice and this notice are preserved.
+
+
+AC_DEFUN([CT_CHECK_CUDA_SDK], [
+
+AC_ARG_WITH([cudasdk],
+[AS_HELP_STRING([--with-cudasdk],
+[Prefix of your CUDA SDK installation])],
+[cdsdk_prefix=$withval],
+[cdsdk_prefix=yes])
+
+AC_CANONICAL_HOST
+
+AC_SUBST(CDSDK_COMMON_INCPATH)
+AC_SUBST(CDSDK_COMMON_LIBPATH)
+AC_SUBST(CDSDK_SHARED_INCPATH)
+AC_SUBST(CDSDK_SHARED_LIBPATH)
+
+# AC_MSG_NOTICE([$cdsdk_prefix, $withval])
+
+# cd_prefix will be set to "yes" if --with-cudasdk is passed in with no value
+if test "$cdsdk_prefix" == "yes"; then
+if test "$withval" == "yes"; then
+
+case $host_os in
+darwin*)
+cdsdk_prefix="/Developer/GPU Computing"
+;;
+linux*)
+cdsdk_prefix="/usr/local/cuda/NVIDIA_GPU_COMPUTING_SDK"
+;;
+*)
+#Default Case
+AC_MSG_ERROR([Your platform is not currently supported]) ;;
+esac
+
+fi
+fi
+
+if test "$cdsdk_prefix" != ""; then
+#########################
+# common
+#AC_MSG_CHECKING([for CUDA SDK common includes in $cdsdk_prefix/C/common/inc])
+#if test -f "$cdsdk_prefix/C/common/inc/cutil.h" ; then
+#CDSDK_COMMON_INCPATH="-I$cdsdk_prefix/C/common/inc"
+#AC_MSG_RESULT([yes])
+#else
+#AC_MSG_ERROR(cutil.h not found)
+#fi
+
+#AC_MSG_CHECKING([for CUDA SDK common libraries in $cdsdk_prefix/C/common/lib])
+#case $host_os in
+#darwin*)
+#if test -f "$cdsdk_prefix/C/common/lib/darwin/libcudpp_i386.a" ; then
+#CDSDK_COMMON_LIBPATH="-L$cdsdk_prefix/C/common/lib/darwin/"
+#AC_MSG_RESULT([yes])
+#else
+#AC_MSG_ERROR(libcudpp_i386.a not found)
+#fi
+#;;
+#linux*)
+#if test -f "$cdsdk_prefix/C/common/lib/linux/libnvcuvid.dylib" ; then
+#CDSDK_COMMON_LIBPATH="-L$cdsdk_prefix/C/common/lib/linux/"
+#AC_MSG_RESULT([yes])
+#else
+#AC_MSG_ERROR(libcudpp_i386.a not found)
+#fi
+#;;
+#*)
+#Default Case
+#AC_MSG_ERROR([Your platform is not currently supported]) ;;
+#esac
+
+#########################
+# shared
+#AC_MSG_CHECKING([for CUDA SDK shared includes in $cdsdk_prefix/shared/inc])
+#if test -f "$cdsdk_prefix/shared/inc/shrUtils.h" ; then
+#CDSDK_SHARED_INCPATH="-I$cdsdk_prefix/shared/inc"
+#AC_MSG_RESULT([yes])
+#else
+#AC_MSG_ERROR(shrUtils.h not found)
+#fi
+
+#AC_MSG_CHECKING([for CUDA SDK shared libraries in $cdsdk_prefix/shared/lib])
+#if test -f "$cdsdk_prefix/shared/lib/libshrutil_i386.a" ; then
+#CDSDK_SHARED_LIBPATH="-I$cdsdk_prefix/shared/lib"
+#AC_MSG_RESULT([yes])
+#else
+#AC_MSG_ERROR(libshrutil_i386.a not found)
+#fi
+#else
+#Default Case
+#AC_MSG_ERROR([cdsdk_prefix is NULL])
+#fi
+
+
+if test "$CDSDK_COMMON_INCPATH" = "" ; then
+AC_CHECK_HEADER([cutil.h], [], AC_MSG_ERROR(cuda.h not found))
+fi
+if test "$CDSDK_COMMON_LIBPATH" = "" ; then
+AC_CHECK_LIB(cudpp_i386, cutilCheckError, [], AC_MSG_ERROR(libcudpp_i386.a not found))
+fi
+if test "$CDSDK_SHARED_INCPATH" = "" ; then
+AC_CHECK_HEADER([shrUtils.h], [], AC_MSG_ERROR(cuda.h not found))
+fi
+if test "$CDSDK_SHARED_LIBPATH" = "" ; then
+AC_CHECK_LIB(shrutil_i386, __shrExitEX, [], AC_MSG_ERROR(libshrutil_i386.a not found))
+fi
+
+]) 

@@ -33,3 +33,4 @@ libtool
 /.project
 /.settings/
 doxygen
+python/test/log.txt

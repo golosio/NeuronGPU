@@ -1,0 +1,9 @@
+rm -f test_connections_g1.dat
+rm -f test_connections_spikes.dat
+rm -f test_connections_voltage.dat
+rm -f test_neuron_group_record.dat
+rm -f test_neuron_groups_g1.dat
+rm -f test_neuron_groups_spikes.dat
+rm -f test_neuron_groups_voltage.dat
+rm -f test_connections
+rm -f test_neuron_groups

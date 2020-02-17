@@ -90,10 +90,10 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ct_check_cuda.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
@@ -214,8 +214,6 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CDINCPATH = @CDINCPATH@
-CDLIBPATH = @CDLIBPATH@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -345,7 +343,7 @@ CUDA_LDFLAGS = -shared   # linking flags
 CXXLD = $(NVCC)
 lib_LTLIBRARIES = libneurongpu.so
 libneurongpu.so_SOURCES = dummyfile.cpp
-all_SOURCES = aeif_cond_alpha.cu aeif_cond_beta.cu aeif_psc_alpha.cu aeif_psc_delta.cu aeif_psc_exp.cu base_neuron.cu connect.cu connect_mpi.cu connect_rules.cpp getRealTime.cu get_spike.cu multimeter.cu nested_loop.cu neuron_models.cu neurongpu.cu neurongpu_C.cpp node_group.cu parrot_neuron.cu poiss_gen.cu poisson.cu prefix_scan.cu random.cu rev_spike.cu rk5.cu scan.cu send_spike.cu spike_buffer.cu spike_detector.cu spike_generator.cu spike_mpi.cu stdp.cu syn_model.cu test_syn_model.cu user_m1.cu user_m2.cu
+all_SOURCES = ../../src/aeif_cond_alpha.cu ../../src/aeif_cond_beta.cu ../../src/aeif_psc_alpha.cu ../../src/aeif_psc_delta.cu ../../src/aeif_psc_exp.cu ../../src/base_neuron.cu ../../src/connect.cu ../../src/connect_mpi.cu ../../src/connect_rules.cpp ../../src/getRealTime.cu ../../src/get_spike.cu ../../src/multimeter.cu ../../src/nested_loop.cu ../../src/neuron_models.cu ../../src/neurongpu.cu ../../src/neurongpu_C.cpp ../../src/node_group.cu ../../src/parrot_neuron.cu ../../src/poiss_gen.cu ../../src/poisson.cu ../../src/prefix_scan.cu ../../src/random.cu ../../src/rev_spike.cu ../../src/rk5.cu ../../src/scan.cu ../../src/send_spike.cu ../../src/spike_buffer.cu ../../src/spike_detector.cu ../../src/spike_generator.cu ../../src/spike_mpi.cu ../../src/stdp.cu ../../src/syn_model.cu ../../src/test_syn_model.cu ../../src/user_m1.cu ../../src/user_m2.cu
 libneurongpu.so_LDFLAGS = $(CUDA_LDFLAGS)
 libneurongpu.so_CFLAGS = $(CUDA_FLAGS) $(COMPILER_FLAGS)
 libneurongpu.so_LIBADD = $(CUDA_LIBS)

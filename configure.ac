@@ -61,6 +61,6 @@ pythonlib/Makefile])
 
 
 AC_OUTPUT
-
-#$ac_top_srcdir/patch.sh
-./patch.sh
+_AC_SRCDIRS(["."])
+export ac_top_srcdir
+$ac_top_srcdir/patch.sh

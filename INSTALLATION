@@ -1,0 +1,16 @@
+Tested on ubuntu 18.04-19.10 and on other unix/linux-based systems.
+Prerequisites:
+1) Up-to-date nvidia drivers
+2) packages: nvidia-cuda-toolkit openmpi-bin libopenmpi-dev libomp-dev python python-matplotlib python-mpi4py (those are the names in ubuntu, may have different names in other linux/unix distributions).
+
+
+Configuration and installation
+On a terminal, cd to the folder where you unpacked the tarball, and type:
+./configure
+make
+sudo make install
+
+If you have problems that are not related to missing packages, before the "./configure command try to type:
+autoreconf -i
+and then the same commands written above.
+For support: golosio@unica.it

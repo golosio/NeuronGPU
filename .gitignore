@@ -5,9 +5,7 @@
 *.so
 *.dylib
 *.pyc
-Makefile.in
-config.h.in
-configure
+Makefile
 build
 build_mac
 aclocal.m4

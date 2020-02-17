@@ -1,5 +1,4 @@
-NVCC=nvcc
-COMPILER_FLAGS= -O3 -Wall -fPIC -fopenmp
+COMPILER_FLAGS= -O3 -Wall -fPIC $(OPENMP_CFLAGS) 
 CUDA_FLAGS= -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true
 CUDA_LIBS= -lm -lcurand
 CUDA_LDFLAGS = -shared   # linking flags

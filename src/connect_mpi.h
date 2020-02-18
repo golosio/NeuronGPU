@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef HAVE_MPI
 #ifndef CONNECT_MPI_H
 #define CONNECT_MPI_H
 #include <vector>
@@ -66,4 +67,5 @@ class ConnectMpi
 
 };
 
+#endif
 #endif

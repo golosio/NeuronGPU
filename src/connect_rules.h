@@ -17,7 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include "neurongpu.h"
+
+#ifdef HAVE_MPI
 #include "connect_mpi.h"
+#endif
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -363,6 +366,8 @@ int NeuronGPU::_ConnectFixedOutdegree
   return 0;
 }
 
+
+#ifdef HAVE_MPI
 
 template <class T1, class T2>
 int NeuronGPU::_RemoteConnect(RemoteNode<T1> source, int n_source,
@@ -841,5 +846,6 @@ template <class T1, class T2>
   return 0;
 }
 
+#endif
 
 #endif

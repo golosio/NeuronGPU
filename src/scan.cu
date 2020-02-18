@@ -2,6 +2,7 @@
 	Matt Dean - https://github.com/mattdean1/cuda
 */
 
+#include <config.h>
 #include <stdlib.h>
 #include "scan.cuh"
 

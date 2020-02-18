@@ -13,6 +13,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
+#include <config.h>
 #include <iostream>
 #include "ngpu_exception.h"
 #include "connect.h"
@@ -359,82 +360,111 @@ int NeuronGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
 			     int i_target_host, int i_target, int n_target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+#ifdef HAVE_MPI
   RemoteNode<int> rsource(i_source_host, i_source);
   RemoteNode<int> rtarget(i_target_host, i_target);
   return _RemoteConnect<int, int>(rsource, n_source, rtarget, n_target,
 				  conn_spec, syn_spec);
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 
 int NeuronGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
 			     int i_target_host, int* target, int n_target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+#ifdef HAVE_MPI
   RemoteNode<int> rsource(i_source_host, i_source);
   RemoteNode<int*> rtarget(i_target_host, target);  
   return _RemoteConnect<int, int*>(rsource, n_source, rtarget, n_target,
 				   conn_spec, syn_spec);
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 int NeuronGPU::RemoteConnect(int i_source_host, int* source, int n_source,
 			     int i_target_host, int i_target, int n_target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+#ifdef HAVE_MPI
   RemoteNode<int*> rsource(i_source_host, source);
   RemoteNode<int> rtarget(i_target_host, i_target);
 
   return _RemoteConnect<int*, int>(rsource, n_source, rtarget, n_target,
 				   conn_spec, syn_spec);
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 int NeuronGPU::RemoteConnect(int i_source_host, int* source, int n_source,
 			     int i_target_host, int* target, int n_target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+#ifdef HAVE_MPI
   RemoteNode<int*> rsource(i_source_host, source);
   RemoteNode<int*> rtarget(i_target_host, target);
 
   return _RemoteConnect<int*, int*>(rsource, n_source, rtarget, n_target,
 				    conn_spec, syn_spec);
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 
 int NeuronGPU::RemoteConnect(int i_source_host, NodeSeq source,
 			     int i_target_host, NodeSeq target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+#ifdef HAVE_MPI
   RemoteNode<int> rsource(i_source_host, source.i0);
   RemoteNode<int> rtarget(i_target_host, target.i0);
   
   return _RemoteConnect<int, int>(rsource, source.n, rtarget, target.n,
 				  conn_spec, syn_spec);
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 
 int NeuronGPU::RemoteConnect(int i_source_host, NodeSeq source,
 			     int i_target_host, std::vector<int> target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+#ifdef HAVE_MPI
   RemoteNode<int> rsource(i_source_host, source.i0);
   RemoteNode<int*> rtarget(i_target_host, target.data());
   return _RemoteConnect<int, int*>(rsource, source.n, rtarget,
 				   target.size(), conn_spec, syn_spec);
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 
 int NeuronGPU::RemoteConnect(int i_source_host, std::vector<int> source,
 			     int i_target_host, NodeSeq target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+#ifdef HAVE_MPI
   RemoteNode<int*> rsource(i_source_host, source.data());
   RemoteNode<int> rtarget(i_target_host, target.i0);
   return _RemoteConnect<int*, int>(rsource, source.size(), rtarget, target.n,
 				   conn_spec, syn_spec);
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 
 int NeuronGPU::RemoteConnect(int i_source_host, std::vector<int> source,
 			     int i_target_host, std::vector<int> target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
+#ifdef HAVE_MPI
   RemoteNode<int*> rsource(i_source_host, source.data());
   RemoteNode<int*> rtarget(i_target_host, target.data());
   return _RemoteConnect<int*, int*>(rsource, source.size(), rtarget,
 				    target.size(), conn_spec, syn_spec);
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
-
-
-

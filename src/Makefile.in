@@ -90,7 +90,8 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/acx_mpi.m4 \
+	$(top_srcdir)/m4/ct_check_cuda.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
 	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/configure.ac
@@ -133,7 +134,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libneurongpu.so_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libneurongpu.so_OBJECTS = dummyfile.lo
-libneurongpu.so_OBJECTS = $(am_libneurongpu_la_OBJECTS)
+libneurongpu.so_OBJECTS = $(am_libneurongpu.so_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -214,6 +215,8 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
+CDINCPATH = @CDINCPATH@
+CDLIBPATH = @CDLIBPATH@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -251,6 +254,11 @@ LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
+MPICC = @MPICC@
+MPICXX = @MPICXX@
+MPILIBS = @MPILIBS@
+MPI_CXXFLAGS = @MPI_CXXFLAGS@
+MPI_CXXLIBS = @MPI_CXXLIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NVCC = @NVCC@
@@ -416,9 +424,10 @@ clean-libLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libneurongpu.so: $(libneurongpu_la_OBJECTS) $(libneurongpu_la_DEPENDENCIES) $(EXTRA_libneurongpu_la_DEPENDENCIES) 
-	$(NVCC) -ccbin=mpic++ --compiler-options  "${COMPILER_FLAGS}" ${CUDA_FLAGS} ${CUDA_LDFLAGS} -o libneurongpu.so $(all_SOURCES) $(CUDA_LIBS)
-# $(AM_V_CXXLD)$(libneurongpu.so_LINK) -rpath $(libdir) $(libneurongpu_la_OBJECTS) $(libneurongpu_la_LIBADD) $(LIBS)
+libneurongpu.so: $(libneurongpu.so_OBJECTS) $(libneurongpu_la_DEPENDENCIES) $(EXTRA_libneurongpu_la_DEPENDENCIES) 
+	$(NVCC) -ccbin=$(MPICXX) --compiler-options  "${COMPILER_FLAGS}" -I .. ${CUDA_FLAGS} ${CUDA_LDFLAGS} -o libneurongpu.so $(all_SOURCES) $(CUDA_LIBS)
+# $(NVCC) -ccbin=$(MPICXX) --compiler-options  "${COMPILER_FLAGS}" -I .. ${CUDA_FLAGS} ${CUDA_LDFLAGS} -o libneurongpu.so $(all_SOURCES) $(CUDA_LIBS)
+# $(AM_V_CXXLD)$(libneurongpu.so_LINK) -rpath $(libdir) $(libneurongpu.so_OBJECTS) $(libneurongpu_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)

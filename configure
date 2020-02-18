@@ -634,6 +634,15 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+WE_HAVE_MPI_FALSE
+WE_HAVE_MPI_TRUE
+MPICXX
+MPI_CXXFLAGS
+MPI_CXXLIBS
+MPILIBS
+MPICC
+CDLIBPATH
+CDINCPATH
 pkgpyexecdir
 pyexecdir
 pkgpythondir
@@ -780,6 +789,8 @@ enable_libtool_lock
 enable_dependency_tracking
 enable_silent_rules
 enable_openmp
+with_cuda
+with_mpi
 '
       ac_precious_vars='build_alias
 host_alias
@@ -795,7 +806,8 @@ CXX
 CXXFLAGS
 CCC
 CXXCPP
-PYTHON'
+PYTHON
+MPICC'
 
 
 # Initialize some variables set by options.
@@ -1449,6 +1461,8 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
+ --with-cuda=PREFIX Prefix of your CUDA installation
+  --with-mpi              enable MPI support [default=yes]
 
 Some influential environment variables:
   CC          C compiler command
@@ -1465,6 +1479,7 @@ Some influential environment variables:
   CXXFLAGS    C++ compiler flags
   CXXCPP      C++ preprocessor
   PYTHON      the Python interpreter
+  MPICC       MPI C compiler command
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -16931,10 +16946,377 @@ done
 
 
 # check for CUDA
-CT_CHECK_CUDA_API
+
+
+
+# Check whether --with-cuda was given.
+if test "${with_cuda+set}" = set; then :
+  withval=$with_cuda; cd_prefix=$withval
+else
+  cd_prefix=""
+fi
+
+
+
+
+
+
+
+
+
+#find out what version we are running
+ARCH=`uname -m`
+if [ $ARCH == "x86_64" ];
+then
+SUFFIX="64"
+else
+SUFFIX=""
+fi
+
+
+# AC_MSG_NOTICE([$cd_prefix, $withval])
+
+# cd_prefix will be set to "yes" if --with-cuda is passed in with no value
+if test "$cd_prefix" == "yes"; then
+if test "$withval" == "yes"; then
+cd_prefix="/usr/local/cuda"
+fi
+fi
+
+if test "$cd_prefix" != ""; then
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for CUDA compiler in $cd_prefix/bin" >&5
+$as_echo_n "checking for CUDA compiler in $cd_prefix/bin... " >&6; }
+if test -f "$cd_prefix/bin/nvcc" ; then
+NVCC="$cd_prefix/bin/nvcc"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+as_fn_error $? "nvcc not found" "$LINENO" 5
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for CUDA includes in $cd_prefix/include" >&5
+$as_echo_n "checking for CUDA includes in $cd_prefix/include... " >&6; }
+if test -f "$cd_prefix/include/cuda.h" ; then
+CDINCPATH="-I$cd_prefix/include"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+as_fn_error $? "cuda.h not found" "$LINENO" 5
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for CUDA libraries in $cd_prefix/lib$SUFFIX" >&5
+$as_echo_n "checking for CUDA libraries in $cd_prefix/lib$SUFFIX... " >&6; }
+case $host_os in
+darwin*)
+if test -f "$cd_prefix/lib$SUFFIX/libcudart.dylib" ; then
+CDLIBPATH="-L$cd_prefix/lib$SUFFIX"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+as_fn_error $? "libcublas.dylib not found" "$LINENO" 5
+fi
+;;
+linux*)
+if test -f "$cd_prefix/lib$SUFFIX/libcudart.so" ; then
+CDLIBPATH="-L$cd_prefix/lib$SUFFIX"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+as_fn_error $? "libcudart.so not found" "$LINENO" 5
+fi
+;;
+*)
+#Default Case
+as_fn_error $? "Your platform is not currently supported" "$LINENO" 5 ;;
+esac
+fi
+
+if test "$CDINCPATH" = "" ; then
+ac_fn_c_check_header_mongrel "$LINENO" "cuda.h" "ac_cv_header_cuda_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuda_h" = xyes; then :
+
+else
+  as_fn_error $? "cuda.h not found" "$LINENO" 5
+fi
+
+
+fi
+if test "$CDLIBPATH" = "" ; then
+# AC_CHECK_LIB(cublas, cudaSetDevice, [], AC_MSG_ERROR(libcublas.so not found))
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cudaMalloc in -lcudart" >&5
+$as_echo_n "checking for cudaMalloc in -lcudart... " >&6; }
+if ${ac_cv_lib_cudart_cudaMalloc+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcudart  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cudaMalloc ();
+int
+main ()
+{
+return cudaMalloc ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_cudart_cudaMalloc=yes
+else
+  ac_cv_lib_cudart_cudaMalloc=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_cudart_cudaMalloc" >&5
+$as_echo "$ac_cv_lib_cudart_cudaMalloc" >&6; }
+if test "x$ac_cv_lib_cudart_cudaMalloc" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBCUDART 1
+_ACEOF
+
+  LIBS="-lcudart $LIBS"
+
+fi
+
+fi
+
+
 
 # check for CUDA SDK
 #CT_CHECK_CUDA_SDK
+
+
+# Check whether --with-mpi was given.
+if test "${with_mpi+set}" = set; then :
+  withval=$with_mpi; case "${withval}" in
+yes|no) with_mpi=$withval;;
+*)
+as_fn_error $? "bad value ${withval} for --with-mpi" "$LINENO" 5;;
+esac
+else
+  with_mpi=yes
+fi
+
+if test "x$with_mpi" = "xyes"; then
+
+
+
+
+
+	for ac_prog in mpicc hcc mpxlc_r mpxlc mpcc cmpicc
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_MPICC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$MPICC"; then
+  ac_cv_prog_MPICC="$MPICC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_MPICC="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+MPICC=$ac_cv_prog_MPICC
+if test -n "$MPICC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MPICC" >&5
+$as_echo "$MPICC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$MPICC" && break
+done
+test -n "$MPICC" || MPICC="$CC"
+
+	acx_mpi_save_CC="$CC"
+	CC="$MPICC"
+
+
+
+if test x = x"$MPILIBS"; then
+	ac_fn_c_check_func "$LINENO" "MPI_Init" "ac_cv_func_MPI_Init"
+if test "x$ac_cv_func_MPI_Init" = xyes; then :
+  MPILIBS=" "
+fi
+
+fi
+
+if test x = x"$MPILIBS"; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MPI_Init in -lmpi" >&5
+$as_echo_n "checking for MPI_Init in -lmpi... " >&6; }
+if ${ac_cv_lib_mpi_MPI_Init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lmpi  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char MPI_Init ();
+int
+main ()
+{
+return MPI_Init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_mpi_MPI_Init=yes
+else
+  ac_cv_lib_mpi_MPI_Init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mpi_MPI_Init" >&5
+$as_echo "$ac_cv_lib_mpi_MPI_Init" >&6; }
+if test "x$ac_cv_lib_mpi_MPI_Init" = xyes; then :
+  MPILIBS="-lmpi"
+fi
+
+fi
+if test x = x"$MPILIBS"; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MPI_Init in -lmpich" >&5
+$as_echo_n "checking for MPI_Init in -lmpich... " >&6; }
+if ${ac_cv_lib_mpich_MPI_Init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lmpich  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char MPI_Init ();
+int
+main ()
+{
+return MPI_Init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_mpich_MPI_Init=yes
+else
+  ac_cv_lib_mpich_MPI_Init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mpich_MPI_Init" >&5
+$as_echo "$ac_cv_lib_mpich_MPI_Init" >&6; }
+if test "x$ac_cv_lib_mpich_MPI_Init" = xyes; then :
+  MPILIBS="-lmpich"
+fi
+
+fi
+
+if test x != x"$MPILIBS"; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for mpi.h" >&5
+$as_echo_n "checking for mpi.h... " >&6; }
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <mpi.h>
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  MPILIBS=""
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+
+CC="$acx_mpi_save_CC"
+
+
+
+# Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
+if test x = x"$MPILIBS"; then
+        as_fn_error $? "could not find MPI library. You should either install it, or use the option --with-mpi=no to build without MPI-related functions" "$LINENO" 5
+        :
+else
+
+$as_echo "#define HAVE_MPI 1" >>confdefs.h
+
+        :
+fi
+
+$as_echo "#define HAVE_MPI 1" >>confdefs.h
+
+MPICC="mpicc"
+MPICXX="mpicxx"
+MPI_CXXLIBS=`mpicxx --showme:link`
+MPI_CXXFLAGS=`mpicxx --showme:compile`
+
+
+else
+MPICC="$CC"
+MPICXX="$CXX"
+
+
+fi
+ if test "x$with_mpi" = "xyes"; then
+  WE_HAVE_MPI_TRUE=
+  WE_HAVE_MPI_FALSE='#'
+else
+  WE_HAVE_MPI_TRUE='#'
+  WE_HAVE_MPI_FALSE=
+fi
+
 
 # Checks for typedefs, structures, and compiler characteristics.
 ac_fn_c_check_type "$LINENO" "size_t" "ac_cv_type_size_t" "$ac_includes_default"
@@ -17101,6 +17483,10 @@ fi
 
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCXX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${WE_HAVE_MPI_TRUE}" && test -z "${WE_HAVE_MPI_FALSE}"; then
+  as_fn_error $? "conditional \"WE_HAVE_MPI\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

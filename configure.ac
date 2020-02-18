@@ -49,6 +49,37 @@ CT_CHECK_CUDA_API
 # check for CUDA SDK
 #CT_CHECK_CUDA_SDK
 
+dnl Check for MPI
+dnl This check will set the MPICC and MPICXX variables to the MPI compiler ones
+dnl if the library is found, or to the regular compilers if not.
+AC_ARG_WITH(mpi, [AC_HELP_STRING([--with-mpi],
+[enable MPI support [default=yes]])],
+[case "${withval}" in
+yes|no) with_mpi=$withval;;
+*)
+AC_MSG_ERROR(bad value ${withval} for --with-mpi);;
+esac],
+[with_mpi=yes])
+if test "x$with_mpi" = "xyes"; then
+ACX_MPI([], [AC_MSG_ERROR(m4_normalize([
+could not find MPI library. You should either install it,
+or use the option --with-mpi=no
+to build without MPI-related functions]))])
+AC_DEFINE(HAVE_MPI)
+MPICC="mpicc"
+MPICXX="mpicxx"
+MPI_CXXLIBS=`mpicxx --showme:link`
+MPI_CXXFLAGS=`mpicxx --showme:compile`
+AC_SUBST(MPI_CXXLIBS)
+AC_SUBST(MPI_CXXFLAGS)
+else
+MPICC="$CC"
+MPICXX="$CXX"
+AC_SUBST(MPICC)
+AC_SUBST(MPICXX)
+fi
+AM_CONDITIONAL([WE_HAVE_MPI],[test "x$with_mpi" = "xyes"])
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
 

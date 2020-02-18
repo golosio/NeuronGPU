@@ -12,6 +12,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <config.h>
+
+#ifdef HAVE_MPI
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -295,3 +299,4 @@ __global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
   }
 }
 
+#endif

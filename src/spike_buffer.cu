@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <config.h>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "spike_buffer.h"
 #include "connect.h"
 #include "send_spike.h"
+
+#ifdef HAVE_MPI
 #include "spike_mpi.h"
+#endif
 
 #define LAST_SPIKE_TIME_GUARD 0x70000000
 
@@ -128,9 +132,13 @@ __device__ void PushSpike(int i_spike_buffer, float height)
 {
   LastSpikeTimeIdx[i_spike_buffer] = NeuronGPUTimeIdx;
   LastSpikeHeight[i_spike_buffer] = height;
+
+#ifdef HAVE_MPI
   if (NeuronGPUMpiFlag) {
     PushExternalSpike(i_spike_buffer, height);
   }
+#endif
+  
   if (ConnectionGroupSize[i_spike_buffer]>0) {
     int Ns = SpikeBufferSize[i_spike_buffer]; 
     if (Ns>=MaxSpikeBufferSize) {

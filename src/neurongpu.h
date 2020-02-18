@@ -27,14 +27,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "connect.h"
 #include "syn_model.h"
 
+#ifdef HAVE_MPI
+class ConnectMpi;
+#endif
+
 class PoissonGenerator;
 class Multimeter;
 class NetConnection;
-class ConnectMpi;
 struct curandGenerator_st;
 typedef struct curandGenerator_st* curandGenerator_t;
-//struct RemoteNode;
-//struct RemoteNodePt;
 class ConnSpec;
 class SynSpec;
 
@@ -85,7 +86,6 @@ class NeuronGPU
   curandGenerator_t *random_generator_;
   unsigned long long kernel_seed_;
   bool calibrate_flag_; // becomes true after calibration
-  bool mpi_flag_; // true if MPI is initialized
 
   PoissonGenerator *poiss_generator_;
   Multimeter *multimeter_;
@@ -93,8 +93,12 @@ class NeuronGPU
   std::vector<SynModel*> syn_group_vect_;
   
   NetConnection *net_connection_;
-  ConnectMpi *connect_mpi_;
 
+#ifdef HAVE_MPI
+  bool mpi_flag_; // true if MPI is initialized
+  ConnectMpi *connect_mpi_;
+#endif
+  
   std::vector<signed char> node_group_map_;
   signed char *d_node_group_map_;
 
@@ -164,6 +168,7 @@ class NeuronGPU
      SynSpec &syn_spec
      );
 
+#ifdef HAVE_MPI
   template <class T1, class T2>
     int _RemoteConnect(RemoteNode<T1> source, int n_source,
 		       RemoteNode<T2> target, int n_target,
@@ -193,7 +198,7 @@ class NeuronGPU
     int _RemoteConnectFixedOutdegree
     (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
      int outdegree, SynSpec &syn_spec);
-
+#endif
     
  public:
   NeuronGPU();

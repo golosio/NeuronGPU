@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef HAVE_MPI
 #ifndef SPIKEMPIH
 #define SPIKEMPIH
 
@@ -78,4 +79,5 @@ __global__ void DeviceExternalSpikeInit(int n_hosts,
 __global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
                                     float *spike_height);
 
+#endif
 #endif

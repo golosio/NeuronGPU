@@ -6,6 +6,9 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the `cudart' library (-lcudart). */
+#undef HAVE_LIBCUDART
+
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
@@ -14,6 +17,9 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define if you have the MPI library. */
+#undef HAVE_MPI
 
 /* Define to 1 if you have the `pow' function. */
 #undef HAVE_POW

@@ -12,6 +12,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <config.h>
+
+#ifdef HAVE_MPI
+
 #include <iostream>
 #include <cmath>
 #include <stdlib.h>
@@ -143,3 +147,5 @@ int ConnectMpi::RemoteConnect(int i_source_host, int i_source_node,
   return 0;
 }
 */
+
+#endif

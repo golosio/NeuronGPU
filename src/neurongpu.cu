@@ -12,19 +12,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <config.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <mpi.h>
 #include <curand.h>
 #include "spike_buffer.h"
 #include "cuda_error.h"
 #include "send_spike.h"
 #include "get_spike.h"
 #include "connect_mpi.h"
-#include "spike_mpi.h"
+
 #include "spike_generator.h"
 #include "multimeter.h"
 #include "poisson.h"
@@ -34,6 +34,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "nested_loop.h"
 #include "dir_connect.h"
 #include "rev_spike.h"
+
+#ifdef HAVE_MPI
+#include <mpi.h>
+#include "spike_mpi.h"
+#endif
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -57,24 +62,29 @@ NeuronGPU::NeuronGPU()
   poiss_generator_ = new PoissonGenerator;
   multimeter_ = new Multimeter;
   net_connection_ = new NetConnection;
-  connect_mpi_ = new ConnectMpi;
-
+  
   SetRandomSeed(54321ULL);
 
   calibrate_flag_ = false;
-  mpi_flag_ = false;
+
   start_real_time_ = getRealTime();
   max_spike_buffer_size_ = 20;
   t_min_ = 0.0;
   sim_time_ = 1000.0;        //Simulation time in ms
   n_poiss_node_ = 0;
   SetTimeResolution(0.1);  // time resolution in ms
-  connect_mpi_->net_connection_ = net_connection_;
+
   error_flag_ = false;
   error_message_ = "";
   error_code_ = 0;
   on_exception_ = ON_EXCEPTION_EXIT;
 
+#ifdef HAVE_MPI
+  connect_mpi_ = new ConnectMpi;
+  mpi_flag_ = false;
+  connect_mpi_->net_connection_ = net_connection_;
+#endif
+  
   NestedLoop::Init();
 }
 
@@ -86,14 +96,16 @@ NeuronGPU::~NeuronGPU()
     delete node_vect_[i];
   }
   delete net_connection_;
-  delete connect_mpi_;
   curandDestroyGenerator(*random_generator_);
   delete random_generator_;
   if (calibrate_flag_) {
     FreeNodeGroupMap();
     FreeGetSpikeArrays();
   }
-
+  
+#ifdef HAVE_MPI
+  delete connect_mpi_;
+#endif
 }
 
 int NeuronGPU::SetRandomSeed(unsigned long long seed)
@@ -132,10 +144,14 @@ int NeuronGPU::GetMaxSpikeBufferSize()
 int NeuronGPU::CreateNodeGroup(int n_node, int n_port)
 {
   int i_node_0 = node_group_map_.size();
+
+#ifdef HAVE_MPI
   if ((int)connect_mpi_->extern_connection_.size() != i_node_0) {
     throw ngpu_exception("Error: connect_mpi_.extern_connection_ and "
 			 "node_group_map_ must have the same size!");
   }
+#endif
+
   if ((int)net_connection_->connection_.size() != i_node_0) {
     throw ngpu_exception("Error: net_connection_.connection_ and "
 			 "node_group_map_ must have the same size!");
@@ -156,11 +172,13 @@ int NeuronGPU::CreateNodeGroup(int n_node, int n_port)
     = net_connection_->connection_.end();
   net_connection_->connection_.insert(it, n_node, conn);
 
+#ifdef HAVE_MPI
   std::vector<ExternalConnectionNode > conn_node;
   std::vector<std::vector< ExternalConnectionNode> >::iterator it1
     = connect_mpi_->extern_connection_.end();
   connect_mpi_->extern_connection_.insert(it1, n_node, conn_node);
-
+#endif
+  
   node_vect_[i_group]->Init(i_node_0, n_node, n_port, i_group, &kernel_seed_);
   node_vect_[i_group]->get_spike_array_ = InitGetSpikeArray(n_node, n_port);
   
@@ -204,17 +222,21 @@ int NeuronGPU::Calibrate()
   CheckUncalibrated("Calibration can be made only once");
   calibrate_flag_ = true;
   BuildDirectConnections();
-  
+
+#ifdef HAVE_MPI
   if (mpi_flag_) {
     std::cout << "Calibrating on host " << connect_mpi_->mpi_id_ << " ...\n";
   }
   else {
     std::cout << "Calibrating ...\n";
   }
-  neural_time_ = t_min_;
-  
   gpuErrchk(cudaMemcpyToSymbol(NeuronGPUMpiFlag, &mpi_flag_, sizeof(bool)));
-	    
+#else
+  std::cout << "Calibrating ...\n";
+#endif
+  
+  neural_time_ = t_min_;
+  	    
   NodeGroupArrayInit();
   
   max_spike_num_ = net_connection_->connection_.size()
@@ -225,13 +247,16 @@ int NeuronGPU::Calibrate()
 
   SpikeInit(max_spike_num_);
   SpikeBufferInit(net_connection_, max_spike_buffer_size_);
-  
+
+#ifdef HAVE_MPI
   if (mpi_flag_) {
     // remove superfluous argument mpi_np
     connect_mpi_->ExternalSpikeInit(connect_mpi_->extern_connection_.size(),
 				    max_spike_num_, connect_mpi_->mpi_np_,
 				    max_spike_per_host_);
   }
+#endif
+  
   if (net_connection_->NRevConnections()>0) {
     RevSpikeInit(net_connection_, round(t_min_/time_resolution_)); 
   }
@@ -276,12 +301,17 @@ int NeuronGPU::Simulate()
   }
   multimeter_->WriteRecords(neural_time_);
   build_real_time_ = getRealTime();
+
+#ifdef HAVE_MPI
   if (mpi_flag_) {
     std::cout << "Simulating on host " << connect_mpi_->mpi_id_ << " ...\n";
   }
   else {
     std::cout << "Simulating ...\n";
   }
+#else
+  std::cout << "Simulating ...\n";
+#endif
   
   int Nt=(int)round(sim_time_/time_resolution_);
   printf("Neural activity simulation time: %.3f\n", sim_time_);
@@ -313,6 +343,8 @@ int NeuronGPU::Simulate()
     }
     neuron_Update_time += (getRealTime() - time_mark);
     multimeter_->WriteRecords(neural_time_);
+
+#ifdef HAVE_MPI
     if (mpi_flag_) {
       int n_ext_spike;
       time_mark = getRealTime();
@@ -341,7 +373,8 @@ int NeuronGPU::Simulate()
 	}
       }
     }
-
+#endif
+    
     int n_spikes;
     time_mark = getRealTime();
     gpuErrchk(cudaMemcpy(&n_spikes, d_SpikeNum, sizeof(int),
@@ -386,6 +419,7 @@ int NeuronGPU::Simulate()
     gpuErrchk( cudaDeviceSynchronize() );
     SpikeReset_time += (getRealTime() - time_mark);
 
+#ifdef HAVE_MPI
     if (mpi_flag_) {
       time_mark = getRealTime();
       ExternalSpikeReset<<<1, 1>>>();
@@ -393,6 +427,7 @@ int NeuronGPU::Simulate()
       gpuErrchk( cudaDeviceSynchronize() );
       ExternalSpikeReset_time += (getRealTime() - time_mark);
     }
+#endif
 
     if (net_connection_->NRevConnections()>0) {
       //time_mark = getRealTime();
@@ -808,6 +843,7 @@ float *NeuronGPU::GetArrayVar(int i_node, std::string var_name)
 
 int NeuronGPU::ConnectMpiInit(int argc, char *argv[])
 {
+#ifdef HAVE_MPI
   CheckUncalibrated("MPI connections cannot be initialized after calibration");
   int err = connect_mpi_->MpiInit(argc, argv);
   if (err==0) {
@@ -815,25 +851,42 @@ int NeuronGPU::ConnectMpiInit(int argc, char *argv[])
   }
   
   return err;
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 
 int NeuronGPU::MpiId()
 {
+#ifdef HAVE_MPI
   return connect_mpi_->mpi_id_;
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 
 int NeuronGPU::MpiNp()
 {
+#ifdef HAVE_MPI
   return connect_mpi_->mpi_np_;
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
+
 }
 
 int NeuronGPU::ProcMaster()
 {
+#ifdef HAVE_MPI
   return connect_mpi_->ProcMaster();
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif  
 }
 
 int NeuronGPU::MpiFinalize()
 {
+#ifdef HAVE_MPI
   if (mpi_flag_) {
     int finalized;
     MPI_Finalized(&finalized);
@@ -843,6 +896,9 @@ int NeuronGPU::MpiFinalize()
   }
   
   return 0;
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
 }
 
 unsigned int *NeuronGPU::RandomInt(size_t n)

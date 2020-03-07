@@ -30,8 +30,8 @@ class spike_generator : public BaseNeuron
   float **d_spike_height_;
   int **h_spike_time_idx_;
   float ** h_spike_height_;
-  std::vector<std::vector<float>> spike_time_vect_;
-  std::vector<std::vector<float>> spike_height_vect_;
+  std::vector<std::vector<float> > spike_time_vect_;
+  std::vector<std::vector<float> > spike_height_vect_;
 
   int SetSpikes(int irel_node, int n_spikes, float *spike_time,
 		float *spike_height, float time_min, float time_resolution);

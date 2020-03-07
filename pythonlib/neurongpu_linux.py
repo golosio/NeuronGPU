@@ -3,7 +3,7 @@ import sys, platform
 import ctypes, ctypes.util
 import os
 
-lib_path="/usr/local/lib/libneurongpu.so"
+lib_path="libneurongpu.so"
 _neurongpu=ctypes.CDLL(lib_path)
 
 c_float_p = ctypes.POINTER(ctypes.c_float)

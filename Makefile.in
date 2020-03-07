@@ -166,9 +166,9 @@ DIST_SUBDIRS = $(SUBDIRS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/m4/compile $(top_srcdir)/m4/config.guess \
 	$(top_srcdir)/m4/config.sub $(top_srcdir)/m4/install-sh \
-	$(top_srcdir)/m4/ltmain.sh $(top_srcdir)/m4/missing m4/compile \
-	m4/config.guess m4/config.sub m4/depcomp m4/install-sh \
-	m4/ltmain.sh m4/missing m4/py-compile
+	$(top_srcdir)/m4/ltmain.sh $(top_srcdir)/m4/missing COPYING \
+	INSTALL m4/compile m4/config.guess m4/config.sub m4/depcomp \
+	m4/install-sh m4/ltmain.sh m4/missing m4/py-compile
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -341,7 +341,6 @@ program_transform_name = @program_transform_name@
 psdir = @psdir@
 pyexecdir = @pyexecdir@
 pythondir = @pythondir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@

@@ -504,7 +504,7 @@ int NeuronGPU::CreateRecord(std::string file_name, std::string *var_name_arr,
 		      port_vect.data(), n_node);
 }
 
-std::vector<std::vector<float>> *NeuronGPU::GetRecordData(int i_record)
+std::vector<std::vector<float> > *NeuronGPU::GetRecordData(int i_record)
 {
   return multimeter_->GetRecordData(i_record);
 }

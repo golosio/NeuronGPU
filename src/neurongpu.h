@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <numeric>
 
 #include "ngpu_exception.h"
 #include "node_group.h"
@@ -69,9 +70,9 @@ class Sequence
 
   // https://stackoverflow.com/questions/18625223
   inline std::vector<int> ToVector() {
-    std::vector<int> v;
-    v.reserve(n);
-    std::generate_n(std::back_inserter(v), n, [&](){ return i0 + v.size(); });
+    int start = 0;
+    std::vector<int> v(n);
+    std::iota(v.begin(), v.end(), start);
     return v;
   }
 };
@@ -230,7 +231,7 @@ class NeuronGPU
 		   int *i_node_arr, int n_node);  
   int CreateRecord(std::string file_name, std::string *var_name_arr,
 		   int *i_node_arr, int *port_arr, int n_node);
-  std::vector<std::vector<float>> *GetRecordData(int i_record);
+  std::vector<std::vector<float> > *GetRecordData(int i_record);
 
   int SetNeuronParam(int i_node, int n_neuron, std::string param_name,
 		     float val);

@@ -116,7 +116,7 @@ extern "C" {
   
   int NeuronGPU_GetRecordDataRows(int i_record)
   { int ret = 0; BEGIN_ERR_PROP {
-    std::vector<std::vector<float>> *data_vect_pt
+    std::vector<std::vector<float> > *data_vect_pt
       = NeuronGPU_instance->GetRecordData(i_record);
 
     ret = data_vect_pt->size();
@@ -124,7 +124,7 @@ extern "C" {
   
   int NeuronGPU_GetRecordDataColumns(int i_record)
   { int ret = 0; BEGIN_ERR_PROP {
-    std::vector<std::vector<float>> *data_vect_pt
+    std::vector<std::vector<float> > *data_vect_pt
       = NeuronGPU_instance->GetRecordData(i_record);
     
     ret = data_vect_pt->at(0).size();
@@ -132,7 +132,7 @@ extern "C" {
 
   float **NeuronGPU_GetRecordData(int i_record)
   { float **ret = NULL; BEGIN_ERR_PROP {
-    std::vector<std::vector<float>> *data_vect_pt
+    std::vector<std::vector<float> > *data_vect_pt
       = NeuronGPU_instance->GetRecordData(i_record);
     int nr = data_vect_pt->size();
     ret = new float*[nr];

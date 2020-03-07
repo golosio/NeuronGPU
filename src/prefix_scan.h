@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class PrefixScan
 {
  public:
-  static const uint AllocSize;
+  static const unsigned int AllocSize;
 
   /*
   uint *d_Input;

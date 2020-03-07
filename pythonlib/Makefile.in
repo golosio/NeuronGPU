@@ -151,7 +151,7 @@ am__uninstall_files_from_dir = { \
 am__py_compile = PYTHON=$(PYTHON) $(SHELL) $(py_compile)
 am__installdirs = "$(DESTDIR)$(pythondir)"
 am__pep3147_tweak = \
-  sed -e 's|\.py$$||' -e 's|[^/]*$$|&.*.pyc\n&.*.pyo|'
+  sed -e 's|\.py$$||' -e 's|[^/]*$$|&.*.pyc &.*.pyo|'
 py_compile = $(top_srcdir)/m4/py-compile
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/m4/py-compile
@@ -286,7 +286,6 @@ program_transform_name = @program_transform_name@
 psdir = @psdir@
 pyexecdir = @pyexecdir@
 pythondir = @pythondir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@

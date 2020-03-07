@@ -16,6 +16,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONNECTRULESH
 
 #include <iostream>
+#include <numeric>
+#include <stdio.h>
 #include "neurongpu.h"
 
 #ifdef HAVE_MPI
@@ -215,7 +217,6 @@ int NeuronGPU::_ConnectFixedIndegree
     omp_init_lock(&(lock[i]));
   }
 #endif
-  
   for (int k=0; k<n_target; k+=THREAD_MAXNUM) {
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
@@ -228,9 +229,9 @@ int NeuronGPU::_ConnectFixedIndegree
 	if (n_source<method_thresh*indegree) { // vecchio metodo
 	  //https://stackoverflow.com/questions/18625223
 	  // v = sequence(0, n_source-1)
-	  int_vect.reserve(n_source);
-	  std::generate_n(std::back_inserter(int_vect), n_source, [&]()
-			  { return int_vect.size(); });
+	  int_vect.resize(n_source);
+	  int start = 0;
+	  std::iota(int_vect.begin(), int_vect.end(), start);
 	  for (int i=0; i<indegree; i++) {
 	    int j = i + rnd[i*THREAD_MAXNUM + ith] % (n_source - i);
 	    if (j != i) {
@@ -315,9 +316,9 @@ int NeuronGPU::_ConnectFixedOutdegree
  	if (n_target<method_thresh*outdegree) { // choose method
 	  //https://stackoverflow.com/questions/18625223
 	  // v = sequence(0, n_target-1)
-	  int_vect.reserve(n_target);
-	  std::generate_n(std::back_inserter(int_vect), n_target, [&]()
-			  { return int_vect.size(); });
+	  int_vect.resize(n_target);
+	  int start = 0;
+	  std::iota(int_vect.begin(), int_vect.end(), start);
 	  for (int i=0; i<outdegree; i++) {
 	    int j = i + rnd[i*THREAD_MAXNUM + ith] % (n_target - i);
 	    if (j != i) {
@@ -672,9 +673,9 @@ template <class T1, class T2>
 	if (n_source<method_thresh*indegree) { // choose method
 	  //https://stackoverflow.com/questions/18625223
 	  // v = sequence(0, n_source-1)
-	  int_vect.reserve(n_source);
-	  std::generate_n(std::back_inserter(int_vect), n_source, [&]()
-			  { return int_vect.size(); });
+	  int_vect.resize(n_source);
+	  int start = 0;
+	  std::iota(int_vect.begin(), int_vect.end(), start);
 	  for (int i=0; i<indegree; i++) {
 	    int j = i + rnd[i] % (n_source - i);
 	    if (j != i) {
@@ -776,9 +777,9 @@ template <class T1, class T2>
  	if (n_target<method_thresh*outdegree) { // choose method
 	  //https://stackoverflow.com/questions/18625223
 	  // v = sequence(0, n_target-1)
-	  int_vect.reserve(n_target);
-	  std::generate_n(std::back_inserter(int_vect), n_target, [&]()
-			  { return int_vect.size(); });
+	  int_vect.resize(n_target);
+	  int start = 0;
+	  std::iota(int_vect.begin(), int_vect.end(), start);
 	  for (int i=0; i<outdegree; i++) {
 	    int j = i + rnd[i] % (n_target - i);
 	    if (j != i) {

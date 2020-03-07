@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "prefix_scan.h"
 #include "scan.cuh"
 
-const uint PrefixScan::AllocSize = 13 * 1048576 / 2;
+const unsigned int PrefixScan::AllocSize = 13 * 1048576 / 2;
 
 int PrefixScan::Init()
 {

@@ -18,4 +18,4 @@ clean-local:
 	rm -f *.so
 
 install-exec-hook:
-	$(ac_top_srcdir)/postinstall.sh
+	./postinstall.sh

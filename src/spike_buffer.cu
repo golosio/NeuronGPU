@@ -309,7 +309,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   delete[] h_conn_weight;
 
   unsigned int n_rev_conn = 0;
-  std::vector<std::vector<unsigned int>> rev_connections(n_spike_buffers);
+  std::vector<std::vector<unsigned int> > rev_connections(n_spike_buffers);
   for (unsigned int i_conn=0; i_conn<n_conn; i_conn++) {
     unsigned char syn_group = h_conn_syn_group[i_conn];
     if (syn_group==1) { // TEMPORARY, TO BE IMPROVED

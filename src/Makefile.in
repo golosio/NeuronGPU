@@ -335,7 +335,6 @@ program_transform_name = @program_transform_name@
 psdir = @psdir@
 pyexecdir = @pyexecdir@
 pythondir = @pythondir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -344,14 +343,14 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-COMPILER_FLAGS = -O3 -Wall -fPIC $(OPENMP_CFLAGS) 
+COMPILER_FLAGS = -O3 -Wall -fPIC -Xpreprocessor -fopenmp
 CUDA_FLAGS = -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true
-CUDA_LIBS = -lm -lcurand
-CUDA_LDFLAGS = -shared   # linking flags
+CUDA_LIBS = -lm -lcurand -lomp
+CUDA_LDFLAGS = --shared   # linking flags
 CXXLD = $(NVCC)
 lib_LTLIBRARIES = libneurongpu.so
 libneurongpu.so_SOURCES = dummyfile.cpp
-all_SOURCES = ../../src/aeif_cond_alpha.cu ../../src/aeif_cond_beta.cu ../../src/aeif_psc_alpha.cu ../../src/aeif_psc_delta.cu ../../src/aeif_psc_exp.cu ../../src/base_neuron.cu ../../src/connect.cu ../../src/connect_mpi.cu ../../src/connect_rules.cpp ../../src/getRealTime.cu ../../src/get_spike.cu ../../src/multimeter.cu ../../src/nested_loop.cu ../../src/neuron_models.cu ../../src/neurongpu.cu ../../src/neurongpu_C.cpp ../../src/node_group.cu ../../src/parrot_neuron.cu ../../src/poiss_gen.cu ../../src/poisson.cu ../../src/prefix_scan.cu ../../src/random.cu ../../src/rev_spike.cu ../../src/rk5.cu ../../src/scan.cu ../../src/send_spike.cu ../../src/spike_buffer.cu ../../src/spike_detector.cu ../../src/spike_generator.cu ../../src/spike_mpi.cu ../../src/stdp.cu ../../src/syn_model.cu ../../src/test_syn_model.cu ../../src/user_m1.cu ../../src/user_m2.cu
+all_SOURCES = ../../src/aeif_cond_alpha.cu ../../src/aeif_cond_beta.cu ../../src/aeif_psc_alpha.cu ../../src/aeif_psc_delta.cu ../../src/aeif_psc_exp.cu ../../src/base_neuron.cu ../../src/connect.cu ../../src/connect_mpi.cu ../../src/connect_rules.cpp ../../src/getRealTime.cu ../../src/get_spike.cu ../../src/multimeter.cu ../../src/nested_loop.cu ../../src/neuron_models.cu ../../src/neurongpu.cu ../../src/neurongpu_C.cpp ../../src/node_group.cu ../../src/parrot_neuron.cu ../../src/poiss_gen.cu ../../src/poisson.cu ../../src/prefix_scan.cu ../../src/random.cu ../../src/rev_spike.cu ../../src/rk5.cu ../../src/scan.cu ../../src/send_spike.cu ../../src/spike_buffer.cu ../../src/spike_detector.cu ../../src/spike_generator.cu ../../src/spike_mpi.cu ../../src/stdp.cu ../../src/syn_model.cu ../../src/test_syn_model.cu ../../src/user_m1.cu ../../src/user_m2.cu 
 libneurongpu.so_LDFLAGS = $(CUDA_LDFLAGS)
 libneurongpu.so_CFLAGS = $(CUDA_FLAGS) $(COMPILER_FLAGS)
 libneurongpu.so_LIBADD = $(CUDA_LIBS)
@@ -425,8 +424,8 @@ clean-libLTLIBRARIES:
 	}
 
 libneurongpu.so: $(libneurongpu.so_OBJECTS) $(libneurongpu_la_DEPENDENCIES) $(EXTRA_libneurongpu_la_DEPENDENCIES) 
-	$(NVCC) -ccbin=$(MPICXX) --compiler-options  "${COMPILER_FLAGS}" -I .. ${CUDA_FLAGS} ${CUDA_LDFLAGS} -o libneurongpu.so $(all_SOURCES) $(CUDA_LIBS)
-# $(NVCC) -ccbin=$(MPICXX) --compiler-options  "${COMPILER_FLAGS}" -I .. ${CUDA_FLAGS} ${CUDA_LDFLAGS} -o libneurongpu.so $(all_SOURCES) $(CUDA_LIBS)
+	$(NVCC) -ccbin=$(MPICXX) --compiler-options  "${COMPILER_FLAGS}" -I .. ${CUDA_FLAGS} ${CUDA_LDFLAGS} -o libneurongpu.so $(all_SOURCES) $(CUDA_LIBS) 
+# $(NVCC) -ccbin=$(MPICXX) --compiler-options  "${COMPILER_FLAGS}" -I .. ${CUDA_FLAGS} ${CUDA_LDFLAGS} -o libneurongpu.so $(all_SOURCES) $(CUDA_LIBS) 
 # $(AM_V_CXXLD)$(libneurongpu.so_LINK) -rpath $(libdir) $(libneurongpu.so_OBJECTS) $(libneurongpu_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
@@ -594,7 +593,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool clean-local \
 	mostlyclean-am
 
 distclean: distclean-am
@@ -622,7 +621,8 @@ install-dvi: install-dvi-am
 install-dvi-am:
 
 install-exec-am: install-libLTLIBRARIES
-
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 install-html: install-html-am
 
 install-html-am:
@@ -663,18 +663,19 @@ ps-am:
 
 uninstall-am: uninstall-libLTLIBRARIES
 
-.MAKE: install-am install-strip
+.MAKE: install-am install-exec-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--depfiles check check-am clean \
-	clean-generic clean-libLTLIBRARIES clean-libtool cscopelist-am \
-	ctags ctags-am distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLTLIBRARIES install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	clean-generic clean-libLTLIBRARIES clean-libtool clean-local \
+	cscopelist-am ctags ctags-am distclean distclean-compile \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-exec-hook install-html \
+	install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-libLTLIBRARIES
@@ -684,6 +685,12 @@ uninstall-am: uninstall-libLTLIBRARIES
 
 .cu.o:
 	$(NVCC) -o $@ -c $< $(NVCCFLAGS)
+
+clean-local:
+	rm -f *.so
+
+install-exec-hook:
+	$(ac_top_srcdir)/postinstall.sh
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

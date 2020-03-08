@@ -1,4 +1,8 @@
 Tested on ubuntu 18.04-19.10, MacOS High Sierra 10.13.6 and on other unix/linux-based systems.
+
+----------------------------------------------------------------------
+GENERIC LINUX/UNIX SYSTEM
+----------------------------------------------------------------------
 Mandatory packages:
 - NVIDIA drivers
 - NVIDIA CUDA development toolkit
@@ -22,7 +26,9 @@ autoreconf -i
 and then the same commands written above.
 For support: golosio@unica.it
 
+----------------------------------------------------------------------
 UBUNTU
+----------------------------------------------------------------------
 To install all the necessary packages, open a terminal and type:
 sudo apt update
 sudo apt install nvidia-cuda-toolkit openmpi-bin libopenmpi-dev libomp-dev python python-matplotlib python-mpi4py
@@ -31,7 +37,9 @@ Then cd to the folder where you unpacked the tarball, and type:
 make
 sudo make install
 
+----------------------------------------------------------------------
 MacOS
+----------------------------------------------------------------------
 If you have not installed it yet, you must install clang. Open a terminal and type:
 xcode-select --install
 If you have not installed it yet, install Homebrew with the command:

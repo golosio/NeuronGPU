@@ -106,10 +106,19 @@ $(top_srcdir)/src/syn_model.cu \
 $(top_srcdir)/src/test_syn_model.cu \
 $(top_srcdir)/src/user_m1.cu \
 $(top_srcdir)/src/user_m2.cu
-COMPILER_FLAGS= -O3 -Wall -fPIC -Xpreprocessor -fopenmp
+COMPILER_FLAGS= -O3 -Wall -fPIC
+if OSX
+	COMPILER_FLAGS += -Xpreprocessor $(OPENMP_CFLAGS)
+# -fopenmp
+else
+	COMPILER_FLAGS += $(OPENMP_CFLAGS)
+endif
+
+#-Xpreprocessor -fopenmp
+
 CUDA_FLAGS= -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true
-CUDA_LIBS= -lm -lcurand -lomp
-#CUDA_LDFLAGS = --shared   # linking flags
+CUDA_LIBS= -lm -lcurand
+#-lomp
 
 libneurongpu.la: $(ngpu_src_files) $(ngpu_h_files)
 	$(NVCC) -ccbin=$(MPICXX) --compiler-options  "$(COMPILER_FLAGS)" -I . $(CUDA_FLAGS) --shared -o $@ $(ngpu_src_files) $(CUDA_LIBS)
@@ -120,6 +129,6 @@ clean-local:
 	rm -f *.so
 
 install-exec-hook:
-	if OSX
-		$(top_srcdir)/postinstall.sh
-	endif
+if OSX
+	$(top_srcdir)/postinstall.sh
+endif

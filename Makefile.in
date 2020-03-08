@@ -472,9 +472,11 @@ $(top_srcdir)/src/test_syn_model.cu \
 $(top_srcdir)/src/user_m1.cu \
 $(top_srcdir)/src/user_m2.cu
 
-COMPILER_FLAGS = -O3 -Wall -fPIC -Xpreprocessor -fopenmp
+COMPILER_FLAGS = -O3 -Wall -fPIC
+
+#-Xpreprocessor -fopenmp
 CUDA_FLAGS = -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true
-CUDA_LIBS = -lm -lcurand -lomp
+CUDA_LIBS = -lm -lcurand
 lib_LTLIBRARIES = libneurongpu.la
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -992,7 +994,10 @@ uninstall-am: uninstall-libLTLIBRARIES uninstall-pythonPYTHON
 
 .PRECIOUS: Makefile
 
-#CUDA_LDFLAGS = --shared   # linking flags
+@OSX_TRUE@	COMPILER_FLAGS += -Xpreprocessor $(OPENMP_CFLAGS)
+# -fopenmp
+@OSX_FALSE@	COMPILER_FLAGS += $(OPENMP_CFLAGS)
+#-lomp
 
 libneurongpu.la: $(ngpu_src_files) $(ngpu_h_files)
 	$(NVCC) -ccbin=$(MPICXX) --compiler-options  "$(COMPILER_FLAGS)" -I . $(CUDA_FLAGS) --shared -o $@ $(ngpu_src_files) $(CUDA_LIBS)
@@ -1001,9 +1006,7 @@ clean-local:
 	rm -f *.so
 
 install-exec-hook:
-	if OSX
-		$(top_srcdir)/postinstall.sh
-	endif
+@OSX_TRUE@	$(top_srcdir)/postinstall.sh
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

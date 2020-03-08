@@ -6,7 +6,7 @@ Can be used in Python, in C++ and in C.
 The MPI communication is also very efficient.
 The python interface is very similar to that of the NEST simulator: the most used commands are practically identical, dictionaries are used to define neurons, connections and synapsis properties in the same way.
 
-For the installation, follow the instructions in the file INSTALLATION
+For the installation, follow the instructions in the file INSTALL_README
 
 To start using it,, have a look at the examples in the python/examples and c++/examples folders.
 

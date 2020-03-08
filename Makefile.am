@@ -114,8 +114,6 @@ else
 	COMPILER_FLAGS += $(OPENMP_CFLAGS)
 endif
 
-#-Xpreprocessor -fopenmp
-
 CUDA_FLAGS= -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true
 CUDA_LIBS= -lm -lcurand
 #-lomp

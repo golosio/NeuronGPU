@@ -120,4 +120,6 @@ clean-local:
 	rm -f *.so
 
 install-exec-hook:
-	$(top_srcdir)/postinstall.sh
+	if OSX
+		$(top_srcdir)/postinstall.sh
+	endif

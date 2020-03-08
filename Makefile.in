@@ -13,6 +13,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -97,13 +98,49 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acx_mpi.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
-	$(am__configure_deps) $(am__DIST_COMMON)
+	$(am__configure_deps) $(python_PYTHON) $(am__DIST_COMMON)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
+am__install_max = 40
+am__nobase_strip_setup = \
+  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
+am__nobase_strip = \
+  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
+am__nobase_list = $(am__nobase_strip_setup); \
+  for p in $$list; do echo "$$p $$p"; done | \
+  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
+  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
+    if (++n[$$2] == $(am__install_max)) \
+      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
+    END { for (dir in files) print dir, files[dir] }'
+am__base_list = \
+  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
+  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
+am__uninstall_files_from_dir = { \
+  test -z "$$files" \
+    || { test ! -d "$$dir" && test ! -f "$$dir" && test ! -r "$$dir"; } \
+    || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
+         $(am__cd) "$$dir" && rm -f $$files; }; \
+  }
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pythondir)"
+LTLIBRARIES = $(lib_LTLIBRARIES)
+libneurongpu_la_LIBADD =
+libneurongpu_la_SOURCES = libneurongpu.c
+libneurongpu_la_OBJECTS = libneurongpu.lo
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -116,31 +153,34 @@ AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
+DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
 am__maybe_remake_depfiles =
-SOURCES =
-DIST_SOURCES =
-RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
-	ctags-recursive dvi-recursive html-recursive info-recursive \
-	install-data-recursive install-dvi-recursive \
-	install-exec-recursive install-html-recursive \
-	install-info-recursive install-pdf-recursive \
-	install-ps-recursive install-recursive installcheck-recursive \
-	installdirs-recursive pdf-recursive ps-recursive \
-	tags-recursive uninstall-recursive
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 = 
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD    " $@;
+am__v_CCLD_1 = 
+SOURCES = libneurongpu.c
+DIST_SOURCES = libneurongpu.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
-  distclean-recursive maintainer-clean-recursive
-am__recursive_targets = \
-  $(RECURSIVE_TARGETS) \
-  $(RECURSIVE_CLEAN_TARGETS) \
-  $(am__extra_recursive_targets)
-AM_RECURSIVE_TARGETS = $(am__recursive_targets:-recursive=) TAGS CTAGS \
-	cscope distdir distdir-am dist dist-all distcheck
+am__py_compile = PYTHON=$(PYTHON) $(SHELL) $(py_compile)
+am__pep3147_tweak = \
+  sed -e 's|\.py$$||' -e 's|[^/]*$$|&.*.pyc &.*.pyo|'
+py_compile = $(top_srcdir)/m4/py-compile
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
 	$(LISP)config.h.in
 # Read a list of newline-separated strings from the standard input,
@@ -162,13 +202,14 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
-DIST_SUBDIRS = $(SUBDIRS)
+AM_RECURSIVE_TARGETS = cscope
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/m4/compile $(top_srcdir)/m4/config.guess \
 	$(top_srcdir)/m4/config.sub $(top_srcdir)/m4/install-sh \
-	$(top_srcdir)/m4/ltmain.sh $(top_srcdir)/m4/missing COPYING \
-	INSTALL m4/compile m4/config.guess m4/config.sub m4/depcomp \
-	m4/install-sh m4/ltmain.sh m4/missing m4/py-compile
+	$(top_srcdir)/m4/ltmain.sh $(top_srcdir)/m4/missing \
+	$(top_srcdir)/m4/py-compile COPYING INSTALL m4/compile \
+	m4/config.guess m4/config.sub m4/depcomp m4/install-sh \
+	m4/ltmain.sh m4/missing m4/py-compile
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -179,31 +220,6 @@ am__remove_distdir = \
       || { sleep 5 && rm -rf "$(distdir)"; }; \
   else :; fi
 am__post_remove_distdir = $(am__remove_distdir)
-am__relativize = \
-  dir0=`pwd`; \
-  sed_first='s,^\([^/]*\)/.*$$,\1,'; \
-  sed_rest='s,^[^/]*/*,,'; \
-  sed_last='s,^.*/\([^/]*\)$$,\1,'; \
-  sed_butlast='s,/*[^/]*$$,,'; \
-  while test -n "$$dir1"; do \
-    first=`echo "$$dir1" | sed -e "$$sed_first"`; \
-    if test "$$first" != "."; then \
-      if test "$$first" = ".."; then \
-        dir2=`echo "$$dir0" | sed -e "$$sed_last"`/"$$dir2"; \
-        dir0=`echo "$$dir0" | sed -e "$$sed_butlast"`; \
-      else \
-        first2=`echo "$$dir2" | sed -e "$$sed_first"`; \
-        if test "$$first2" = "$$first"; then \
-          dir2=`echo "$$dir2" | sed -e "$$sed_rest"`; \
-        else \
-          dir2="../$$dir2"; \
-        fi; \
-        dir0="$$dir0"/"$$first"; \
-      fi; \
-    fi; \
-    dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
-  done; \
-  reldir="$$dir2"
 DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 DIST_TARGETS = dist-gzip
@@ -353,14 +369,117 @@ AUTOMAKE_OPTIONS = 1.4 no-dependencies foreign
 
 #
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = src pythonlib
+
+#SUBDIRS=pythonlib
+python_PYTHON = $(top_srcdir)/pythonlib/neurongpu.py
 #dist_data_DATA=autogen.sh
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+ngpu_h_files = \
+$(top_srcdir)/src/aeif_cond_alpha.h \
+$(top_srcdir)/src/aeif_cond_alpha_kernel.h \
+$(top_srcdir)/src/aeif_cond_alpha_rk5.h \
+$(top_srcdir)/src/aeif_cond_beta.h \
+$(top_srcdir)/src/aeif_cond_beta_kernel.h \
+$(top_srcdir)/src/aeif_cond_beta_rk5.h \
+$(top_srcdir)/src/aeif_psc_alpha.h \
+$(top_srcdir)/src/aeif_psc_alpha_kernel.h \
+$(top_srcdir)/src/aeif_psc_alpha_rk5.h \
+$(top_srcdir)/src/aeif_psc_delta.h \
+$(top_srcdir)/src/aeif_psc_delta_kernel.h \
+$(top_srcdir)/src/aeif_psc_delta_rk5.h \
+$(top_srcdir)/src/aeif_psc_exp.h \
+$(top_srcdir)/src/aeif_psc_exp_kernel.h \
+$(top_srcdir)/src/aeif_psc_exp_rk5.h \
+$(top_srcdir)/src/base_neuron.h \
+$(top_srcdir)/src/connect.h \
+$(top_srcdir)/src/connect_mpi.h \
+$(top_srcdir)/src/connect_rules.h \
+$(top_srcdir)/src/connect_spec.h \
+$(top_srcdir)/src/cuda_error.h \
+$(top_srcdir)/src/dir_connect.h \
+$(top_srcdir)/src/getRealTime.h \
+$(top_srcdir)/src/get_spike.h \
+$(top_srcdir)/src/multimeter.h \
+$(top_srcdir)/src/nested_loop.h \
+$(top_srcdir)/src/neuron_models.h \
+$(top_srcdir)/src/neurongpu.h \
+$(top_srcdir)/src/neurongpu_C.h \
+$(top_srcdir)/src/ngpu_exception.h \
+$(top_srcdir)/src/node_group.h \
+$(top_srcdir)/src/parrot_neuron.h \
+$(top_srcdir)/src/poiss_gen.h \
+$(top_srcdir)/src/poiss_gen_variables.h \
+$(top_srcdir)/src/poisson.h \
+$(top_srcdir)/src/prefix_scan.h \
+$(top_srcdir)/src/propagate_error.h \
+$(top_srcdir)/src/random.h \
+$(top_srcdir)/src/rev_spike.h \
+$(top_srcdir)/src/rk5.h \
+$(top_srcdir)/src/rk5_const.h \
+$(top_srcdir)/src/rk5_interface.h \
+$(top_srcdir)/src/send_spike.h \
+$(top_srcdir)/src/spike_buffer.h \
+$(top_srcdir)/src/spike_detector.h \
+$(top_srcdir)/src/spike_generator.h \
+$(top_srcdir)/src/spike_mpi.h \
+$(top_srcdir)/src/stdp.h \
+$(top_srcdir)/src/syn_model.h \
+$(top_srcdir)/src/test_syn_model.h \
+$(top_srcdir)/src/user_m1.h \
+$(top_srcdir)/src/user_m1_kernel.h \
+$(top_srcdir)/src/user_m1_rk5.h \
+$(top_srcdir)/src/user_m2.h \
+$(top_srcdir)/src/user_m2_kernel.h \
+$(top_srcdir)/src/user_m2_rk5.h
+
+ngpu_src_files = \
+$(top_srcdir)/src/aeif_cond_alpha.cu \
+$(top_srcdir)/src/aeif_cond_beta.cu \
+$(top_srcdir)/src/aeif_psc_alpha.cu \
+$(top_srcdir)/src/aeif_psc_delta.cu \
+$(top_srcdir)/src/aeif_psc_exp.cu \
+$(top_srcdir)/src/base_neuron.cu \
+$(top_srcdir)/src/connect.cu \
+$(top_srcdir)/src/connect_mpi.cu \
+$(top_srcdir)/src/connect_rules.cpp \
+$(top_srcdir)/src/dummyfile.cpp \
+$(top_srcdir)/src/getRealTime.cu \
+$(top_srcdir)/src/get_spike.cu \
+$(top_srcdir)/src/multimeter.cu \
+$(top_srcdir)/src/nested_loop.cu \
+$(top_srcdir)/src/neuron_models.cu \
+$(top_srcdir)/src/neurongpu.cu \
+$(top_srcdir)/src/neurongpu_C.cpp \
+$(top_srcdir)/src/node_group.cu \
+$(top_srcdir)/src/parrot_neuron.cu \
+$(top_srcdir)/src/poiss_gen.cu \
+$(top_srcdir)/src/poisson.cu \
+$(top_srcdir)/src/prefix_scan.cu \
+$(top_srcdir)/src/random.cu \
+$(top_srcdir)/src/rev_spike.cu \
+$(top_srcdir)/src/rk5.cu \
+$(top_srcdir)/src/scan.cu \
+$(top_srcdir)/src/send_spike.cu \
+$(top_srcdir)/src/spike_buffer.cu \
+$(top_srcdir)/src/spike_detector.cu \
+$(top_srcdir)/src/spike_generator.cu \
+$(top_srcdir)/src/spike_mpi.cu \
+$(top_srcdir)/src/stdp.cu \
+$(top_srcdir)/src/syn_model.cu \
+$(top_srcdir)/src/test_syn_model.cu \
+$(top_srcdir)/src/user_m1.cu \
+$(top_srcdir)/src/user_m2.cu
+
+COMPILER_FLAGS = -O3 -Wall -fPIC -Xpreprocessor -fopenmp
+CUDA_FLAGS = -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true
+CUDA_LIBS = -lm -lcurand -lomp
+lib_LTLIBRARIES = libneurongpu.la
 all: config.h
-	$(MAKE) $(AM_MAKEFLAGS) all-recursive
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
+.SUFFIXES: .c .lo .o .obj
 am--refresh: Makefile
 	@:
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
@@ -410,6 +529,56 @@ $(srcdir)/config.h.in:  $(am__configure_deps)
 distclean-hdr:
 	-rm -f config.h stamp-h1
 
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
+	list2=; for p in $$list; do \
+	  if test -f $$p; then \
+	    list2="$$list2 $$p"; \
+	  else :; fi; \
+	done; \
+	test -z "$$list2" || { \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(libdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(libdir)" || exit 1; \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(libdir)'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(libdir)"; \
+	}
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
+	for p in $$list; do \
+	  $(am__strip_dir) \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$f'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$f"; \
+	done
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	@list='$(lib_LTLIBRARIES)'; \
+	locs=`for p in $$list; do echo $$p; done | \
+	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
+	      sort -u`; \
+	test -z "$$locs" || { \
+	  echo rm -f $${locs}; \
+	  rm -f $${locs}; \
+	}
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT)
+
+distclean-compile:
+	-rm -f *.tab.c
+
+.c.o:
+	$(AM_V_CC)$(COMPILE) -c -o $@ $<
+
+.c.obj:
+	$(AM_V_CC)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.c.lo:
+	$(AM_V_CC)$(LTCOMPILE) -c -o $@ $<
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -418,62 +587,58 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool config.lt
-
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run 'make' without going through this Makefile.
-# To change the values of 'make' variables: instead of editing Makefiles,
-# (1) if the variable is set in 'config.status', edit 'config.status'
-#     (which will cause the Makefiles to be regenerated when you run 'make');
-# (2) otherwise, pass the desired values on the 'make' command line.
-$(am__recursive_targets):
-	@fail=; \
-	if $(am__make_keepgoing); then \
-	  failcom='fail=yes'; \
-	else \
-	  failcom='exit 1'; \
+install-pythonPYTHON: $(python_PYTHON)
+	@$(NORMAL_INSTALL)
+	@list='$(python_PYTHON)'; dlist=; list2=; test -n "$(pythondir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(pythondir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(pythondir)" || exit 1; \
 	fi; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
+	for p in $$list; do \
+	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
+	  if test -f $$b$$p; then \
+	    $(am__strip_dir) \
+	    dlist="$$dlist $$f"; \
+	    list2="$$list2 $$b$$p"; \
+	  else :; fi; \
 	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
+	for file in $$list2; do echo $$file; done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pythondir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pythondir)" || exit $$?; \
+	done || exit $$?; \
+	if test -n "$$dlist"; then \
+	  $(am__py_compile) --destdir "$(DESTDIR)" \
+	                    --basedir "$(pythondir)" $$dlist; \
+	else :; fi
+
+uninstall-pythonPYTHON:
+	@$(NORMAL_UNINSTALL)
+	@list='$(python_PYTHON)'; test -n "$(pythondir)" || list=; \
+	py_files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$py_files" || exit 0; \
+	dir='$(DESTDIR)$(pythondir)'; \
+	pyc_files=`echo "$$py_files" | sed 's|$$|c|'`; \
+	pyo_files=`echo "$$py_files" | sed 's|$$|o|'`; \
+	st=0; \
+	for files in "$$py_files" "$$pyc_files" "$$pyo_files"; do \
+	  $(am__uninstall_files_from_dir) || st=$$?; \
+	done; \
+	dir='$(DESTDIR)$(pythondir)/__pycache__'; \
+	echo "$$py_files" | $(am__pep3147_tweak) | $(am__base_list) | \
+	  while read files; do \
+	    $(am__uninstall_files_from_dir) || st=$$?; \
+	  done || exit $$?; \
+	exit $$st
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
-tags: tags-recursive
+tags: tags-am
 TAGS: tags
 
 tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	set x; \
 	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      set "$$@" "$$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
 	$(am__define_uniq_tagged_files); \
 	shift; \
 	if test -z "$(ETAGS_ARGS)$$*$$unique"; then :; else \
@@ -486,7 +651,7 @@ tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	      $$unique; \
 	  fi; \
 	fi
-ctags: ctags-recursive
+ctags: ctags-am
 
 CTAGS: ctags
 ctags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
@@ -505,7 +670,7 @@ cscope: cscope.files
 clean-cscope:
 	-rm -f cscope.files
 cscope.files: clean-cscope cscopelist
-cscopelist: cscopelist-recursive
+cscopelist: cscopelist-am
 
 cscopelist-am: $(am__tagged_files)
 	list='$(am__tagged_files)'; \
@@ -558,31 +723,6 @@ distdir-am: $(DISTFILES)
 	    test -f "$(distdir)/$$file" \
 	    || cp -p $$d/$$file "$(distdir)/$$file" \
 	    || exit 1; \
-	  fi; \
-	done
-	@list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    $(am__make_dryrun) \
-	      || test -d "$(distdir)/$$subdir" \
-	      || $(MKDIR_P) "$(distdir)/$$subdir" \
-	      || exit 1; \
-	    dir1=$$subdir; dir2="$(distdir)/$$subdir"; \
-	    $(am__relativize); \
-	    new_distdir=$$reldir; \
-	    dir1=$$subdir; dir2="$(top_distdir)"; \
-	    $(am__relativize); \
-	    new_top_distdir=$$reldir; \
-	    echo " (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir="$$new_top_distdir" distdir="$$new_distdir" \\"; \
-	    echo "     am__remove_distdir=: am__skip_length_check=: am__skip_mode_fix=: distdir)"; \
-	    ($(am__cd) $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$new_top_distdir" \
-	        distdir="$$new_distdir" \
-		am__remove_distdir=: \
-		am__skip_length_check=: \
-		am__skip_mode_fix=: \
-	        distdir) \
-	      || exit 1; \
 	  fi; \
 	done
 	-test -n "$(am__skip_mode_fix)" \
@@ -717,19 +857,21 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-check: check-recursive
-all-am: Makefile config.h
-installdirs: installdirs-recursive
-installdirs-am:
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+check: check-am
+all-am: Makefile $(LTLIBRARIES) config.h
+installdirs:
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pythondir)"; do \
+	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
+	done
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	if test -z '$(STRIP)'; then \
 	  $(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
@@ -751,97 +893,112 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-recursive
+clean: clean-am
 
-clean-am: clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool clean-local \
+	mostlyclean-am
 
-distclean: distclean-recursive
+distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-hdr \
-	distclean-libtool distclean-tags
+distclean-am: clean-am distclean-compile distclean-generic \
+	distclean-hdr distclean-libtool distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
 html-am:
 
-info: info-recursive
+info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-pythonPYTHON
 
-install-dvi: install-dvi-recursive
+install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am:
-
-install-html: install-html-recursive
+install-exec-am: install-libLTLIBRARIES
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
+install-html: install-html-am
 
 install-html-am:
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-info-am:
 
 install-man:
 
-install-pdf: install-pdf-recursive
+install-pdf: install-pdf-am
 
 install-pdf-am:
 
-install-ps: install-ps-recursive
+install-ps: install-ps-am
 
 install-ps-am:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
+maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-generic mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
-uninstall-am:
+uninstall-am: uninstall-libLTLIBRARIES uninstall-pythonPYTHON
 
-.MAKE: $(am__recursive_targets) all install-am install-strip
+.MAKE: all install-am install-exec-am install-strip
 
-.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am \
-	am--refresh check check-am clean clean-cscope clean-generic \
-	clean-libtool cscope cscopelist-am ctags ctags-am dist \
-	dist-all dist-bzip2 dist-gzip dist-lzip dist-shar dist-tarZ \
-	dist-xz dist-zip distcheck distclean distclean-generic \
-	distclean-hdr distclean-libtool distclean-tags distcleancheck \
-	distdir distuninstallcheck dvi dvi-am html html-am info \
-	info-am install install-am install-data install-data-am \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am
+.PHONY: CTAGS GTAGS TAGS all all-am am--refresh check check-am clean \
+	clean-cscope clean-generic clean-libLTLIBRARIES clean-libtool \
+	clean-local cscope cscopelist-am ctags ctags-am dist dist-all \
+	dist-bzip2 dist-gzip dist-lzip dist-shar dist-tarZ dist-xz \
+	dist-zip distcheck distclean distclean-compile \
+	distclean-generic distclean-hdr distclean-libtool \
+	distclean-tags distcleancheck distdir distuninstallcheck dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-exec-hook install-html \
+	install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-pythonPYTHON install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-am uninstall uninstall-am uninstall-libLTLIBRARIES \
+	uninstall-pythonPYTHON
 
 .PRECIOUS: Makefile
 
+#CUDA_LDFLAGS = --shared   # linking flags
+
+libneurongpu.la: $(ngpu_src_files) $(ngpu_h_files)
+	$(NVCC) -ccbin=$(MPICXX) --compiler-options  "$(COMPILER_FLAGS)" -I . $(CUDA_FLAGS) --shared -o $@ $(ngpu_src_files) $(CUDA_LIBS)
+
+clean-local:
+	rm -f *.so
+
+install-exec-hook:
+	$(top_srcdir)/postinstall.sh
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

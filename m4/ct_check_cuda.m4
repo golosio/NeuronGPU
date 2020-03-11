@@ -29,7 +29,7 @@ AC_DEFUN([CT_CHECK_CUDA_API], [
 
 AC_ARG_WITH(cuda,
 [ --with-cuda=PREFIX Prefix of your CUDA installation],
-[cd_prefix=$withval], [cd_prefix=""])
+[cd_prefix=$withval], [cd_prefix="/usr/local/cuda"])
 
 
 AC_SUBST(CDINCPATH)
@@ -81,6 +81,8 @@ darwin*)
 if test -f "$cd_prefix/lib$SUFFIX/libcudart.dylib" ; then
 CDLIBPATH="-L$cd_prefix/lib$SUFFIX"
 AC_MSG_RESULT([yes])
+elif test -f "$cd_prefix/lib/libcudart.dylib" ; then
+CDLIBPATH="-L$cd_prefix/lib"
 else
 AC_MSG_ERROR(libcublas.dylib not found)
 fi

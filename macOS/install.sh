@@ -5,6 +5,14 @@ if [ $# -eq 0 ]
 fi
 srcdir=$1/NeuronGPU
 
+if [ ! -f /usr/local/cuda/libcurand.10.dylib ]; then
+    echo "File not found /usr/local/cuda/libcurand.10.dylib"
+    echo "It seems that CUDA toolkit is not properly installed"
+    echo "Please install it following the instructions in:"
+    echo "https://docs.nvidia.com/cuda/cuda-installation-guide-mac-os-x/index.html"
+    exit 1
+fi
+
 # create installation directory if it doesn't exist and clean it
 mkdir -p "/usr/local/neurongpu"
 rm -fr /usr/local/neurongpu/*

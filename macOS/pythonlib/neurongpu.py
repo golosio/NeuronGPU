@@ -3,6 +3,15 @@ import sys, platform
 import ctypes, ctypes.util
 import os
 
+print('-----------------------------------------------------------------')
+print('NeuronGPU')
+print('A GPU-MPI library for simulation of large-scale networks')
+print(' of spiking neurons')
+print('Homepage: https://github.com/golosio/NeuronGPU') 
+print('Author: B. Golosio, University of Cagliari')
+print('email: golosio@unica.it')
+print('-----------------------------------------------------------------')
+
 lib_path="/usr/local/lib/libneurongpu.so"
 _neurongpu=ctypes.CDLL(lib_path)
 

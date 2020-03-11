@@ -10,7 +10,6 @@ cask 'neurongpu' do
                       :sierra,
                       :high_sierra,
                     ]
-  depends_on cask: 'nvidia-cuda'
 
   depends_on formula: 'libomp'
 

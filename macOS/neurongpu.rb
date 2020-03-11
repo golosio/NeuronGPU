@@ -15,8 +15,6 @@ cask 'neurongpu' do
 
   depends_on formula: 'openmpi'
 
-  depends_on formula: 'mpi4py'
-
   installer script: {
                       executable: "#{staged_path}/NeuronGPU/macOS/install.sh",
                       args: ["#{staged_path}"],

@@ -18,8 +18,6 @@ mkdir -p "/usr/local/neurongpu"
 rm -fr /usr/local/neurongpu/*
 
 # copy subdirectories
-echo $srcdir
-ls $srcdir
 cp -r $srcdir/src /usr/local/neurongpu
 cp -r $srcdir/python /usr/local/neurongpu
 cp -r $srcdir/c++ /usr/local/neurongpu

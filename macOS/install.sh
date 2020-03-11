@@ -5,7 +5,7 @@ if [ $# -eq 0 ]
 fi
 srcdir=$1/NeuronGPU
 
-if [ ! -f /usr/local/cuda/libcurand.10.dylib ]; then
+if [ ! -f /usr/local/cuda/lib/libcurand.10.dylib ]; then
     echo "File not found /usr/local/cuda/libcurand.10.dylib"
     echo "It seems that CUDA toolkit is not properly installed"
     echo "Please install it following the instructions in:"

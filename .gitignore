@@ -5,6 +5,7 @@
 *.so
 *.dylib
 *.pyc
+*.pyo
 Makefile
 build
 build_mac

@@ -16,6 +16,7 @@ fi
 # create installation directory if it doesn't exist and clean it
 mkdir -p "/usr/local/neurongpu"
 rm -fr /usr/local/neurongpu/*
+mkdir -p "/usr/local/lib"
 
 # copy subdirectories
 cp -r $srcdir/src /usr/local/neurongpu
@@ -35,7 +36,7 @@ SITEDIR=$(python -m site --user-site)
 mkdir -p "$SITEDIR"
 
 # create new .pth file with path to neurongpu python module
-echo "/usr/local/NeuronGPU/pythonlib/" > "$SITEDIR/neurongpu.pth"
+echo "/usr/local/neurongpu/pythonlib/" > "$SITEDIR/neurongpu.pth"
 
 # create a symbolic link in /usr/local/lib to the dynamic-link library
 ln -s /usr/local/neurongpu/lib/libneurongpu.so /usr/local/lib/libneurongpu.so

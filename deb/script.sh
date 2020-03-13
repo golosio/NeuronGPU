@@ -28,7 +28,10 @@ cp $srcdir/pythonlib/neurongpu.py $tgdir/usr/lib/python2.7/dist-packages/
 # create a symbolic link in /usr/local/lib to the dynamic-link library
 ln -s /usr/local/neurongpu/lib/libneurongpu.so $tgdir/usr/local/lib/libneurongpu.so
 
+# create dependency list
+depends=$(./depends.sh)
+
 # create metadata file and control file
 mkdir $tgdir/DEBIAN
-cat control.templ | sed "s/__version__/$version/" > $tgdir/DEBIAN/control
+cat control.templ | sed "s/__version__/$version/;s/__depends__/$depends/" > $tgdir/DEBIAN/control
 dpkg-deb --build $tgdir

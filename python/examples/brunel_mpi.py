@@ -11,7 +11,7 @@ if (mpi_np != 2) | (len(sys.argv) != 2):
     print ("Usage: mpirun -np 2 python %s n_neurons" % sys.argv[0])
     quit()
     
-order = int(sys.argv[1])/5
+order = int(sys.argv[1])
 
 mpi_id = ngpu.MpiId()
 print("Building on host ", mpi_id, " ...")
@@ -27,7 +27,7 @@ NI = 1 * order       # number of inhibitory neurons
 n_neurons = NE + NI  # number of neurons in total
 
 CE = 800   # number of excitatory synapses per neuron
-CI = CE/4  # number of inhibitory synapses per neuron
+CI = CE//4  # number of inhibitory synapses per neuron
 
 Wex = 0.05
 Win = 0.35
@@ -57,7 +57,7 @@ ngpu.SetStatus(neuron, {"E_rev":E_rev, "tau_decay":tau_decay,
 # connect excitatory neurons to port 0 of all neurons
 # weight Wex and fixed indegree CE*3/4
 
-exc_conn_dict={"rule": "fixed_indegree", "indegree": CE*3/4}
+exc_conn_dict={"rule": "fixed_indegree", "indegree": CE*3//4}
 exc_syn_dict={"weight": Wex, "delay": delay,
               "receptor":0}
 ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
@@ -67,7 +67,7 @@ ngpu.Connect(exc_neuron, neuron, exc_conn_dict, exc_syn_dict)
 # connect inhibitory neurons to port 1 of all neurons
 # weight Win and fixed indegree CI*3/4
 
-inh_conn_dict={"rule": "fixed_indegree", "indegree": CI*3/4}
+inh_conn_dict={"rule": "fixed_indegree", "indegree": CI*3//4}
 inh_syn_dict={"weight": Win, "delay": delay,
               "receptor":1}
 ngpu.Connect(inh_neuron, neuron, inh_conn_dict, inh_syn_dict)
@@ -96,9 +96,9 @@ record = ngpu.CreateRecord(filename, var_name_arr, i_neuron_arr,
 
 # Excitatory remote connections
 # connect excitatory neurons to port 0 of all neurons
-# weight Wex and fixed indegree CE/4
+# weight Wex and fixed indegree CE//4
 # host 0 to host 1
-re_conn_dict={"rule": "fixed_indegree", "indegree": CE/4}
+re_conn_dict={"rule": "fixed_indegree", "indegree": CE//4}
 re_syn_dict={"weight": Wex, "delay": delay,
               "receptor":0}
 # host 0 to host 1
@@ -108,9 +108,9 @@ ngpu.RemoteConnect(1, exc_neuron, 0, neuron, re_conn_dict, re_syn_dict)
 
 # Inhibitory remote connections
 # connect inhibitory neurons to port 1 of all neurons
-# weight Win and fixed indegree CI/4
+# weight Win and fixed indegree CI//4
 # host 0 to host 1
-ri_conn_dict={"rule": "fixed_indegree", "indegree": CI/4}
+ri_conn_dict={"rule": "fixed_indegree", "indegree": CI//4}
 ri_syn_dict={"weight": Win, "delay": delay,
               "receptor":1}
 # host 0 to host 1

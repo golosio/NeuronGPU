@@ -20,7 +20,7 @@ NI = 1 * order       # number of inhibitory neurons
 n_neurons = NE + NI  # number of neurons in total
 
 CE = 800   # number of excitatory synapses per neuron
-CI = CE/4  # number of inhibitory synapses per neuron
+CI = CE//4  # number of inhibitory synapses per neuron
 
 Wex = 0.05
 Win = 0.35

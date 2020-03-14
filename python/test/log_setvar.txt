@@ -1,3 +1,11 @@
+-----------------------------------------------------------------
+NeuronGPU
+A GPU-MPI library for simulation of large-scale networks
+ of spiking neurons
+Homepage: https://github.com/golosio/NeuronGPU
+Author: B. Golosio, University of Cagliari
+email: golosio@unica.it
+-----------------------------------------------------------------
 ('read_td', [[60.0, 10.0], [60.0, 10.0], [60.0, 10.0]])
 ('read_tr', [[40.0, 5.0], [40.0, 5.0], [40.0, 5.0]])
 ('read_Vm', [[-80.0], [-70.5999984741211], [-70.5999984741211]])
@@ -10,7 +18,7 @@
 ('read1_g1', [[0.0, 0.10000000149011612], [0.10000000149011612, 0.0], [0.0, 0.0]])
 Calibrating ...
 Simulating ...
-Neural activity simulation time: 1000.000
+Neural activity simulation time: 800.000
 0.000
 10.000
 20.000
@@ -92,23 +100,3 @@ Neural activity simulation time: 1000.000
 780.000
 790.000
 800.000
-810.000
-820.000
-830.000
-840.000
-850.000
-860.000
-870.000
-880.000
-890.000
-900.000
-910.000
-920.000
-930.000
-940.000
-950.000
-960.000
-970.000
-980.000
-990.000
-1000.000

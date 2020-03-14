@@ -30,7 +30,7 @@ NI = 1 * order       # number of inhibitory neurons
 n_neurons = NE + NI  # number of neurons in total
 
 CE = 800   # number of excitatory synapses per neuron
-CI = CE/4  # number of inhibitory synapses per neuron
+CI = CE//4  # number of inhibitory synapses per neuron
 
 Wex = 0.05
 Win = 0.35
@@ -66,8 +66,8 @@ std_delay = 0.25
 min_delay = 0.1
 # Excitatory local connections, defined on all hosts
 # connect excitatory neurons to port 0 of all neurons
-# normally distributed delays, weight Wex and fixed indegree CE/2
-exc_conn_dict={"rule": "fixed_indegree", "indegree": CE/2}
+# normally distributed delays, weight Wex and fixed indegree CE//2
+exc_conn_dict={"rule": "fixed_indegree", "indegree": CE//2}
 exc_syn_dict={"weight": Wex, "delay": {"distribution":"normal_clipped",
                                        "mu":mean_delay, "low":min_delay,
                                        "high":mean_delay+3*std_delay,
@@ -76,8 +76,8 @@ ngpu.Connect(exc_neuron, neuron_list, exc_conn_dict, exc_syn_dict)
 
 # Inhibitory local connections, defined on all hosts
 # connect inhibitory neurons to port 1 of all neurons
-# normally distributed delays, weight Win and fixed indegree CI/2
-inh_conn_dict={"rule": "fixed_indegree", "indegree": CI/2}
+# normally distributed delays, weight Win and fixed indegree CI//2
+inh_conn_dict={"rule": "fixed_indegree", "indegree": CI//2}
 inh_syn_dict={"weight": Win, "delay":{"distribution":"normal_clipped",
                                        "mu":mean_delay, "low":min_delay,
                                        "high":mean_delay+3*std_delay,
@@ -110,9 +110,9 @@ record = ngpu.CreateRecord("", var_name_list, i_neuron_list, i_receptor_list)
 
 # Excitatory remote connections
 # connect excitatory neurons to port 0 of all neurons
-# weight Wex and fixed indegree CE/2
+# weight Wex and fixed indegree CE//2
 # host 0 to host 1
-re_conn_dict={"rule": "fixed_indegree", "indegree": CE/2}
+re_conn_dict={"rule": "fixed_indegree", "indegree": CE//2}
 re_syn_dict=exc_syn_dict
 # host 0 to host 1
 ngpu.RemoteConnect(0, exc_neuron_list, 1, neuron, re_conn_dict, re_syn_dict)
@@ -121,9 +121,9 @@ ngpu.RemoteConnect(1, exc_neuron, 0, neuron_list, re_conn_dict, re_syn_dict)
 
 # Inhibitory remote connections
 # connect inhibitory neurons to port 1 of all neurons
-# weight Win and fixed indegree CI/2
+# weight Win and fixed indegree CI//2
 # host 0 to host 1
-ri_conn_dict={"rule": "fixed_indegree", "indegree": CI/2}
+ri_conn_dict={"rule": "fixed_indegree", "indegree": CI//2}
 ri_syn_dict=inh_syn_dict
 # host 0 to host 1
 ngpu.RemoteConnect(0, inh_neuron, 1, neuron, ri_conn_dict, ri_syn_dict)

@@ -19,5 +19,5 @@ plt.plot(t, V_m)
 
 plt.draw()
 plt.pause(1)
-raw_input("<Hit Enter To Close>")
+ngpu.waitenter("<Hit Enter To Close>")
 plt.close()

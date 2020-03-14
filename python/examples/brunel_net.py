@@ -7,7 +7,7 @@ if len(sys.argv) != 2:
     print ("Usage: python %s n_neurons" % sys.argv[0])
     quit()
     
-order = int(sys.argv[1])/5
+order = int(sys.argv[1])
 
 print("Building ...")
 
@@ -20,7 +20,7 @@ NI = 1 * order       # number of inhibitory neurons
 n_neurons = NE + NI  # number of neurons in total
 
 CE = 800   # number of excitatory synapses per neuron
-CI = CE/4  # number of inhibitory synapses per neuron
+CI = CE//4  # number of inhibitory synapses per neuron
 
 Wex = 0.05
 Win = 0.35
@@ -112,5 +112,5 @@ plt.plot(t, V3)
 
 plt.draw()
 plt.pause(0.5)
-raw_input("<Hit Enter To Close>")
+ngpu.waitenter("<Hit Enter To Close>")
 plt.close()

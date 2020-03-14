@@ -39,8 +39,8 @@ V_m=[row[1] for row in data_list]
 data = np.loadtxt('test_aeif_cond_alpha_nest.txt', delimiter="\t")
 t1=[x[0] for x in data ]
 V_m1=[x[1] for x in data ]
-print len(t)
-print len(t1)
+print (len(t))
+print (len(t1))
 
 dV=[V_m[i*10+20]-V_m1[i] for i in range(len(t1))]
 rmse =np.std(dV)/abs(np.mean(V_m))

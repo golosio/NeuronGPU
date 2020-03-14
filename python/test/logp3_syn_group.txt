@@ -1,0 +1,17 @@
+-----------------------------------------------------------------
+NeuronGPU
+A GPU-MPI library for simulation of large-scale networks
+ of spiking neurons
+Homepage: https://github.com/golosio/NeuronGPU
+Author: B. Golosio, University of Cagliari
+email: golosio@unica.it
+-----------------------------------------------------------------
+{'fact': 1.0, 'offset': 2.0}
+{'fact': 3.0, 'offset': 4.0}
+{'fact': 5.0, 'offset': 6.0}
+fact:  5.0
+offset:  6.0
+5.0
+6.0
+[5.0, 6.0]
+[6.0, 5.0]

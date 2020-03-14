@@ -1,5 +1,5 @@
 AC_PREREQ([2.65])
-AC_INIT([neurongpu], [1.0.8], [])
+AC_INIT([neurongpu], [1.2.0], [])
 
 # Config initialization
 AC_CONFIG_SRCDIR([m4/ct_check_cuda.m4])

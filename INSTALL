@@ -1,3 +1,7 @@
+The following are generic instructions for installing from the source.
+For installation instructions specific to this package, see:
+https://github.com/golosio/NeuronGPU/wiki/Installation-instructions
+
 Installation Instructions
 *************************
 
@@ -14,7 +18,7 @@ Basic Installation
 
    Briefly, the shell command './configure && make && make install'
 should configure, build, and install this package.  The following
-more-detailed instructions are generic; see the 'INSTALL_README' file for
+more-detailed instructions are generic; see the 'README' file for
 instructions specific to this package.  Some packages provide this
 'INSTALL' file but do not implement all of the features documented
 below.  The lack of an optional feature in a given package is not
@@ -37,7 +41,7 @@ default to prevent problems with accidental use of stale cache files.
 
    If you need to do unusual things to compile the package, please try
 to figure out how 'configure' could check whether to do them, and mail
-diffs or instructions to the address given in the 'INSTALL_README' so they can
+diffs or instructions to the address given in the 'README' so they can
 be considered for the next release.  If you are using the cache, and at
 some point 'config.cache' contains results you don't want to keep, you
 may remove or edit it.
@@ -199,7 +203,7 @@ option '--program-prefix=PREFIX' or '--program-suffix=SUFFIX'.
 'configure', where FEATURE indicates an optional part of the package.
 They may also pay attention to '--with-PACKAGE' options, where PACKAGE
 is something like 'gnu-as' or 'x' (for the X Window System).  The
-'INSTALL_README' should mention any '--enable-' and '--with-' options that the
+'README' should mention any '--enable-' and '--with-' options that the
 package recognizes.
 
    For packages that use the X Window System, 'configure' can usually

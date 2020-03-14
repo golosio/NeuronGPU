@@ -23,3 +23,5 @@ To start using it,, have a look at the examples in the python/examples and c++/e
 * Numeric precision: 32 bit float.
 * Simulation real time: on a machine with a single Nvidia GeForce RTX 2080 Ti GPU board, NeuronGPU is about 20 times faster than CPU code running on a PC with a CPU Intel CORE I9-9900K with with a frequency of 3.6GHz and 16 hardware threads.
 
+* **[Download and installation instructions](https://github.com/golosio/NeuronGPU/wiki/Installation-instructions)**
+* **[User guide](https://github.com/golosio/NeuronGPU/wiki)**

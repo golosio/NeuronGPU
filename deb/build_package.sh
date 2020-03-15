@@ -1,4 +1,11 @@
-version=1.0.8-1
+#!/bin/bash
+if [ $# -ne 1 ]; then
+   echo "Usage: $0 distro"
+   echo "where distro is ubuntu1 for bionic(18.04), ubuntu2 for eoan(19.10), debian1, ..."
+   exit
+fi
+
+version=1.2.0~$1
 
 #define source and target directories
 srcdir=..
@@ -21,9 +28,11 @@ cp $srcdir/src/neurongpu.h $tgdir/usr/local/neurongpu/include/
 
 # create python package directory
 mkdir -p $tgdir/usr/lib/python2.7/dist-packages/
+mkdir -p $tgdir/usr/lib/python3/dist-packages/
 
 # copy the neurongpu python module
 cp $srcdir/pythonlib/neurongpu.py $tgdir/usr/lib/python2.7/dist-packages/
+cp $srcdir/pythonlib/neurongpu.py $tgdir/usr/lib/python3/dist-packages/
 
 # create a symbolic link in /usr/local/lib to the dynamic-link library
 ln -s /usr/local/neurongpu/lib/libneurongpu.so $tgdir/usr/local/lib/libneurongpu.so

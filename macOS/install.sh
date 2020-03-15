@@ -2,6 +2,7 @@
 if [ $# -eq 0 ]
   then
     echo "No source directory supplied"
+    exit
 fi
 srcdir=$1/NeuronGPU
 
@@ -31,12 +32,15 @@ cp $srcdir/src/neurongpu.h /usr/local/neurongpu/include/
 
 # find python package directory
 SITEDIR=$(python -m site --user-site)
+SITEDIR3=$(python3 -m site --user-site)
 
 # create if it doesn't exist
 mkdir -p "$SITEDIR"
+mkdir -p "$SITEDIR3"
 
 # create new .pth file with path to neurongpu python module
 echo "/usr/local/neurongpu/pythonlib/" > "$SITEDIR/neurongpu.pth"
+echo "/usr/local/neurongpu/pythonlib/" > "$SITEDIR3/neurongpu.pth"
 
 # create a symbolic link in /usr/local/lib to the dynamic-link library
 ln -s /usr/local/neurongpu/lib/libneurongpu.so /usr/local/lib/libneurongpu.so

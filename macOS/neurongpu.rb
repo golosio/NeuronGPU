@@ -1,5 +1,5 @@
 cask 'neurongpu' do
-  version '1.2.0'
+  version '1.2.2'
   sha256 :no_check
 
   url "http://0.0.0.0:8000/NeuronGPU-macOS-1.2.0.tgz"

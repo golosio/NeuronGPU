@@ -1,10 +1,10 @@
 cask 'neurongpu' do
-  version '1.0.8'
+  version '1.2.0'
   sha256 :no_check
 
-  url "http://0.0.0.0:8000/NeuronGPU-macOS-1.0.8-alpha.2.tgz"
+  url "http://0.0.0.0:8000/NeuronGPU-macOS-1.2.0.tgz"
   name 'Neurongpu'
-  homepage 'https://github.com/golosio/NeuronGPU'
+  homepage 'https://github.com/golosio/NeuronGPU/wiki'
 
   depends_on macos: [
                       :sierra,

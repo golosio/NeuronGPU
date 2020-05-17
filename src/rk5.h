@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+extern __constant__ int NeuronGPUTimeIdx; // temporary for check, remove
+
 __global__ void SetFloatArray(float *arr, int n_elem, int step, float val);
 
 template<class DataStruct>
@@ -59,24 +61,38 @@ __device__
 void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
 	     float *param, DataStruct data_struct)
 {
-  float err;
   float y_new[NVAR];
+  float k1[NVAR];
+  float k2[NVAR];
+  float k3[NVAR];
+  float k4[NVAR];
+  float k5[NVAR];
+  float k6[NVAR];
+  float y_scal[NVAR];
 
+  Derivatives<NVAR, NPARAM>(x, y, k1, param, data_struct);
+  for (int i=0; i<NVAR; i++) {
+    y_scal[i] = fabs(y[i]) + fabs(k1[i]*h) + scal_min;
+  }
+  
+  float err;
   for(;;) {
     if (h > h_max) h = h_max;
-
-    float k1[NVAR];
-    float k2[NVAR];
-    float k3[NVAR];
-    float k4[NVAR];
-    float k5[NVAR];
-    float k6[NVAR];
-
-    Derivatives<NVAR, NPARAM>(x, y, k1, param, data_struct);
-
+    
+    if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
+      printf("x: %f h:%f\n", x, h);
+    }
+    
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*a21*k1[i];
     }
+    //if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
+      printf("x: %f h:%f ", x, h);
+      for (int i=0; i<NVAR; i++) {
+	printf("\t%f", y_new[i]);
+      }
+      printf("\n");
+      //}
     Derivatives<NVAR, NPARAM>(x+c2*h, y_new, k2, param,
 			      data_struct);
   
@@ -102,50 +118,60 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
       y_new[i] = y[i] + h*(a61*k1[i] + a62*k2[i] + a63*k3[i] + a64*k4[i]
 			  + a65*k5[i]);
     }
-    float x1 = x + h;
-    Derivatives<NVAR, NPARAM>(x1, y_new, k6, param, data_struct);
+    Derivatives<NVAR, NPARAM>(x+c6*h, y_new, k6, param, data_struct);
     
     for (int i=0; i<NVAR; i++) {
-      y_new[i] = y[i] + h*(a71*k1[i] + a73*k3[i] + a74*k4[i] + a75*k5[i]
-			  + a76*k6[i]);
+      y_new[i] = y[i] + h*(a71*k1[i] + a73*k3[i] + a74*k4[i] + a76*k6[i]);
     }
-    Derivatives<NVAR, NPARAM>(x1, y_new, k2, param,
-			      data_struct); // k2 replaces k7
   
     err = 0.0;
     for (int i=0; i<NVAR; i++) {
-      float val = h*(e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i] + e6*k6[i]
-		     + e7*k2[i])
-	/ (abs_tol + rel_tol*MAX(fabs(y[i]), fabs(y_new[i])));
-
-      err += val*val;
+      if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
+	printf("i:%d k: %f %f %f %f %f %f\n",
+	       i, k1[i], k3[i], k4[i], k5[i], k6[i], k2[i]);
+	printf("h:%f ek: %lf %lf %lf %lf %lf\n",
+	       h, e1*k1[i], e3*k3[i], e4*k4[i], e5*k5[i], e6*k6[i]);
+	printf("y:%f y_new:%f\n", y[i], y_new[i]);
+      }
+      printf("sum: %e\n", e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i]
+	     + e6*k6[i]);
+      float val = h*(e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i] + e6*k6[i]);
+      val /= y_scal[i]; ///// check for overflow!!!!!!!!!!!
+      err = MAX(err,fabs(val));
+      if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
+	printf("val:%f err:%f\n", val, err);
+      }
     }
-    err = sqrt(err/NVAR);
+    err /= eps;
+    if (err <= 1.0) break;
+    //break;
 
-    float x_new = x + h;
-    bool rejected=false;
-
-    if (err<min_err) err = min_err;
-    if (err>max_err) err = max_err;
-    float fact=coeff*pow(err,-alpha);
-    if (rejected && fact>1.0) fact=1.0;
-    h *= fact;
-
-    if (h <= h_min) {
-      h = h_min;
-      rejected = false;
+    float h_new = h*coeff*pow(err,exp_dec);
+    h = MAX(h_new, 0.1*h);
+    
+    if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
+      printf("err:%f h_new:%f h:%f\n",
+	     err, h_new, h);
     }
-    else if (err <= 1.0) rejected = false; 
-    else rejected = true;
-    if (!rejected) {
-      x = x_new;
-      break;
-    }
+    //if (h <= h_min) {
+    //  h = h_min;
+    //}
+    //x_new = x + h;
+  }
+
+  x += h;  
+
+  if (err > err_min) {
+    h = h*coeff*pow(err,exp_inc);
+  }
+  else {
+    h = 5.0*h;
   }
   
   for (int i=0; i<NVAR; i++) {
     y[i] = y_new[i];
   }
+
 }
 
 template<int NVAR, int NPARAM, class DataStruct>
@@ -153,6 +179,11 @@ __device__
 void RK5Update(float &x, float *y, float x1, float &h, float h_min,
 	       float *param, DataStruct data_struct)
 {
+  //if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
+  printf("%d\n", NeuronGPUTimeIdx);
+    printf("rk5u x: %f h:%f\n", x, h);
+    //}
+
   bool end_time_step=false;
   while(!end_time_step) {
     float hmax=x1-x;

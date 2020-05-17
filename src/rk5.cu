@@ -22,43 +22,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __constant__ float c2 = 0.2;
 __constant__ float c3 = 0.3;
-__constant__ float c4 = 0.8;
-__constant__ float c5 = 8.0/9.0;
+__constant__ float c4 = 0.6;
+__constant__ float c5 = 1.0;
+__constant__ float c6 = 0.875;
 __constant__ float a21 = 0.2;
 __constant__ float a31 = 3.0/40.0;
 __constant__ float a32 = 9.0/40.0;
-__constant__ float a41 = 44.0/45.0;
-__constant__ float a42 = -56.0/15.0;
-__constant__ float a43 = 32.0/9.0;
-__constant__ float a51 = 19372.0/6561.0;
-__constant__ float a52 = -25360.0/2187.0;
-__constant__ float a53 = 64448.0/6561.0;
-__constant__ float a54 = -212.0/729.0;
-__constant__ float a61 = 9017.0/3168.0;
-__constant__ float a62 = -355.0/33.0;
-__constant__ float a63 = 46732.0/5247.0;
-__constant__ float a64 = 49.0/176.0;
-__constant__ float a65 = -5103.0/18656.0;
-__constant__ float a71 = 35.0/384.0;
-__constant__ float a73 = 500.0/1113.0;
-__constant__ float a74 = 125.0/192.0;
-__constant__ float a75 = -2187.0/6784.0;
-__constant__ float a76 = 11.0/84.0;
-__constant__ float e1 = 71.0/57600.0;
-__constant__ float e3 = -71.0/16695.0;
-__constant__ float e4 = 71.0/1920.0;
-__constant__ float e5 = -17253.0/339200.0;
-__constant__ float e6 = 22.0/525.0;
-__constant__ float e7 = -1.0/40.0;
+__constant__ float a41 = 0.3;
+__constant__ float a42 = -0.9;
+__constant__ float a43 = 1.2;
+__constant__ float a51 = -11.0/54.0;
+__constant__ float a52 = 2.5;
+__constant__ float a53 = -70.0/27.0;
+__constant__ float a54 = 35.0/27.0;
+__constant__ float a61 = 1631.0/55296.0;
+__constant__ float a62 = 175.0/512.0;
+__constant__ float a63 = 575.0/13824.0;
+__constant__ float a64 = 44275.0/110592.0;
+__constant__ float a65 = 253.0/4096.0;
 
-__constant__ float abs_tol = 1.0e-8;
-__constant__ float rel_tol = 1.0e-8;
+__constant__ float a71 = 37.0/378.0;
+__constant__ float a73 = 250.0/621.0;
+__constant__ float a74 = 125.0/594.0;
+__constant__ float a76 = 512.0/1771.0;
 
-__constant__ float min_err = 5.0e-6;
-__constant__ float max_err = 2000.0;
+__constant__ float e1 = 37.0/378.0 - 2825.0/27648.0;
+__constant__ float e3 = 250.0/621.0 - 18575.0/48384.0;
+__constant__ float e4 = 125.0/594.0 - 13525.0/55296.0;
+__constant__ float e5 = -277.00/14336.0;
+__constant__ float e6 = 512.0/1771.0 - 0.25;
+
+__constant__ float eps = 1.0e-6;
 __constant__ float coeff = 0.9;
-__constant__ float alpha = 0.2;
-
+__constant__ float exp_inc = -0.2;
+__constant__ float exp_dec = -0.25;
+__constant__ float err_min = 1.889568e-4; //(5/coeff)^(1/exp_inc)
+__constant__ float scal_min = 1.0e-1;
 
 __global__ void SetFloatArray(float *arr, int n_elem, int step, float val)
 {

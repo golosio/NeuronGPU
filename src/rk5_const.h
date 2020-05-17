@@ -16,6 +16,7 @@ extern __constant__ float c2;
 extern __constant__ float c3;
 extern __constant__ float c4;
 extern __constant__ float c5;
+extern __constant__ float c6;
 extern __constant__ float a21;
 extern __constant__ float a31;
 extern __constant__ float a32;
@@ -31,22 +32,22 @@ extern __constant__ float a62;
 extern __constant__ float a63;
 extern __constant__ float a64;
 extern __constant__ float a65;
+
 extern __constant__ float a71;
 extern __constant__ float a73;
 extern __constant__ float a74;
-extern __constant__ float a75;
 extern __constant__ float a76;
+
 extern __constant__ float e1;
 extern __constant__ float e3;
 extern __constant__ float e4;
 extern __constant__ float e5;
 extern __constant__ float e6;
-extern __constant__ float e7;
 
-extern __constant__ float abs_tol;
-extern __constant__ float rel_tol;
-
-extern __constant__ float min_err;
-extern __constant__ float max_err;
+extern __constant__ float eps;
 extern __constant__ float coeff;
-extern __constant__ float alpha;
+extern __constant__ float exp_inc;
+extern __constant__ float exp_dec;
+extern __constant__ float err_min;
+extern __constant__ float scal_min;
+

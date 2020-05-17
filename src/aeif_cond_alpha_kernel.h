@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
 extern __constant__ float NeuronGPUTimeResolution;
+extern __constant__ int NeuronGPUTimeIdx; // temporary for check, remove
 
 namespace aeif_cond_alpha_ns
 {
@@ -145,6 +146,14 @@ __device__
 
   dVdt = ( refractory_step > 0 ) ? 0 :
     ( -g_L*(V - E_L - V_spike) + I_syn - w + I_e) / C_m;
+
+  // temporary for check
+  if (NeuronGPUTimeIdx==610 || NeuronGPUTimeIdx==611) {
+    int i_thread =  threadIdx.x + blockIdx.x * blockDim.x;
+    printf("%d ", NeuronGPUTimeIdx);
+    printf("i:%d dVdt:%f g_L:%f V:%f E_L:%f V_spike:%f I_syn:%f w:%f I_e:%f C_m:%f\n", i_thread, dVdt, g_L, V, E_L, V_spike, I_syn, w, I_e, C_m);
+  }
+  
   // Adaptation current w.
   dwdt = (a*(V - E_L) - w) / tau_w;
   for (int i=0; i<n_port; i++) {

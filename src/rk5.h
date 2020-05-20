@@ -78,21 +78,12 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
   float err;
   for(;;) {
     if (h > h_max) h = h_max;
-    
-    if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
-      printf("x: %f h:%f\n", x, h);
-    }
+    if (h < h_min) h = h_min;
     
     for (int i=0; i<NVAR; i++) {
       y_new[i] = y[i] + h*a21*k1[i];
     }
-    //if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
-      printf("x: %f h:%f ", x, h);
-      for (int i=0; i<NVAR; i++) {
-	printf("\t%f", y_new[i]);
-      }
-      printf("\n");
-      //}
+
     Derivatives<NVAR, NPARAM>(x+c2*h, y_new, k2, param,
 			      data_struct);
   
@@ -126,33 +117,16 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
   
     err = 0.0;
     for (int i=0; i<NVAR; i++) {
-      if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
-	printf("i:%d k: %f %f %f %f %f %f\n",
-	       i, k1[i], k3[i], k4[i], k5[i], k6[i], k2[i]);
-	printf("h:%f ek: %lf %lf %lf %lf %lf\n",
-	       h, e1*k1[i], e3*k3[i], e4*k4[i], e5*k5[i], e6*k6[i]);
-	printf("y:%f y_new:%f\n", y[i], y_new[i]);
-      }
-      printf("sum: %e\n", e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i]
-	     + e6*k6[i]);
       float val = h*(e1*k1[i] + e3*k3[i] + e4*k4[i] + e5*k5[i] + e6*k6[i]);
       val /= y_scal[i]; ///// check for overflow!!!!!!!!!!!
       err = MAX(err,fabs(val));
-      if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
-	printf("val:%f err:%f\n", val, err);
-      }
     }
     err /= eps;
-    if (err <= 1.0) break;
-    //break;
+    if (err <= 1.0 || h<=h_min*(1.0+1.0e-5)) break;
 
     float h_new = h*coeff*pow(err,exp_dec);
     h = MAX(h_new, 0.1*h);
     
-    if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
-      printf("err:%f h_new:%f h:%f\n",
-	     err, h_new, h);
-    }
     //if (h <= h_min) {
     //  h = h_min;
     //}
@@ -179,11 +153,6 @@ __device__
 void RK5Update(float &x, float *y, float x1, float &h, float h_min,
 	       float *param, DataStruct data_struct)
 {
-  //if (NeuronGPUTimeIdx==000 || NeuronGPUTimeIdx==611) {
-  printf("%d\n", NeuronGPUTimeIdx);
-    printf("rk5u x: %f h:%f\n", x, h);
-    //}
-
   bool end_time_step=false;
   while(!end_time_step) {
     float hmax=x1-x;

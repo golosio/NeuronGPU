@@ -24,7 +24,7 @@ N = 50
 
 tau_plus = 20.0
 tau_minus = 20.0
-Wplus = 0.001
+lambd = 1.0
 alpha = 1.0
 mu_plus = 1.0
 mu_minus = 1.0
@@ -32,7 +32,7 @@ Wmax = 0.001
 
 syn_group = ngpu.CreateSynGroup \
             ("stdp", {"tau_plus":tau_plus, "tau_minus":tau_minus, \
-                      "Wplus":Wplus, "alpha":alpha, "mu_plus":mu_plus, \
+                      "lambda":lambd, "alpha":alpha, "mu_plus":mu_plus, \
                       "mu_minus":mu_minus,  "Wmax":Wmax}) 
 
 sg = ngpu.Create("spike_generator", N)
@@ -79,7 +79,7 @@ w = ngpu.GetStatus(conn_id, "weight")
 expect_w = []
 dw = []
 for i in range(N):
-    w1 = STDPUpdate(weight_stdp, dt[i], tau_plus, tau_minus, Wplus, alpha, \
+    w1 = STDPUpdate(weight_stdp, dt[i], tau_plus, tau_minus, lambd*Wmax, alpha, \
                     mu_plus, mu_minus, Wmax)
     expect_w.append(w1)
     dw.append(w1-w[i])

@@ -23,7 +23,7 @@ using namespace stdp_ns;
 
 __device__ void STDPUpdate(float *weight_pt, float Dt, float *param)
 {
-  printf("Dt: %f\n", Dt);
+  //printf("Dt: %f\n", Dt);
   double tau_plus = param[i_tau_plus];
   double tau_minus = param[i_tau_minus];
   double lambda = param[i_lambda];
@@ -34,12 +34,12 @@ __device__ void STDPUpdate(float *weight_pt, float Dt, float *param)
 
   double w = *weight_pt;
   double w1;
-  if (Dt<0) {
-    double fact = lambda*exp((double)Dt/tau_plus);
+  if (Dt>=0) {
+    double fact = lambda*exp(-(double)Dt/tau_plus);
     w1 = w + fact*Wmax*pow(1.0 - w/Wmax, mu_plus);
   }
   else {
-    double fact = -alpha*lambda*exp(-(double)Dt/tau_minus);
+    double fact = -alpha*lambda*exp((double)Dt/tau_minus);
     w1 = w + fact*Wmax*pow(w/Wmax, mu_minus);
   }
   
@@ -56,7 +56,7 @@ int STDP::Init()
   gpuErrchk(cudaMalloc(&d_param_arr_, n_param_*sizeof(float)));
   SetParam("tau_plus", 20.0);
   SetParam("tau_minus", 20.0);
-  SetParam("lambda", 0.01);
+  SetParam("lambda", 1.0e-4);
   SetParam("alpha", 1.0);
   SetParam("mu_plus", 1.0);
   SetParam("mu_minus", 1.0);

@@ -70,7 +70,7 @@ class Sequence
 
   // https://stackoverflow.com/questions/18625223
   inline std::vector<int> ToVector() {
-    int start = 0;
+    int start = i0;
     std::vector<int> v(n);
     std::iota(v.begin(), v.end(), start);
     return v;

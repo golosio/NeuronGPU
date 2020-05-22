@@ -24,16 +24,18 @@ N = 50
 
 tau_plus = 20.0
 tau_minus = 20.0
-Wplus = 0.001
+lambd = 1.0
 alpha = 1.0
 mu_plus = 1.0
 mu_minus = 1.0
 Wmax = 0.001
+den_delay = 0.0
 
 syn_group = ngpu.CreateSynGroup \
             ("stdp", {"tau_plus":tau_plus, "tau_minus":tau_minus, \
-                      "Wplus":Wplus, "alpha":alpha, "mu_plus":mu_plus, \
-                      "mu_minus":mu_minus,  "Wmax":Wmax}) 
+                      "lambda":lambd, "alpha":alpha, "mu_plus":mu_plus, \
+                      "mu_minus":mu_minus,  "Wmax":Wmax, \
+                      "den_delay":den_delay}) 
 
 sg = ngpu.Create("spike_generator")
 neuron0 = ngpu.Create("aeif_cond_beta")
@@ -85,8 +87,8 @@ sim_w = []
 for i in range(N):
     conn_id = ngpu.GetConnections(neuron0, neuron1[i])
     w = ngpu.GetStatus(conn_id, "weight")
-    w1 = STDPUpdate(weight_stdp, dt[i], tau_plus, tau_minus, Wplus, alpha, \
-                    mu_plus, mu_minus, Wmax)
+    w1 = STDPUpdate(weight_stdp, dt[i], tau_plus, tau_minus, lambd*Wmax, \
+                    alpha, mu_plus, mu_minus, Wmax)
     expect_w.append(w1)
     sim_w.append(w[0])
     dw.append(w1-w[0])

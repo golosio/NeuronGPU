@@ -5,7 +5,7 @@ for fn in test_aeif_cond_alpha.py  test_aeif_cond_beta.py  test_aeif_psc_alpha.p
     python $fn >> log.txt 2>err.txt
     res=$?
     cat err.txt >> log.txt
-    rm err.txt
+    rm -f err.txt
     if [ "$res" -ne "0" ]; then
 	res=1
     fi
@@ -17,4 +17,4 @@ for fn in syn_group connect getarr setvar2; do
     res=$?
     echo ${pass_str[$res]}    
 done
-rm tmp
+rm -f tmp

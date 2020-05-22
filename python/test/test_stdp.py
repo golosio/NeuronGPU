@@ -29,11 +29,13 @@ alpha = 1.0
 mu_plus = 1.0
 mu_minus = 1.0
 Wmax = 0.001
+den_delay = 0.0
 
 syn_group = ngpu.CreateSynGroup \
             ("stdp", {"tau_plus":tau_plus, "tau_minus":tau_minus, \
                       "lambda":lambd, "alpha":alpha, "mu_plus":mu_plus, \
-                      "mu_minus":mu_minus,  "Wmax":Wmax}) 
+                      "mu_minus":mu_minus,  "Wmax":Wmax,
+                      "den_delay":den_delay}) 
 
 sg = ngpu.Create("spike_generator", N)
 neuron = ngpu.Create("aeif_cond_beta", 2*N)

@@ -31,9 +31,11 @@ __device__ void STDPUpdate(float *weight_pt, float Dt, float *param)
   double mu_plus = param[i_mu_plus];
   double mu_minus = param[i_mu_minus];
   double Wmax = param[i_Wmax];
+  double den_delay = param[i_den_delay];
 
   double w = *weight_pt;
   double w1;
+  Dt += den_delay;
   if (Dt>=0) {
     double fact = lambda*exp(-(double)Dt/tau_plus);
     w1 = w + fact*Wmax*pow(1.0 - w/Wmax, mu_plus);
@@ -61,6 +63,7 @@ int STDP::Init()
   SetParam("mu_plus", 1.0);
   SetParam("mu_minus", 1.0);
   SetParam("Wmax", 100.0);
+  SetParam("den_delay", 0.0);
 
   return 0;
 }

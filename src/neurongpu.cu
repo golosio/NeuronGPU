@@ -64,7 +64,7 @@ NeuronGPU::NeuronGPU()
   net_connection_ = new NetConnection;
   
   SetRandomSeed(54321ULL);
-
+  
   calibrate_flag_ = false;
 
   start_real_time_ = getRealTime();
@@ -77,6 +77,7 @@ NeuronGPU::NeuronGPU()
   error_flag_ = false;
   error_message_ = "";
   error_code_ = 0;
+  
   on_exception_ = ON_EXCEPTION_EXIT;
 
 #ifdef HAVE_MPI
@@ -90,22 +91,27 @@ NeuronGPU::NeuronGPU()
 
 NeuronGPU::~NeuronGPU()
 {
-  delete poiss_generator_;
-  delete multimeter_;
-  for (unsigned int i=0; i<node_vect_.size(); i++) {
-    delete node_vect_[i];
-  }
-  delete net_connection_;
-  curandDestroyGenerator(*random_generator_);
-  delete random_generator_;
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+
   if (calibrate_flag_) {
     FreeNodeGroupMap();
     FreeGetSpikeArrays();
   }
-  
+
+  for (unsigned int i=0; i<node_vect_.size(); i++) {
+    delete node_vect_[i];
+  }
+
 #ifdef HAVE_MPI
   delete connect_mpi_;
 #endif
+
+  delete net_connection_;
+  delete multimeter_;
+  delete poiss_generator_;
+  curandDestroyGenerator(*random_generator_);
+  delete random_generator_;
 }
 
 int NeuronGPU::SetRandomSeed(unsigned long long seed)

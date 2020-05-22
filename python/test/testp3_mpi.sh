@@ -5,7 +5,7 @@ for fn in test_brunel_mpi.py test_brunel_outdegree_mpi.py; do
     mpirun -np 2 python3 $fn >> log.txt 2>err.txt
     res=$?
     cat err.txt >> log.txt
-    rm err.txt
+    rm -f err.txt
     if [ "$res" -ne "0" ]; then
         res=1
     fi

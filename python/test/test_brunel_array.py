@@ -38,8 +38,8 @@ ngpu.SetStatus(pg, "rate", poiss_rate)
 
 # Create n_neurons neurons with n_receptor receptor ports
 neuron = ngpu.Create("aeif_cond_beta", n_neurons, n_receptors)
-exc_neuron = neuron[0:NE-1]      # excitatory neurons
-inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neurons
+exc_neuron = neuron[0:NE]      # excitatory neurons
+inh_neuron = neuron[NE:n_neurons]   # inhibitory neurons
   
 # receptor parameters
 E_rev = [0.0, -85.0]
@@ -101,11 +101,11 @@ ngpu.Simulate()
 data_list = ngpu.GetRecordData(record)
 
 row_sum = data_list[0]
-for row in data_list[1:len(data_list)-1]:
+for row in data_list[1:len(data_list)]:
     for i in range(len(row_sum)):
         row_sum[i] = row_sum[i] + row[i]
 
-spike = row_sum[1:len(row_sum)-1]
+spike = row_sum[1:len(row_sum)]
 
 import numpy as np
 spike_arr = np.array(spike)

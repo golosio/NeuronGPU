@@ -15,11 +15,11 @@ syn_dict1={"weight": 1.0, "delay": 10.0, "receptor":0}
 syn_dict2={"weight": 2.0, "delay": 20.0, "receptor":0}
 syn_dict3={"weight": 3.0, "delay": 30.0, "receptor":0}
 
-ngpu.Connect(neuron[0:0], spike_det, conn_dict, syn_dict1)
+ngpu.Connect([neuron[0]], spike_det, conn_dict, syn_dict1)
 
-ngpu.Connect(neuron[1:1], spike_det, conn_dict, syn_dict2)
+ngpu.Connect([neuron[1]], spike_det, conn_dict, syn_dict2)
 
-ngpu.Connect(neuron[2:2], spike_det, conn_dict, syn_dict3)
+ngpu.Connect([neuron[2]], spike_det, conn_dict, syn_dict3)
 
 record_n = ngpu.CreateRecord("", ["spike"], [neuron[0]], [0])
 

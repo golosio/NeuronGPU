@@ -2,9 +2,9 @@ import sys
 import neurongpu as ngpu
 
 spike = ngpu.Create("spike_generator", 4)
-spike0 = spike[0:1]
-spike1 = spike[2:2]
-spike2 = spike[3:3]
+spike0 = spike[0:2]
+spike1 = spike[2:3]
+spike2 = spike[3:4]
 
 spike_time0 = [10.0, 400.0]
 spike_height0 = [1.0, 0.5]

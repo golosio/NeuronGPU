@@ -200,6 +200,15 @@ extern "C" {
   } END_ERR_PROP return ret; }
   
 
+  int NeuronGPU_SetNeuronIntVar(int i_node, int n_neuron, char *var_name,
+				int val)
+  { int ret = 0; BEGIN_ERR_PROP {
+    
+    std::string var_name_str = std::string(var_name);
+    ret = NeuronGPU_instance->SetNeuronIntVar(i_node, n_neuron,
+					     var_name_str, val);
+  } END_ERR_PROP return ret; }
+
   int NeuronGPU_SetNeuronScalVar(int i_node, int n_neuron, char *var_name,
 				   float val)
   { int ret = 0; BEGIN_ERR_PROP {
@@ -219,8 +228,16 @@ extern "C" {
 					       array_size);
   } END_ERR_PROP return ret; }
 
+  int NeuronGPU_SetNeuronPtIntVar(int *i_node, int n_neuron,
+				     char *var_name, int val)
+  { int ret = 0; BEGIN_ERR_PROP {
+    std::string var_name_str = std::string(var_name);
+    ret = NeuronGPU_instance->SetNeuronIntVar(i_node, n_neuron,
+					      var_name_str, val);
+  } END_ERR_PROP return ret; }
+
   int NeuronGPU_SetNeuronPtScalVar(int *i_node, int n_neuron,
-				     char *var_name,float val)
+				     char *var_name, float val)
   { int ret = 0; BEGIN_ERR_PROP {
     std::string var_name_str = std::string(var_name);
     ret = NeuronGPU_instance->SetNeuronVar(i_node, n_neuron,
@@ -235,6 +252,13 @@ extern "C" {
     ret = NeuronGPU_instance->SetNeuronVar(i_node, n_neuron,
 					     var_name_str, var,
 					     array_size);
+  } END_ERR_PROP return ret; }
+  
+  int NeuronGPU_IsNeuronIntVar(int i_node, char *var_name)
+  { int ret = 0; BEGIN_ERR_PROP {
+    std::string var_name_str = std::string(var_name);
+
+    ret = NeuronGPU_instance->IsNeuronIntVar(i_node, var_name_str);
   } END_ERR_PROP return ret; }
   
   int NeuronGPU_IsNeuronScalVar(int i_node, char *var_name)
@@ -302,6 +326,24 @@ extern "C" {
   } END_ERR_PROP return ret; }
 
   
+  int *NeuronGPU_GetNeuronIntVar(int i_node, int n_neuron,
+				 char *param_name)
+  { int *ret = NULL; BEGIN_ERR_PROP {
+    
+    std::string param_name_str = std::string(param_name);
+    ret = NeuronGPU_instance->GetNeuronIntVar(i_node, n_neuron,
+					      param_name_str);
+  } END_ERR_PROP return ret; }
+
+
+  int *NeuronGPU_GetNeuronPtIntVar(int *i_node, int n_neuron,
+				   char *param_name)
+  { int *ret = NULL; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    ret = NeuronGPU_instance->GetNeuronIntVar(i_node, n_neuron,
+					      param_name_str);
+  } END_ERR_PROP return ret; }
+
   float *NeuronGPU_GetNeuronVar(int i_node, int n_neuron,
 				char *param_name)
   { float *ret = NULL; BEGIN_ERR_PROP {
@@ -520,6 +562,23 @@ extern "C" {
   } END_ERR_PROP return ret; }
 
 
+  char **NeuronGPU_GetIntVarNames(int i_node)
+  { char **ret = NULL; BEGIN_ERR_PROP {
+    std::vector<std::string> var_name_vect =
+      NeuronGPU_instance->GetIntVarNames(i_node);
+    char **var_name_array = (char**)malloc(var_name_vect.size()
+					   *sizeof(char*));
+    for (unsigned int i=0; i<var_name_vect.size(); i++) {
+      char *var_name = (char*)malloc((var_name_vect[i].length() + 1)
+				      *sizeof(char));
+      
+      strcpy(var_name, var_name_vect[i].c_str());
+      var_name_array[i] = var_name;
+    }
+    ret = var_name_array;
+    
+  } END_ERR_PROP return ret; }
+
   char **NeuronGPU_GetScalVarNames(int i_node)
   { char **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::string> var_name_vect =
@@ -535,6 +594,11 @@ extern "C" {
     }
     ret = var_name_array;
     
+  } END_ERR_PROP return ret; }
+
+  int NeuronGPU_GetNIntVar(int i_node)
+  { int ret = 0; BEGIN_ERR_PROP {
+    ret = NeuronGPU_instance->GetNIntVar(i_node);
   } END_ERR_PROP return ret; }
 
   int NeuronGPU_GetNScalVar(int i_node)
@@ -813,7 +877,11 @@ extern "C" {
 					       val);
   } END_ERR_PROP return ret; }
 
-
+  int NeuronGPU_ActivateSpikeCount(int i_node, int n_node)
+  { int ret = 0; BEGIN_ERR_PROP {
+    
+    ret = NeuronGPU_instance->ActivateSpikeCount(i_node, n_node);
+  } END_ERR_PROP return ret; }
 
   
 }

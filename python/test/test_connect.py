@@ -67,7 +67,7 @@ print()
 print()
 
 # Even to 3,4,5,6
-neuron_3_6 = neuron[3:6]
+neuron_3_6 = neuron[3:7]
 conn_id = ngpu.GetConnections(neuron_even, neuron_3_6)
 conn_status_dict = ngpu.GetStatus(conn_id)
 print("########################################")

@@ -41,6 +41,12 @@ int NeuronGPU::NodeGroupArrayInit()
     ngs.n_node_ = node_vect_[i]->n_node_;
     ngs.n_port_ = node_vect_[i]->n_port_;
     ngs.get_spike_array_ = node_vect_[i]->get_spike_array_;
+
+    ngs.spike_count_ = node_vect_[i]->spike_count_;
+    ngs.rec_spike_times_ = node_vect_[i]->rec_spike_times_;
+    ngs.n_rec_spike_times_ = node_vect_[i]->n_rec_spike_times_;
+    ngs.max_n_rec_spike_times_ = node_vect_[i]->max_n_rec_spike_times_;
+    
     ngs_vect.push_back(ngs);
   }
   gpuErrchk(cudaMemcpyToSymbol(NodeGroupArray, ngs_vect.data(),

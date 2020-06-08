@@ -18,6 +18,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cuda_error.h"
 #include "base_neuron.h"
 #include "spike_buffer.h"
+
+__global__ void BaseNeuronSetIntArray(int *arr, int n_elem, int step,
+					int val)
+{
+  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (array_idx<n_elem) {
+    arr[array_idx*step] = val;
+  }
+}
+
+__global__ void BaseNeuronSetIntPtArray(int *arr, int *pos, int n_elem,
+					  int step, int val)
+{
+  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (array_idx<n_elem) {
+    arr[pos[array_idx]*step] = val;
+  }
+}
+
+__global__ void BaseNeuronGetIntArray(int *arr1, int *arr2, int n_elem,
+					int step1, int step2)
+{
+  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (array_idx<n_elem) {
+    arr2[array_idx*step2] = arr1[array_idx*step1];
+  }
+}
+
+__global__ void BaseNeuronGetIntPtArray(int *arr1, int *arr2, int *pos,
+					  int n_elem, int step1, int step2)
+{
+  int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (array_idx<n_elem) {
+    arr2[array_idx*step2] = arr1[pos[array_idx]*step1];
+  }
+}
+
 __global__ void BaseNeuronSetFloatArray(float *arr, int n_elem, int step,
 					float val)
 {
@@ -63,7 +100,7 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
   n_port_ = n_port;
   i_group_ = i_group;
   seed_ = seed;
-  
+
   n_scal_var_ = 0;
   n_port_var_ = 0;
   n_scal_param_ = 0;
@@ -82,6 +119,7 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
   port_input_port_step_ = 0;
   var_arr_ = NULL;
   param_arr_ = NULL;
+  int_var_name_.clear();
   scal_var_name_ = NULL;
   port_var_name_= NULL;
   scal_param_name_ = NULL;
@@ -92,7 +130,12 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
   d_dir_conn_array_ = NULL;
   n_dir_conn_ = 0;
   has_dir_conn_ = false;
- 
+
+  spike_count_ = NULL;
+  rec_spike_times_ = NULL;
+  n_rec_spike_times_ = NULL;
+  max_n_rec_spike_times_ = 0;
+
   return 0;
 }			    
 
@@ -203,6 +246,45 @@ int BaseNeuron::SetArrayParam(int *i_neuron, int n_neuron,
 {
   throw ngpu_exception(std::string("Unrecognized parameter ")
 		       + param_name);
+}
+
+int BaseNeuron::SetIntVar(int i_neuron, int n_neuron,
+			  std::string var_name, int val)
+{
+  if (!IsIntVar(var_name)) {
+    throw ngpu_exception(std::string("Unrecognized integer variable ")
+			 + var_name);
+  }
+  CheckNeuronIdx(i_neuron);
+  CheckNeuronIdx(i_neuron + n_neuron - 1);
+  int *var_pt = GetIntVarPt(i_neuron, var_name);
+  BaseNeuronSetIntArray<<<(n_neuron+1023)/1024, 1024>>>
+    (var_pt, n_neuron, 1, val);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  
+  return 0;
+}
+
+int BaseNeuron::SetIntVar(int *i_neuron, int n_neuron,
+			  std::string var_name, int val)
+{
+  if (!IsIntVar(var_name)) {
+    throw ngpu_exception(std::string("Unrecognized integer variable ")
+			 + var_name);
+  }
+  int *d_i_neuron;
+  gpuErrchk(cudaMalloc(&d_i_neuron, n_neuron*sizeof(int)));
+  gpuErrchk(cudaMemcpy(d_i_neuron, i_neuron, n_neuron*sizeof(int),
+		       cudaMemcpyHostToDevice));
+  int *var_pt = GetIntVarPt(0, var_name);
+  BaseNeuronSetIntPtArray<<<(n_neuron+1023)/1024, 1024>>>
+    (var_pt, d_i_neuron, n_neuron, 1, val);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  gpuErrchk(cudaFree(d_i_neuron));
+  
+  return 0;
 }
 
 int BaseNeuron::SetScalVar(int i_neuron, int n_neuron,
@@ -440,6 +522,64 @@ float *BaseNeuron::GetArrayParam(int i_neuron, std::string param_name)
 		       + param_name);
 }
 
+int *BaseNeuron::GetIntVar(int i_neuron, int n_neuron,
+				std::string var_name)
+{
+  if (!IsIntVar(var_name)) {
+    throw ngpu_exception(std::string("Unrecognized integer variable ")
+			 + var_name);
+  }
+  CheckNeuronIdx(i_neuron);
+  CheckNeuronIdx(i_neuron + n_neuron - 1);
+  int *var_pt = GetIntVarPt(i_neuron, var_name);
+
+  int *d_var_arr;
+  gpuErrchk(cudaMalloc(&d_var_arr, n_neuron*sizeof(int)));
+  int *h_var_arr = (int*)malloc(n_neuron*sizeof(int));
+
+  BaseNeuronGetIntArray<<<(n_neuron+1023)/1024, 1024>>>
+    (var_pt, d_var_arr, n_neuron, 1, 1);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  
+  gpuErrchk(cudaMemcpy(h_var_arr, d_var_arr, n_neuron*sizeof(int),
+		       cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_var_arr));
+  
+  return h_var_arr;
+}
+
+int *BaseNeuron::GetIntVar(int *i_neuron, int n_neuron,
+			   std::string var_name)
+{
+  if (!IsIntVar(var_name)) {
+    throw ngpu_exception(std::string("Unrecognized integer variable ")
+			 + var_name);
+  }
+  int *d_i_neuron;
+  gpuErrchk(cudaMalloc(&d_i_neuron, n_neuron*sizeof(int)));
+  gpuErrchk(cudaMemcpy(d_i_neuron, i_neuron, n_neuron*sizeof(int),
+		       cudaMemcpyHostToDevice));
+  int *var_pt = GetIntVarPt(0, var_name);
+
+  int *d_var_arr;
+  gpuErrchk(cudaMalloc(&d_var_arr, n_neuron*sizeof(int)));
+  int *h_var_arr = (int*)malloc(n_neuron*sizeof(int));
+  
+  BaseNeuronGetIntPtArray<<<(n_neuron+1023)/1024, 1024>>>
+    (var_pt, d_var_arr, d_i_neuron, n_neuron, 1, 1);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  gpuErrchk(cudaFree(d_i_neuron));
+
+  gpuErrchk(cudaMemcpy(h_var_arr, d_var_arr, n_neuron*sizeof(int),
+		       cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaFree(d_var_arr));
+  
+  return h_var_arr;
+}
+
+
 float *BaseNeuron::GetScalVar(int i_neuron, int n_neuron,
 				std::string var_name)
 {
@@ -565,6 +705,20 @@ float *BaseNeuron::GetArrayVar(int i_neuron, std::string var_name)
 		       + var_name);
 }
 
+int BaseNeuron::GetIntVarIdx(std::string var_name)
+{
+  int i_var;
+  for (i_var=0; i_var<GetNIntVar(); i_var++) {
+    if (var_name == int_var_name_[i_var]) break;
+  }
+  if (i_var == GetNIntVar()) {
+    throw ngpu_exception(std::string("Unrecognized integer variable ")
+			 + var_name);
+  }
+  
+  return i_var;
+}
+
 int BaseNeuron::GetScalVarIdx(std::string var_name)
 {
   int i_var;
@@ -682,6 +836,14 @@ int BaseNeuron::GetParamSize(std::string param_name)
   }
 }
 
+bool BaseNeuron::IsIntVar(std::string var_name)
+{
+  int i_var;
+  for (i_var=0; i_var<GetNIntVar(); i_var++) {
+    if (var_name == int_var_name_[i_var]) return true;
+  }
+  return false;
+}
 
 bool BaseNeuron::IsScalVar(std::string var_name)
 {
@@ -759,6 +921,21 @@ int BaseNeuron::CheckPortIdx(int port)
   return 0;
 }
 
+
+int *BaseNeuron::GetIntVarPt(int i_neuron, std::string var_name)
+{
+  CheckNeuronIdx(i_neuron);
+    
+  if (IsIntVar(var_name)) {
+    int i_var =  GetIntVarIdx(var_name);
+    return int_var_pt_[i_var] + i_neuron; 
+  }
+  else {
+    throw ngpu_exception(std::string("Unrecognized integer variable ")
+			 + var_name);
+  }
+}
+
 float *BaseNeuron::GetVarPt(int i_neuron, std::string var_name,
 			    int port /*=0*/)
 {
@@ -827,6 +1004,11 @@ float BaseNeuron::GetSpikeActivity(int i_neuron)
   return spike_height;
 }
 
+std::vector<std::string> BaseNeuron::GetIntVarNames()
+{
+  return int_var_name_;
+}
+  
 std::vector<std::string> BaseNeuron::GetScalVarNames()
 {
   std::vector<std::string> var_name_vect;
@@ -840,6 +1022,11 @@ std::vector<std::string> BaseNeuron::GetScalVarNames()
 int BaseNeuron::GetNScalVar()
 {
   return n_scal_var_;
+}
+
+int BaseNeuron::GetNIntVar()
+{
+  return (int)int_var_name_.size();
 }
 
 std::vector<std::string> BaseNeuron::GetPortVarNames()
@@ -916,4 +1103,18 @@ std::vector<std::string> BaseNeuron::GetArrayParamNames()
 int BaseNeuron::GetNArrayParam()
 {
   return n_array_param_;
+}
+
+int BaseNeuron::ActivateSpikeCount()
+{
+  const std::string s = "spike_count";
+  if (std::find(int_var_name_.begin(), int_var_name_.end(), s)
+      == int_var_name_.end()) { // add it if is not already present 
+    int_var_name_.push_back(s);
+
+    gpuErrchk(cudaMalloc(&spike_count_, n_node_*sizeof(int)));
+    int_var_pt_.push_back(spike_count_);
+  }
+
+  return 0;
 }

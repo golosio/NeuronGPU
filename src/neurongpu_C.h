@@ -70,12 +70,18 @@ extern "C" {
   int NeuronGPU_IsNeuronArrayParam(int i_node, char *param_name);
   
 
+  int NeuronGPU_SetNeuronIntVar(int i_node, int n_neuron, char *var_name,
+				int val);
+
   int NeuronGPU_SetNeuronScalVar(int i_node, int n_neuron, char *var_name,
 				   float val);
 
   int NeuronGPU_SetNeuronArrayVar(int i_node, int n_neuron,
 				    char *var_name, float *var,
 				    int array_size);
+
+  int NeuronGPU_SetNeuronPtIntVar(int *i_node, int n_neuron,
+				  char *var_name, int val);
 
   int NeuronGPU_SetNeuronPtScalVar(int *i_node, int n_neuron,
 				     char *var_name, float val);
@@ -84,6 +90,8 @@ extern "C" {
 				      char *var_name, float *var,
 				      int array_size);
   
+  int NeuronGPU_IsNeuronIntVar(int i_node, char *var_name);
+
   int NeuronGPU_IsNeuronScalVar(int i_node, char *var_name);
   
   int NeuronGPU_IsNeuronPortVar(int i_node, char *var_name);
@@ -102,6 +110,12 @@ extern "C" {
 
   float *NeuronGPU_GetArrayParam(int i_node, char *param_name);
 
+  int *NeuronGPU_GetNeuronIntVar(int i_node, int n_neuron,
+				 char *param_name);
+
+  int *NeuronGPU_GetNeuronPtIntVar(int *i_node, int n_neuron,
+				   char *param_name);
+  
   float *NeuronGPU_GetNeuronVar(int i_node, int n_neuron,
 				char *param_name);
 
@@ -185,8 +199,12 @@ extern "C" {
 					int n_source, int i_target_host,
 					int *i_target, int n_target);
 
+  char **NeuronGPU_GetIntVarNames(int i_node);
+
   char **NeuronGPU_GetScalVarNames(int i_node);
   
+  int NeuronGPU_GetNIntVar(int i_node);
+
   int NeuronGPU_GetNScalVar(int i_node);
     
   char **NeuronGPU_GetPortVarNames(int i_node);
@@ -241,6 +259,8 @@ extern "C" {
   float NeuronGPU_GetSynGroupParam(int i_syn_group, char *param_name);
   
   int NeuronGPU_SetSynGroupParam(int i_syn_group, char *param_name, float val);
+
+  int NeuronGPU_ActivateSpikeCount(int i_node, int n_node);
 
 #ifdef __cplusplus
 }

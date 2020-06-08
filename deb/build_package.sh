@@ -5,7 +5,7 @@ if [ $# -ne 1 ]; then
    exit
 fi
 
-version=1.2.0~$1
+version=1.4.2~$1
 
 #define source and target directories
 srcdir=..

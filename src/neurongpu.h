@@ -200,7 +200,20 @@ class NeuronGPU
     (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
      int outdegree, SynSpec &syn_spec);
 #endif
-    
+
+  double SpikeBufferUpdate_time_;
+  double poisson_generator_time_;
+  double neuron_Update_time_;
+  double copy_ext_spike_time_;
+  double SendExternalSpike_time_;
+  double SendSpikeToRemote_time_;
+  double RecvSpikeFromRemote_time_;
+  double NestedLoop_time_;
+  double GetSpike_time_;
+  double SpikeReset_time_;
+  double ExternalSpikeReset_time_;
+  bool first_simulation_flag_;
+
  public:
   NeuronGPU();
 
@@ -265,6 +278,21 @@ class NeuronGPU
 			  array_size);
   }
 
+  int SetNeuronIntVar(int i_node, int n_neuron, std::string var_name,
+		     int val);
+
+  int SetNeuronIntVar(int *i_node, int n_neuron, std::string var_name,
+		     int val);
+
+  int SetNeuronIntVar(NodeSeq nodes, std::string var_name, int val) {
+    return SetNeuronIntVar(nodes.i0, nodes.n, var_name, val);
+  }
+
+  int SetNeuronIntVar(std::vector<int> nodes, std::string var_name,
+		     int val) {
+    return SetNeuronIntVar(nodes.data(), nodes.size(), var_name, val);
+  }
+
   int SetNeuronVar(int i_node, int n_neuron, std::string var_name,
 		     float val);
 
@@ -315,6 +343,18 @@ class NeuronGPU
 
   float *GetArrayParam(int i_node, std::string param_name);
   
+  int *GetNeuronIntVar(int i_node, int n_neuron, std::string var_name);
+
+  int *GetNeuronIntVar(int *i_node, int n_neuron, std::string var_name);
+
+  int *GetNeuronIntVar(NodeSeq nodes, std::string var_name) {
+    return GetNeuronIntVar(nodes.i0, nodes.n, var_name);
+  }
+  
+  int *GetNeuronIntVar(std::vector<int> nodes, std::string var_name) {
+    return GetNeuronIntVar(nodes.data(), nodes.size(), var_name);
+  }
+  
   float *GetNeuronVar(int i_node, int n_neuron, std::string var_name);
 
   float *GetNeuronVar(int *i_node, int n_neuron, std::string var_name);
@@ -340,6 +380,8 @@ class NeuronGPU
 
   int IsNeuronArrayParam(int i_node, std::string param_name);
 
+  int IsNeuronIntVar(int i_node, std::string var_name);
+  
   int IsNeuronScalVar(int i_node, std::string var_name);
 
   int IsNeuronPortVar(int i_node, std::string var_name);
@@ -457,6 +499,10 @@ class NeuronGPU
 
   std::vector<std::string> GetScalVarNames(int i_node);
 
+  int GetNIntVar(int i_node);
+  
+  std::vector<std::string> GetIntVarNames(int i_node);
+
   int GetNScalVar(int i_node);
   
   std::vector<std::string> GetPortVarNames(int i_node);
@@ -529,6 +575,13 @@ class NeuronGPU
   int SetSynGroupParam(int syn_group, std::string param_name, float val);
 
   int SynGroupCalibrate();
+
+  int ActivateSpikeCount(int i_node, int n_node);
+  
+  int ActivateSpikeCount(NodeSeq nodes) {
+    return ActivateSpikeCount(nodes.i0, nodes.n);
+  }
+
 };
 
 

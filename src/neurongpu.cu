@@ -87,10 +87,24 @@ NeuronGPU::NeuronGPU()
 #endif
   
   NestedLoop::Init();
+
+  SpikeBufferUpdate_time_ = 0;
+  poisson_generator_time_ = 0;
+  neuron_Update_time_ = 0;
+  copy_ext_spike_time_ = 0;
+  SendExternalSpike_time_ = 0;
+  SendSpikeToRemote_time_ = 0;
+  RecvSpikeFromRemote_time_ = 0;
+  NestedLoop_time_ = 0;
+  GetSpike_time_ = 0;
+  SpikeReset_time_ = 0;
+  ExternalSpikeReset_time_ = 0;
+  first_simulation_flag_ = true;
 }
 
 NeuronGPU::~NeuronGPU()
 {
+  multimeter_->CloseFiles();
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 
@@ -289,25 +303,16 @@ int NeuronGPU::Simulate(float sim_time) {
 
 int NeuronGPU::Simulate()
 {
-  double SpikeBufferUpdate_time = 0;
-  double poisson_generator_time = 0;
-  double neuron_Update_time = 0;
-  double copy_ext_spike_time = 0;
-  double SendExternalSpike_time = 0;
-  double SendSpikeToRemote_time = 0;
-  double RecvSpikeFromRemote_time = 0;
-  double NestedLoop_time = 0;
-  double GetSpike_time = 0;
-  double SpikeReset_time = 0;
-  double ExternalSpikeReset_time = 0;
   double time_mark;
-  
   if (!calibrate_flag_) {
     Calibrate();
   }
-  multimeter_->WriteRecords(neural_time_);
-  build_real_time_ = getRealTime();
-
+  if (first_simulation_flag_) {
+    multimeter_->WriteRecords(neural_time_);
+    build_real_time_ = getRealTime();
+    first_simulation_flag_ = false;
+  }
+  
 #ifdef HAVE_MPI
   if (mpi_flag_) {
     std::cout << "Simulating on host " << connect_mpi_->mpi_id_ << " ...\n";
@@ -331,11 +336,11 @@ int NeuronGPU::Simulate()
       1024>>>();
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
-    SpikeBufferUpdate_time += (getRealTime() - time_mark);
+    SpikeBufferUpdate_time_ += (getRealTime() - time_mark);
     time_mark = getRealTime();
     if (n_poiss_node_>0) {
       poiss_generator_->Update(Nt-it);
-      poisson_generator_time += (getRealTime() - time_mark);
+      poisson_generator_time_ += (getRealTime() - time_mark);
     }
 
     time_mark = getRealTime();
@@ -347,7 +352,7 @@ int NeuronGPU::Simulate()
     for (unsigned int i=0; i<node_vect_.size(); i++) {
       node_vect_[i]->Update(it, neural_time_);
     }
-    neuron_Update_time += (getRealTime() - time_mark);
+    neuron_Update_time_ += (getRealTime() - time_mark);
     multimeter_->WriteRecords(neural_time_);
 
 #ifdef HAVE_MPI
@@ -356,26 +361,26 @@ int NeuronGPU::Simulate()
       time_mark = getRealTime();
       gpuErrchk(cudaMemcpy(&n_ext_spike, d_ExternalSpikeNum, sizeof(int),
 			   cudaMemcpyDeviceToHost));
-      copy_ext_spike_time += (getRealTime() - time_mark);
+      copy_ext_spike_time_ += (getRealTime() - time_mark);
 
       if (n_ext_spike != 0) {
 	time_mark = getRealTime();
 	SendExternalSpike<<<(n_ext_spike+1023)/1024, 1024>>>();
 	gpuErrchk( cudaPeekAtLastError() );
 	gpuErrchk( cudaDeviceSynchronize() );
-	SendExternalSpike_time += (getRealTime() - time_mark);
+	SendExternalSpike_time_ += (getRealTime() - time_mark);
       }
       for (int ih=0; ih<connect_mpi_->mpi_np_; ih++) {
 	if (ih == connect_mpi_->mpi_id_) {
 	  time_mark = getRealTime();
 	  connect_mpi_->SendSpikeToRemote(connect_mpi_->mpi_np_,
 					  max_spike_per_host_);
-	  SendSpikeToRemote_time += (getRealTime() - time_mark);
+	  SendSpikeToRemote_time_ += (getRealTime() - time_mark);
 	}
 	else {
 	  time_mark = getRealTime();
 	  connect_mpi_->RecvSpikeFromRemote(ih, max_spike_per_host_);
-	  RecvSpikeFromRemote_time += (getRealTime() - time_mark);
+	  RecvSpikeFromRemote_time_ += (getRealTime() - time_mark);
 	}
       }
     }
@@ -390,7 +395,7 @@ int NeuronGPU::Simulate()
     if (n_spikes > 0) {
       time_mark = getRealTime();
       NestedLoop::Run(n_spikes, d_SpikeTargetNum, 0);
-      NestedLoop_time += (getRealTime() - time_mark);
+      NestedLoop_time_ += (getRealTime() - time_mark);
       time_mark = getRealTime();
     }
     for (unsigned int i=0; i<node_vect_.size(); i++) {
@@ -417,13 +422,13 @@ int NeuronGPU::Simulate()
 	gpuErrchk( cudaDeviceSynchronize() );
       }
     }
-    GetSpike_time += (getRealTime() - time_mark);
+    GetSpike_time_ += (getRealTime() - time_mark);
 
     time_mark = getRealTime();
     SpikeReset<<<1, 1>>>();
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
-    SpikeReset_time += (getRealTime() - time_mark);
+    SpikeReset_time_ += (getRealTime() - time_mark);
 
 #ifdef HAVE_MPI
     if (mpi_flag_) {
@@ -431,7 +436,7 @@ int NeuronGPU::Simulate()
       ExternalSpikeReset<<<1, 1>>>();
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
-      ExternalSpikeReset_time += (getRealTime() - time_mark);
+      ExternalSpikeReset_time_ += (getRealTime() - time_mark);
     }
 #endif
 
@@ -450,28 +455,30 @@ int NeuronGPU::Simulate()
       if (n_rev_spikes > 0) {
 	NestedLoop::Run(n_rev_spikes, d_RevSpikeNConn, 1);
       }      
-      //RevSpikeBufferUpdate_time += (getRealTime() - time_mark);
+      //RevSpikeBufferUpdate_time_ += (getRealTime() - time_mark);
     }
   }
   printf("%.3f\n", neural_time_);
   end_real_time_ = getRealTime();
 
-  multimeter_->CloseFiles();
+  //multimeter_->CloseFiles();
   //neuron.rk5.Free();
 
 #ifdef VERBOSE_TIME
   std::cout << "\n";
-  std::cout << "  SpikeBufferUpdate_time: " << SpikeBufferUpdate_time << "\n";
-  std::cout << "  poisson_generator_time: " << poisson_generator_time << "\n";
-  std::cout << "  neuron_Update_time: " << neuron_Update_time << "\n";
-  std::cout << "  copy_ext_spike_time: " << copy_ext_spike_time << "\n";
-  std::cout << "  SendExternalSpike_time: " << SendExternalSpike_time << "\n";
-  std::cout << "  SendSpikeToRemote_time: " << SendSpikeToRemote_time << "\n";
-  std::cout << "  RecvSpikeFromRemote_time: " << RecvSpikeFromRemote_time << "\n";
-  std::cout << "  NestedLoop_time: " << NestedLoop_time << "\n";
-  std::cout << "  GetSpike_time: " << GetSpike_time << "\n";
-  std::cout << "  SpikeReset_time: " << SpikeReset_time << "\n";
-  std::cout << "  ExternalSpikeReset_time: " << ExternalSpikeReset_time << "\n";
+  std::cout << "  SpikeBufferUpdate_time: " << SpikeBufferUpdate_time_ << "\n";
+  std::cout << "  poisson_generator_time: " << poisson_generator_time_ << "\n";
+  std::cout << "  neuron_Update_time: " << neuron_Update_time_ << "\n";
+  std::cout << "  copy_ext_spike_time: " << copy_ext_spike_time_ << "\n";
+  std::cout << "  SendExternalSpike_time: " << SendExternalSpike_time_ << "\n";
+  std::cout << "  SendSpikeToRemote_time: " << SendSpikeToRemote_time_ << "\n";
+  std::cout << "  RecvSpikeFromRemote_time: " << RecvSpikeFromRemote_time_
+	    << "\n";
+  std::cout << "  NestedLoop_time: " << NestedLoop_time_ << "\n";
+  std::cout << "  GetSpike_time: " << GetSpike_time_ << "\n";
+  std::cout << "  SpikeReset_time: " << SpikeReset_time_ << "\n";
+  std::cout << "  ExternalSpikeReset_time: " << ExternalSpikeReset_time_
+	    << "\n";
 #endif
   printf("Build real time = %lf\n",
 	 (build_real_time_ - start_real_time_));
@@ -628,6 +635,25 @@ int NeuronGPU::IsNeuronArrayParam(int i_node, std::string param_name)
   return node_vect_[i_group]->IsArrayParam(param_name);
 }
 
+int NeuronGPU::SetNeuronIntVar(int i_node, int n_node,
+			      std::string var_name, int val)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_node, i_group);
+  
+  return node_vect_[i_group]->SetIntVar(i_neuron, n_node, var_name, val);
+}
+
+int NeuronGPU::SetNeuronIntVar(int *i_node, int n_node,
+			      std::string var_name, int val)
+{
+  int i_group;
+  std::vector<int> nodes = GetNodeArrayWithOffset(i_node, n_node,
+						  i_group);
+  return node_vect_[i_group]->SetIntVar(nodes.data(), n_node,
+					var_name, val);
+}
+
 int NeuronGPU::SetNeuronVar(int i_node, int n_node,
 			      std::string var_name, float val)
 {
@@ -677,6 +703,14 @@ int NeuronGPU::SetNeuronVar( int *i_node, int n_node,
     return node_vect_[i_group]->SetArrayVar(nodes.data(), n_node,
 					    var_name, var, array_size);
   }    
+}
+
+int NeuronGPU::IsNeuronIntVar(int i_node, std::string var_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  
+  return node_vect_[i_group]->IsIntVar(var_name);
 }
 
 int NeuronGPU::IsNeuronScalVar(int i_node, std::string var_name)
@@ -786,6 +820,36 @@ float *NeuronGPU::GetArrayParam(int i_node, std::string param_name)
   int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
 
   return node_vect_[i_group]->GetArrayParam(i_neuron, param_name);
+}
+
+int *NeuronGPU::GetNeuronIntVar(int i_node, int n_node,
+				std::string var_name)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, n_node, i_group);
+  if (node_vect_[i_group]->IsIntVar(var_name)) {
+    return node_vect_[i_group]->GetIntVar(i_neuron, n_node, var_name);
+  }
+  else {
+    throw ngpu_exception(std::string("Unrecognized integer variable ")
+			 + var_name);
+  }
+}
+
+int *NeuronGPU::GetNeuronIntVar(int *i_node, int n_node,
+			       std::string var_name)
+{
+  int i_group;
+  std::vector<int> nodes = GetNodeArrayWithOffset(i_node, n_node,
+						  i_group);
+  if (node_vect_[i_group]->IsIntVar(var_name)) {
+    return node_vect_[i_group]->GetIntVar(nodes.data(), n_node,
+					     var_name);
+  }
+  else {
+    throw ngpu_exception(std::string("Unrecognized variable ")
+			 + var_name);
+  }
 }
 
 float *NeuronGPU::GetNeuronVar(int i_node, int n_node,
@@ -989,6 +1053,15 @@ int NeuronGPU::BuildDirectConnections()
   return 0;
 }
 
+std::vector<std::string> NeuronGPU::GetIntVarNames(int i_node)
+{
+  if (i_node<0 || i_node>(int)node_group_map_.size()) {
+    throw ngpu_exception("Unrecognized node in reading variable names");
+  }
+  int i_group = node_group_map_[i_node];
+  
+  return node_vect_[i_group]->GetIntVarNames();
+}
 
 std::vector<std::string> NeuronGPU::GetScalVarNames(int i_node)
 {
@@ -998,6 +1071,17 @@ std::vector<std::string> NeuronGPU::GetScalVarNames(int i_node)
   int i_group = node_group_map_[i_node];
   
   return node_vect_[i_group]->GetScalVarNames();
+}
+
+int NeuronGPU::GetNIntVar(int i_node)
+{
+  if (i_node<0 || i_node>(int)node_group_map_.size()) {
+    throw ngpu_exception("Unrecognized node in reading number of "
+			 "variables");
+  }
+  int i_group = node_group_map_[i_node];
+  
+  return node_vect_[i_group]->GetNIntVar();
 }
 
 int NeuronGPU::GetNScalVar(int i_node)
@@ -1228,4 +1312,18 @@ std::vector<ConnectionId> NeuronGPU::GetConnections(std::vector<int> source,
   return net_connection_->GetConnections<int*>(source.data(), source.size(),
 					       target.data(), target.size(),
 					       syn_group);
+}
+
+int NeuronGPU::ActivateSpikeCount(int i_node, int n_node)
+{
+  CheckUncalibrated("Spike count must be activated before calibration");
+  int i_group;
+  int i_node_0 = GetNodeSequenceOffset(i_node, n_node, i_group);
+  if (i_node_0!=i_node || node_vect_[i_group]->n_node_!=n_node) {
+    throw ngpu_exception("Spike count must be activated for all and only "
+			 " the nodes of the same group");
+  }
+  node_vect_[i_group]->ActivateSpikeCount();
+
+  return 0;
 }

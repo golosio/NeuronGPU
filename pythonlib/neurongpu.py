@@ -39,7 +39,7 @@ class NodeSeq(object):
         if type(i)==slice:
             if i.step != None:
                 raise ValueError("Subsequence cannot have a step")
-            return self.Subseq(i.start, i.stop)
+            return self.Subseq(i.start, i.stop-1)
  
         if i<0:
             raise ValueError("Sequence index cannot be negative")
@@ -380,6 +380,21 @@ def IsNeuronArrayParam(i_node, param_name):
         raise ValueError(GetErrorMessage())
     return ret
 
+NeuronGPU_SetNeuronIntVar = _neurongpu.NeuronGPU_SetNeuronIntVar
+NeuronGPU_SetNeuronIntVar.argtypes = (ctypes.c_int, ctypes.c_int,
+                                         c_char_p, ctypes.c_int)
+NeuronGPU_SetNeuronIntVar.restype = ctypes.c_int
+def SetNeuronIntVar(i_node, n_node, var_name, val):
+    "Set neuron integer variable value"
+    c_var_name = ctypes.create_string_buffer(to_byte_str(var_name), len(var_name)+1)
+    ret = NeuronGPU_SetNeuronIntVar(ctypes.c_int(i_node),
+                                       ctypes.c_int(n_node), c_var_name,
+                                       ctypes.c_int(val)) 
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
 NeuronGPU_SetNeuronScalVar = _neurongpu.NeuronGPU_SetNeuronScalVar
 NeuronGPU_SetNeuronScalVar.argtypes = (ctypes.c_int, ctypes.c_int,
                                          c_char_p, ctypes.c_float)
@@ -408,6 +423,25 @@ def SetNeuronArrayVar(i_node, n_node, var_name, var_list):
                                        ctypes.c_int(n_node), c_var_name,
                                        array_float_type(*var_list),
                                        ctypes.c_int(array_size))  
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
+NeuronGPU_SetNeuronPtIntVar = _neurongpu.NeuronGPU_SetNeuronPtIntVar
+NeuronGPU_SetNeuronPtIntVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
+                                           c_char_p, ctypes.c_int)
+NeuronGPU_SetNeuronPtIntVar.restype = ctypes.c_int
+def SetNeuronPtIntVar(nodes, var_name, val):
+    "Set neuron list integer variable value"
+    n_node = len(nodes)
+    c_var_name = ctypes.create_string_buffer(to_byte_str(var_name), len(var_name)+1)
+    node_arr = (ctypes.c_int * len(nodes))(*nodes)
+    node_pt = ctypes.cast(node_arr, ctypes.c_void_p)
+
+    ret = NeuronGPU_SetNeuronPtIntVar(node_pt,
+                                       ctypes.c_int(n_node), c_var_name,
+                                       ctypes.c_int(val)) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
@@ -452,6 +486,19 @@ def SetNeuronPtArrayVar(nodes, var_name, var_list):
                                         c_var_name,
                                         array_float_type(*var_list),
                                         ctypes.c_int(array_size))  
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
+NeuronGPU_IsNeuronIntVar = _neurongpu.NeuronGPU_IsNeuronIntVar
+NeuronGPU_IsNeuronIntVar.argtypes = (ctypes.c_int, c_char_p)
+NeuronGPU_IsNeuronIntVar.restype = ctypes.c_int
+def IsNeuronIntVar(i_node, var_name):
+    "Check name of neuron integer variable"
+    c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
+                                               len(var_name)+1)
+    ret = (NeuronGPU_IsNeuronIntVar(ctypes.c_int(i_node), c_var_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
@@ -614,6 +661,28 @@ def GetNeuronVarSize(i_node, var_name):
     return ret
 
 
+NeuronGPU_GetNeuronIntVar = _neurongpu.NeuronGPU_GetNeuronIntVar
+NeuronGPU_GetNeuronIntVar.argtypes = (ctypes.c_int, ctypes.c_int,
+                                      c_char_p)
+NeuronGPU_GetNeuronIntVar.restype = c_int_p
+def GetNeuronIntVar(i_node, n_node, var_name):
+    "Get neuron integer variable value"
+    c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
+                                               len(var_name)+1)
+    data_pt = NeuronGPU_GetNeuronIntVar(ctypes.c_int(i_node),
+                                        ctypes.c_int(n_node), c_var_name)
+
+    data_list = []
+    for i_node in range(n_node):
+        data_list.append([data_pt[i_node]])
+        
+    ret = data_list
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
 NeuronGPU_GetNeuronVar = _neurongpu.NeuronGPU_GetNeuronVar
 NeuronGPU_GetNeuronVar.argtypes = (ctypes.c_int, ctypes.c_int,
                                      c_char_p)
@@ -640,6 +709,29 @@ def GetNeuronVar(i_node, n_node, var_name):
         raise ValueError(GetErrorMessage())
     return ret
 
+
+NeuronGPU_GetNeuronPtIntVar = _neurongpu.NeuronGPU_GetNeuronPtIntVar
+NeuronGPU_GetNeuronPtIntVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
+                                        c_char_p)
+NeuronGPU_GetNeuronPtIntVar.restype = c_int_p
+def GetNeuronPtIntVar(nodes, var_name):
+    "Get neuron list integer variable value"
+    n_node = len(nodes)
+    c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
+                                               len(var_name)+1)
+    node_arr = (ctypes.c_int * len(nodes))(*nodes)
+    node_pt = ctypes.cast(node_arr, ctypes.c_void_p)
+    data_pt = NeuronGPU_GetNeuronPtIntVar(node_pt,
+                                          ctypes.c_int(n_node), c_var_name)
+    data_list = []
+    for i_node in range(n_node):
+        data_list.append([data_pt[i_node]])
+        
+    ret = data_list
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
 
 NeuronGPU_GetNeuronPtVar = _neurongpu.NeuronGPU_GetNeuronPtVar
 NeuronGPU_GetNeuronPtVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
@@ -724,6 +816,8 @@ def GetNeuronStatus(nodes, var_name):
             ret = GetNeuronParam(nodes.i0, nodes.n, var_name)
         elif IsNeuronArrayParam(nodes.i0, var_name):
             ret = GetArrayParam(nodes.i0, nodes.n, var_name)
+        elif (IsNeuronIntVar(nodes.i0, var_name)):
+            ret = GetNeuronIntVar(nodes.i0, nodes.n, var_name)
         elif (IsNeuronScalVar(nodes.i0, var_name) |
               IsNeuronPortVar(nodes.i0, var_name)):
             ret = GetNeuronVar(nodes.i0, nodes.n, var_name)
@@ -737,6 +831,8 @@ def GetNeuronStatus(nodes, var_name):
             ret = GetNeuronPtParam(nodes, var_name)
         elif IsNeuronArrayParam(nodes[0], var_name):
             ret = GetNeuronListArrayParam(nodes, var_name)
+        elif (IsNeuronIntVar(nodes[0], var_name)):
+            ret = GetNeuronPtIntVar(nodes, var_name)
         elif (IsNeuronScalVar(nodes[0], var_name) |
               IsNeuronPortVar(nodes[0], var_name)):
             ret = GetNeuronPtVar(nodes, var_name)
@@ -747,6 +843,16 @@ def GetNeuronStatus(nodes, var_name):
     return ret
 
 
+NeuronGPU_GetNIntVar = _neurongpu.NeuronGPU_GetNIntVar
+NeuronGPU_GetNIntVar.argtypes = (ctypes.c_int,)
+NeuronGPU_GetNIntVar.restype = ctypes.c_int
+def GetNIntVar(i_node):
+    "Get number of integer variables for a given node"
+    ret = NeuronGPU_GetNIntVar(ctypes.c_int(i_node))
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
 NeuronGPU_GetNScalVar = _neurongpu.NeuronGPU_GetNScalVar
 NeuronGPU_GetNScalVar.argtypes = (ctypes.c_int,)
 NeuronGPU_GetNScalVar.restype = ctypes.c_int
@@ -756,6 +862,23 @@ def GetNScalVar(i_node):
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
+
+NeuronGPU_GetIntVarNames = _neurongpu.NeuronGPU_GetIntVarNames
+NeuronGPU_GetIntVarNames.argtypes = (ctypes.c_int,)
+NeuronGPU_GetIntVarNames.restype = ctypes.POINTER(c_char_p)
+def GetIntVarNames(i_node):
+    "Get list of scalar variable names"
+    n_var = GetNIntVar(i_node)
+    var_name_pp = ctypes.cast(NeuronGPU_GetIntVarNames(ctypes.c_int(i_node)),
+                               ctypes.POINTER(c_char_p))
+    var_name_list = []
+    for i in range(n_var):
+        var_name_p = var_name_pp[i]
+        var_name = ctypes.cast(var_name_p, ctypes.c_char_p).value
+        var_name_list.append(to_def_str(var_name))
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return var_name_list
 
 NeuronGPU_GetScalVarNames = _neurongpu.NeuronGPU_GetScalVarNames
 NeuronGPU_GetScalVarNames.argtypes = (ctypes.c_int,)
@@ -932,6 +1055,8 @@ def SetNeuronStatus(nodes, var_name, val):
         elif (IsNeuronPortParam(nodes.i0, var_name) |
               IsNeuronArrayParam(nodes.i0, var_name)):
             SetNeuronArrayParam(nodes.i0, nodes.n, var_name, val)
+        elif IsNeuronIntVar(nodes.i0, var_name):
+            SetNeuronIntVar(nodes.i0, nodes.n, var_name, val)
         elif IsNeuronScalVar(nodes.i0, var_name):
             SetNeuronScalVar(nodes.i0, nodes.n, var_name, val)
         elif (IsNeuronPortVar(nodes.i0, var_name) |
@@ -945,6 +1070,8 @@ def SetNeuronStatus(nodes, var_name, val):
         elif (IsNeuronPortParam(nodes[0], var_name) |
               IsNeuronArrayParam(nodes[0], var_name)):
             SetNeuronPtArrayParam(nodes, var_name, val)
+        elif IsNeuronIntVar(nodes[0], var_name):
+            SetNeuronPtIntVar(nodes, var_name, val)
         elif IsNeuronScalVar(nodes[0], var_name):
             SetNeuronPtScalVar(nodes, var_name, val)
         elif (IsNeuronPortVar(nodes[0], var_name) |
@@ -1658,7 +1785,8 @@ def GetStatus(gen_object, var_key=None):
         elif (type(gen_object)==int):
             i_node = gen_object
             status_dict = {}
-            name_list = GetScalVarNames(i_node) + GetScalParamNames(i_node) \
+            name_list = GetIntVarNames(i_node) \
+                        + GetScalVarNames(i_node) + GetScalParamNames(i_node) \
                         + GetPortVarNames(i_node) + GetPortParamNames(i_node) \
                         + GetArrayVarNames(i_node) + GetArrayParamNames(i_node)
             for var_name in name_list:
@@ -1832,4 +1960,21 @@ def SetSynGroupStatus(syn_group, params, val=None):
         raise ValueError("Wrong argument in SetSynGroupStatus")       
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
+
+
+NeuronGPU_ActivateSpikeCount = _neurongpu.NeuronGPU_ActivateSpikeCount
+NeuronGPU_ActivateSpikeCount.argtypes = (ctypes.c_int, ctypes.c_int)
+NeuronGPU_ActivateSpikeCount.restype = c_int_p
+def ActivateSpikeCount(nodes):
+    "Activate spike count for node group"
+    if type(nodes)!=NodeSeq:
+        raise ValueError("Argument type of ActivateSpikeCount must be NodeSeq")
+
+    ret = NeuronGPU_ActivateSpikeCount(ctypes.c_int(nodes.i0),
+                                       ctypes.c_int(nodes.n))
+
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
 

@@ -37,8 +37,8 @@ pg_list = pg.ToList()
 
 # Create n_neurons neurons with n_receptor receptor ports
 neuron = ngpu.Create("user_m1", n_neurons, n_receptors)
-exc_neuron = neuron[0:NE-1]      # excitatory neurons
-inh_neuron = neuron[NE:n_neurons-1]   # inhibitory neurons
+exc_neuron = neuron[0:NE]      # excitatory neurons
+inh_neuron = neuron[NE:n_neurons]   # inhibitory neurons
 neuron_list = neuron.ToList()
 exc_neuron_list = exc_neuron.ToList()
 inh_neuron_list = inh_neuron.ToList()
@@ -120,11 +120,11 @@ for i in range(10):
 
 
 row_sum = list(data_list[0])
-for row in data_list[1:len(data_list)-1]:
+for row in data_list[1:len(data_list)]:
     for i in range(len(row_sum)):
         row_sum[i] = row_sum[i] + row[i]
 
-spike = row_sum[1:len(row_sum)-1]
+spike = row_sum[1:len(row_sum)]
 spike_arr = np.array(spike)
 
 min_spike_num = np.min(spike_arr)

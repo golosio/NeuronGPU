@@ -40,8 +40,8 @@ syn_group = ngpu.CreateSynGroup \
 sg = ngpu.Create("spike_generator", N)
 neuron = ngpu.Create("aeif_cond_beta", 2*N)
 ngpu.SetStatus(neuron, {"t_ref": 1000.0})
-neuron0 = neuron[0:N-1]
-neuron1 = neuron[N:2*N-1]
+neuron0 = neuron[0:N]
+neuron1 = neuron[N:2*N]
 dt_list = []
 for i in range(N):
     dt_list.append(dt_step*(-0.5*(N-1) + i))

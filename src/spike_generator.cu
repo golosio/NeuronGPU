@@ -63,9 +63,9 @@ int spike_generator::Init(int i_node_0, int n_node, int /*n_port*/,
   n_param_ = n_scal_param_;
   scal_param_name_ = spike_gen_scal_param_name;
 
-  n_array_param_ = N_SPIKE_GEN_ARRAY_PARAM;
-  array_param_name_ = spike_gen_array_param_name;
-
+  for (int i=0; i<N_SPIKE_GEN_ARRAY_PARAM; i++) {
+    array_param_name_.push_back(spike_gen_array_param_name[i]);
+  }				
   std::vector<float> empty_vect;
   spike_time_vect_.clear();
   spike_time_vect_.insert(spike_time_vect_.begin(), n_node, empty_vect);

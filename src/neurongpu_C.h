@@ -262,6 +262,13 @@ extern "C" {
 
   int NeuronGPU_ActivateSpikeCount(int i_node, int n_node);
 
+  int NeuronGPU_ActivateRecSpikeTimes(int i_node, int n_node,
+				      int max_n_rec_spike_times);
+
+  int NeuronGPU_GetNRecSpikeTimes(int i_node);
+
+  float* NeuronGPU_GetRecSpikeTimes(int i_node);
+
 #ifdef __cplusplus
 }
 #endif

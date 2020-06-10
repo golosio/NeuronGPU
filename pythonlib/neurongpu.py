@@ -1964,7 +1964,7 @@ def SetSynGroupStatus(syn_group, params, val=None):
 
 NeuronGPU_ActivateSpikeCount = _neurongpu.NeuronGPU_ActivateSpikeCount
 NeuronGPU_ActivateSpikeCount.argtypes = (ctypes.c_int, ctypes.c_int)
-NeuronGPU_ActivateSpikeCount.restype = c_int_p
+NeuronGPU_ActivateSpikeCount.restype = ctypes.c_int
 def ActivateSpikeCount(nodes):
     "Activate spike count for node group"
     if type(nodes)!=NodeSeq:
@@ -1977,4 +1977,52 @@ def ActivateSpikeCount(nodes):
         raise ValueError(GetErrorMessage())
     return ret
 
+
+NeuronGPU_ActivateRecSpikeTimes = _neurongpu.NeuronGPU_ActivateRecSpikeTimes
+NeuronGPU_ActivateRecSpikeTimes.argtypes = (ctypes.c_int, ctypes.c_int, \
+                                            ctypes.c_int)
+NeuronGPU_ActivateRecSpikeTimes.restype = ctypes.c_int
+def ActivateRecSpikeTimes(nodes, max_n_rec_spike_times):
+    "Activate spike time recording for node group"
+    if type(nodes)!=NodeSeq:
+        raise ValueError("Argument type of ActivateRecSpikeTimes must be NodeSeq")
+
+    ret = NeuronGPU_ActivateRecSpikeTimes(ctypes.c_int(nodes.i0),
+                                          ctypes.c_int(nodes.n),
+                                          ctypes.c_int(max_n_rec_spike_times))
+
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
+NeuronGPU_GetNRecSpikeTimes = _neurongpu.NeuronGPU_GetNRecSpikeTimes
+NeuronGPU_GetNRecSpikeTimes.argtypes = (ctypes.c_int,)
+NeuronGPU_GetNRecSpikeTimes.restype = ctypes.c_int
+def GetNRecSpikeTimes(i_node):
+    "Get number of recorded spike times for node"
+
+    ret = NeuronGPU_GetNRecSpikeTimes(ctypes.c_int(i_node))
+
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+NeuronGPU_GetRecSpikeTimes = _neurongpu.NeuronGPU_GetRecSpikeTimes
+NeuronGPU_GetRecSpikeTimes.argtypes = (ctypes.c_int,)
+NeuronGPU_GetRecSpikeTimes.restype = c_float_p
+def GetRecSpikeTimes(i_node):
+    "Get recorded spike times for node"
+
+    spike_time_list = []
+    data_pt = NeuronGPU_GetRecSpikeTimes(ctypes.c_int(i_node))
+    array_size = GetNRecSpikeTimes(i_node)
+    for i in range(array_size):
+        spike_time_list.append(data_pt[i])
+        
+    ret = spike_time_list
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
 

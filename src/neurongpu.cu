@@ -51,6 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define VERBOSE_TIME
 
+__constant__ float NeuronGPUTime;
 __constant__ int NeuronGPUTimeIdx;
 __constant__ float NeuronGPUTimeResolution;
 
@@ -308,6 +309,7 @@ int NeuronGPU::Simulate()
     Calibrate();
   }
   if (first_simulation_flag_) {
+    gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(float)));
     multimeter_->WriteRecords(neural_time_);
     build_real_time_ = getRealTime();
     first_simulation_flag_ = false;
@@ -345,6 +347,7 @@ int NeuronGPU::Simulate()
 
     time_mark = getRealTime();
     neural_time_ = neur_t0 + time_resolution_*(it+1);
+    gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(float)));
     int time_idx = (int)round(neur_t0/time_resolution_) + it + 1;
     gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTimeIdx, &time_idx, sizeof(int)));
 
@@ -1327,3 +1330,34 @@ int NeuronGPU::ActivateSpikeCount(int i_node, int n_node)
 
   return 0;
 }
+
+int NeuronGPU::ActivateRecSpikeTimes(int i_node, int n_node,
+				     int max_n_rec_spike_times)
+{
+  CheckUncalibrated("Spike time recording must be activated "
+		    "before calibration");
+  int i_group;
+  int i_node_0 = GetNodeSequenceOffset(i_node, n_node, i_group);
+  if (i_node_0!=i_node || node_vect_[i_group]->n_node_!=n_node) {
+    throw ngpu_exception("Spike count must be activated for all and only "
+			 " the nodes of the same group");
+  }
+  node_vect_[i_group]->ActivateRecSpikeTimes(max_n_rec_spike_times);
+
+  return 0;
+}
+
+int NeuronGPU::GetNRecSpikeTimes(int i_node)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  return node_vect_[i_group]->GetNRecSpikeTimes(i_neuron);
+}
+
+std::vector<float> NeuronGPU::GetRecSpikeTimes(int i_node)
+{
+  int i_group;
+  int i_neuron = i_node - GetNodeSequenceOffset(i_node, 1, i_group);
+  return node_vect_[i_group]->GetRecSpikeTimes(i_neuron);
+}
+

@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LAST_SPIKE_TIME_GUARD 0x70000000
 
+extern __constant__ float NeuronGPUTime;
 extern __constant__ int NeuronGPUTimeIdx;
 extern __constant__ NodeGroupStruct NodeGroupArray[];
 extern __device__ signed char *NodeGroupMap;
@@ -147,7 +148,23 @@ __device__ void PushSpike(int i_spike_buffer, float height)
     int i_node_0 = NodeGroupArray[i_group].i_node_0_;
     NodeGroupArray[i_group].spike_count_[i_spike_buffer-i_node_0]++;
   }
-
+  int max_n_rec_spike_times = NodeGroupArray[i_group].max_n_rec_spike_times_;
+  if (max_n_rec_spike_times != 0) {
+    int i_node_rel = i_spike_buffer - NodeGroupArray[i_group].i_node_0_;
+    int n_rec_spike_times =
+      NodeGroupArray[i_group].n_rec_spike_times_[i_node_rel];
+    if (n_rec_spike_times>=max_n_rec_spike_times-1) {
+      printf("Maximum number of recorded spike times exceeded"
+	     " for spike buffer %d\n", i_spike_buffer);
+    }
+    else {
+      NodeGroupArray[i_group].rec_spike_times_
+	[i_node_rel*max_n_rec_spike_times + n_rec_spike_times]
+	= NeuronGPUTime;
+      NodeGroupArray[i_group].n_rec_spike_times_[i_node_rel]++;
+    }
+  }
+  
   if (ConnectionGroupSize[i_spike_buffer]>0) {
     int Ns = SpikeBufferSize[i_spike_buffer]; 
     if (Ns>=MaxSpikeBufferSize) {

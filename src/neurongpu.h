@@ -582,6 +582,16 @@ class NeuronGPU
     return ActivateSpikeCount(nodes.i0, nodes.n);
   }
 
+  int ActivateRecSpikeTimes(int i_node, int n_node, int max_n_rec_spike_times);
+  
+  int ActivateRecSpikeTimes(NodeSeq nodes, int max_n_rec_spike_times) {
+    return ActivateRecSpikeTimes(nodes.i0, nodes.n, max_n_rec_spike_times);
+  }
+
+  int GetNRecSpikeTimes(int i_node);
+
+  std::vector<float> GetRecSpikeTimes(int i_node);
+
 };
 
 

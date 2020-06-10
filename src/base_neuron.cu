@@ -107,8 +107,6 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
   n_port_param_ = 0;
   n_var_ = 0;
   n_param_ = 0;
-  n_array_var_ = 0;
-  n_array_param_ = 0;
 
   get_spike_array_ = NULL;
   port_weight_arr_ = NULL;
@@ -124,8 +122,8 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
   port_var_name_= NULL;
   scal_param_name_ = NULL;
   port_param_name_ = NULL;
-  array_var_name_= NULL;
-  array_param_name_ = NULL;
+  array_var_name_.clear();
+  array_param_name_.clear();
 
   d_dir_conn_array_ = NULL;
   n_dir_conn_ = 0;
@@ -866,7 +864,7 @@ bool BaseNeuron::IsPortVar(std::string var_name)
 bool BaseNeuron::IsArrayVar(std::string var_name)
 {
   int i_var;
-  for (i_var=0; i_var<n_array_var_; i_var++) {
+  for (i_var=0; i_var<GetNArrayVar(); i_var++) {
     if (var_name == array_var_name_[i_var]) return true;
   }
   return false;
@@ -893,7 +891,7 @@ bool BaseNeuron::IsPortParam(std::string param_name)
 bool BaseNeuron::IsArrayParam(std::string param_name)
 {
   int i_param;
-  for (i_param=0; i_param<n_array_param_; i_param++) {
+  for (i_param=0; i_param<GetNArrayParam(); i_param++) {
     if (param_name == array_param_name_[i_param]) return true;
   }
   return false;
@@ -983,6 +981,7 @@ float *BaseNeuron::GetParamPt(int i_neuron, std::string param_name,
 
 float BaseNeuron::GetSpikeActivity(int i_neuron)
 {
+  CheckNeuronIdx(i_neuron);
   int i_spike_buffer = i_neuron + i_node_0_;
   int Ns;
   gpuErrchk(cudaMemcpy(&Ns, d_SpikeBufferSize + i_spike_buffer,
@@ -1078,7 +1077,7 @@ int BaseNeuron::GetNPortParam()
 std::vector<std::string> BaseNeuron::GetArrayVarNames()
 {
   std::vector<std::string> var_name_vect;
-  for (int i=0; i<n_array_var_; i++) {
+  for (int i=0; i<GetNArrayVar(); i++) {
     var_name_vect.push_back(array_var_name_[i]);
   }
   
@@ -1087,13 +1086,13 @@ std::vector<std::string> BaseNeuron::GetArrayVarNames()
   
 int BaseNeuron::GetNArrayVar()
 {
-  return n_array_var_;
+  return (int)array_var_name_.size();
 }
 
 std::vector<std::string> BaseNeuron::GetArrayParamNames()
 {
   std::vector<std::string> param_name_vect;
-  for (int i=0; i<n_array_param_; i++) {
+  for (int i=0; i<GetNArrayParam(); i++) {
     param_name_vect.push_back(array_param_name_[i]);
   }
   
@@ -1102,19 +1101,78 @@ std::vector<std::string> BaseNeuron::GetArrayParamNames()
   
 int BaseNeuron::GetNArrayParam()
 {
-  return n_array_param_;
+  return (int)array_param_name_.size();
 }
 
 int BaseNeuron::ActivateSpikeCount()
 {
   const std::string s = "spike_count";
   if (std::find(int_var_name_.begin(), int_var_name_.end(), s)
-      == int_var_name_.end()) { // add it if is not already present 
+      == int_var_name_.end()) { // add it if not already present 
     int_var_name_.push_back(s);
 
     gpuErrchk(cudaMalloc(&spike_count_, n_node_*sizeof(int)));
+    gpuErrchk(cudaMemset(spike_count_, 0, n_node_*sizeof(int)));
     int_var_pt_.push_back(spike_count_);
+  }
+  else {
+    throw ngpu_exception("Spike count already activated");
+  }
+
+
+  return 0;
+}
+
+int BaseNeuron::ActivateRecSpikeTimes(int max_n_rec_spike_times)
+{
+  if(max_n_rec_spike_times<=0) {
+    throw ngpu_exception("Maximum number of recorded spike times "
+			 "must be greater than 0");
+  }
+  const std::string s = "n_rec_spike_times";
+  if (std::find(int_var_name_.begin(), int_var_name_.end(), s)
+      == int_var_name_.end()) { // add it if not already present 
+    int_var_name_.push_back(s);
+
+    gpuErrchk(cudaMalloc(&n_rec_spike_times_, n_node_*sizeof(int)));
+    gpuErrchk(cudaMemset(n_rec_spike_times_, 0, n_node_*sizeof(int)));
+    int_var_pt_.push_back(n_rec_spike_times_);
+    
+    max_n_rec_spike_times_ = max_n_rec_spike_times;
+    gpuErrchk(cudaMalloc(&rec_spike_times_, n_node_*max_n_rec_spike_times
+			 *sizeof(int)));
+  }
+  else {
+    throw ngpu_exception("Spike times recording already activated");
   }
 
   return 0;
+}
+
+int BaseNeuron::GetNRecSpikeTimes(int i_neuron)
+{
+  CheckNeuronIdx(i_neuron);
+  if(max_n_rec_spike_times_<=0) {
+    throw ngpu_exception("Spike times recording was not activated");
+  }
+  int n_spikes;
+  
+  gpuErrchk(cudaMemcpy(&n_spikes, &n_rec_spike_times_[i_neuron], sizeof(int),
+		       cudaMemcpyDeviceToHost));
+  return n_spikes;
+}
+
+std::vector<float> BaseNeuron::GetRecSpikeTimes(int i_neuron)
+{
+  CheckNeuronIdx(i_neuron);
+  if(max_n_rec_spike_times_<=0) {
+    throw ngpu_exception("Spike times recording was not activated");
+  }
+  int n_spikes = GetNRecSpikeTimes(i_neuron);
+  
+  std::vector<float> spike_time_vect(n_spikes);
+  gpuErrchk(cudaMemcpy(spike_time_vect.data(),
+		       &rec_spike_times_[i_neuron*max_n_rec_spike_times_],
+		       sizeof(float)*n_spikes, cudaMemcpyDeviceToHost));
+  return spike_time_vect;
 }

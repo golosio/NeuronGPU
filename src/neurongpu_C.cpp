@@ -877,10 +877,40 @@ extern "C" {
 					       val);
   } END_ERR_PROP return ret; }
 
+  
   int NeuronGPU_ActivateSpikeCount(int i_node, int n_node)
   { int ret = 0; BEGIN_ERR_PROP {
     
     ret = NeuronGPU_instance->ActivateSpikeCount(i_node, n_node);
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_ActivateRecSpikeTimes(int i_node, int n_node,
+				      int max_n_rec_spike_times)
+  { int ret = 0; BEGIN_ERR_PROP {
+    
+      ret = NeuronGPU_instance->ActivateRecSpikeTimes(i_node, n_node,
+						      max_n_rec_spike_times);
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_GetNRecSpikeTimes(int i_node)
+  { int ret = 0; BEGIN_ERR_PROP {
+    
+      ret = NeuronGPU_instance->GetNRecSpikeTimes(i_node);
+  } END_ERR_PROP return ret; }
+
+  float* NeuronGPU_GetRecSpikeTimes(int i_node)
+  { float *ret = NULL; BEGIN_ERR_PROP {
+    std::vector<float> spike_time_vect
+      = NeuronGPU_instance->GetRecSpikeTimes(i_node);
+
+    int ns = (int)spike_time_vect.size();
+    ret = new float[ns];
+    for (int i=0; i<ns; i++) {
+      ret[i] = spike_time_vect[i];
+    }
+    
   } END_ERR_PROP return ret; }
 
   

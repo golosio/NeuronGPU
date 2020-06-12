@@ -67,6 +67,7 @@ class BaseNeuron
   float *rec_spike_times_;
   int *n_rec_spike_times_;
   int max_n_rec_spike_times_;
+  float *den_delay_arr_;
   
  public:
   virtual ~BaseNeuron() {}

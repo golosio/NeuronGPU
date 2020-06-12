@@ -27,11 +27,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 enum {
   i_parrot_neuron_hold_spike_height=0,
+  i_parrot_neuron_den_delay,
   N_PARROT_NEURON_SCAL_PARAM
 };
 
 const std::string parrot_neuron_scal_param_name[N_PARROT_NEURON_SCAL_PARAM]
-= {"hold_spike_height"};
+= {"hold_spike_height", "den_delay"};
 
 enum {
   i_parrot_neuron_input_spike_height=0,
@@ -88,6 +89,8 @@ int parrot_neuron::Init(int i_node_0, int n_node, int /*n_port*/,
 
   SetScalParam(0, n_node, "hold_spike_height", 0.0);
 
+  SetScalParam(0, n_node, "den_delay", 0.0);
+
   SetScalVar(0, n_node, "input_spike_height", 0.0);
 
   SetScalVar(0, n_node, "V", 0.0);
@@ -104,7 +107,9 @@ int parrot_neuron::Init(int i_node_0, int n_node, int /*n_port*/,
   port_input_arr_ = GetVarArr() + GetScalVarIdx("input_spike_height");
   port_input_arr_step_ = n_var_;
   port_input_port_step_ = n_port_var_;
-  
+
+  den_delay_arr_ =  GetParamArr() + GetScalParamIdx("den_delay");
+
   return 0;
 }
 

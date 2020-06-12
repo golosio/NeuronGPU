@@ -74,7 +74,7 @@ __device__ void NestedLoopFunction0(int i_spike, int i_syn)
     ConnectionGroupTargetSpikeTime[i_conn*NSpikeBuffer+i_source][i_syn]
       = (unsigned short)(NeuronGPUTimeIdx & 0xffff);
     
-    int Dt_int = NeuronGPUTimeIdx - LastSpikeTimeIdx[i_target];
+    int Dt_int = NeuronGPUTimeIdx - LastRevSpikeTimeIdx[i_target];
      if (Dt_int>0 && Dt_int<MAX_SYN_DT) {
        SynapseUpdate(syn_group, &ConnectionGroupTargetWeight
 		    [i_conn*NSpikeBuffer+i_source][i_syn],

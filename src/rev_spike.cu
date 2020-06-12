@@ -75,8 +75,8 @@ __global__ void RevSpikeBufferUpdate(unsigned int n_node)
   if (i_node >= n_node) {
     return;
   }
-  int target_spike_time_idx = LastSpikeTimeIdx[i_node];
-  // Check if neuron is spiking now
+  int target_spike_time_idx = LastRevSpikeTimeIdx[i_node];
+  // Check if a spike reached the input synapses now
   if (target_spike_time_idx!=NeuronGPUTimeIdx) {
     return;
   }

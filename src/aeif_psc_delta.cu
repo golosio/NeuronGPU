@@ -40,6 +40,7 @@ void NodeInit(int n_var, int n_param, float x, float *y, float *param,
   V_peak = 0.0;
   V_reset = -60.0;
   t_ref = 0.0;
+  den_delay = 0.0;
   
   V_m = E_L;
   w = 0;
@@ -111,6 +112,7 @@ int aeif_psc_delta::Init(int i_node_0, int n_node, int n_port,
   port_input_arr_ = GetVarArr() + GetScalVarIdx("V_m");
   port_input_arr_step_ = n_var_;
   port_input_port_step_ = n_port_var_;
+  den_delay_arr_ =  GetParamArr() + GetScalParamIdx("den_delay");
 
   return 0;
 }

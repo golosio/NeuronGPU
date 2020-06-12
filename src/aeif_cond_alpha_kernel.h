@@ -54,6 +54,7 @@ enum ScalParamIndexes {
   i_V_reset,
   i_t_ref,
   i_refractory_step,
+  i_den_delay,
   N_SCAL_PARAM
 };
 
@@ -87,7 +88,8 @@ const std::string aeif_cond_alpha_scal_param_name[N_SCAL_PARAM] = {
   "V_peak",
   "V_reset",
   "t_ref",
-  "refractory_step"
+  "refractory_step",
+  "den_delay"
 };
 
 const std::string aeif_cond_alpha_port_param_name[N_PORT_PARAM] = {
@@ -124,6 +126,7 @@ const std::string aeif_cond_alpha_port_param_name[N_PORT_PARAM] = {
 #define V_reset param[i_V_reset]
 #define t_ref param[i_t_ref]
 #define refractory_step param[i_refractory_step]
+#define den_delay param[i_den_delay]
 
 #define E_rev(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_E_rev]
 #define tau_syn(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_syn]

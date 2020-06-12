@@ -133,6 +133,7 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
   rec_spike_times_ = NULL;
   n_rec_spike_times_ = NULL;
   max_n_rec_spike_times_ = 0;
+  den_delay_arr_ = NULL;
 
   return 0;
 }			    

@@ -28,6 +28,9 @@ extern __device__ float *LastSpikeHeight; //
 extern int *d_LastSpikeTimeIdx; // [NSpikeBuffer];
 extern __device__ int *LastSpikeTimeIdx; //
 
+extern int *d_LastRevSpikeTimeIdx; // [NSpikeBuffer];
+extern __device__ int *LastRevSpikeTimeIdx; //
+
 extern float *d_ConnectionWeight; // [NConnection];
 extern __device__ float *ConnectionWeight; //
 
@@ -119,7 +122,8 @@ __global__ void DeviceSpikeBufferInit(int n_spike_buffers, int max_delay_num,
 				float *spike_buffer_height,
 				unsigned int *rev_conn,
 				int *target_rev_conn_size,
-				unsigned int **target_rev_conn);
+				unsigned int **target_rev_conn,
+				int *last_rev_spike_time_idx);
 
 int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size);
 

@@ -51,6 +51,7 @@ enum ScalParamIndexes {
   i_V_reset,
   i_t_ref,
   i_refractory_step,
+  i_den_delay,
   N_SCAL_PARAM
 };
 
@@ -72,7 +73,8 @@ const std::string aeif_psc_delta_scal_param_name[N_SCAL_PARAM] = {
   "V_peak",
   "V_reset",
   "t_ref",
-  "refractory_step"
+  "refractory_step",
+  "den_delay"
 };
 
 //
@@ -99,6 +101,7 @@ const std::string aeif_psc_delta_scal_param_name[N_SCAL_PARAM] = {
 #define V_reset param[i_V_reset]
 #define t_ref param[i_t_ref]
 #define refractory_step param[i_refractory_step]
+#define den_delay param[i_den_delay]
 
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__

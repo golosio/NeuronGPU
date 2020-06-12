@@ -34,13 +34,12 @@ den_delay = 0.0
 syn_group = ngpu.CreateSynGroup \
             ("stdp", {"tau_plus":tau_plus, "tau_minus":tau_minus, \
                       "lambda":lambd, "alpha":alpha, "mu_plus":mu_plus, \
-                      "mu_minus":mu_minus,  "Wmax":Wmax, \
-                      "den_delay":den_delay}) 
+                      "mu_minus":mu_minus,  "Wmax":Wmax})                      
 
 sg = ngpu.Create("spike_generator")
 neuron0 = ngpu.Create("aeif_cond_beta")
 neuron1 = ngpu.Create("aeif_cond_beta", N)
-ngpu.SetStatus(neuron1, {"t_ref": 1000.0})
+ngpu.SetStatus(neuron1, {"t_ref": 1000.0, "den_delay":den_delay})
 
 time_diff = 400.0
 dt_list = []

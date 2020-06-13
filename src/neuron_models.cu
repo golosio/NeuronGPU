@@ -82,7 +82,7 @@ NodeSeq NeuronGPU::Create(std::string model_name, int n_node /*=1*/,
     node_vect_.push_back(spike_generator_group);
   }
   else if (model_name == neuron_model_name[i_parrot_neuron_model]) {
-    n_port = 1;
+    n_port = 2;
     parrot_neuron *parrot_neuron_group = new parrot_neuron;
     node_vect_.push_back(parrot_neuron_group);
   }

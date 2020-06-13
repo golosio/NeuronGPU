@@ -143,8 +143,9 @@ __device__ void PushSpike(int i_spike_buffer, float height)
   int den_delay_idx;
   float *den_delay_arr = NodeGroupArray[i_group].den_delay_arr_;
   if (den_delay_arr != NULL) {
+    int i_neuron = i_spike_buffer - NodeGroupArray[i_group].i_node_0_;
     int n_param = NodeGroupArray[i_group].n_param_;
-    den_delay_idx = (int)round(den_delay_arr[i_spike_buffer*n_param]
+    den_delay_idx = (int)round(den_delay_arr[i_neuron*n_param]
 			       /NeuronGPUTimeResolution);
     //printf("isb %d\tden_delay_idx: %d\n", i_spike_buffer, den_delay_idx);
   }
@@ -182,7 +183,7 @@ __device__ void PushSpike(int i_spike_buffer, float height)
     }
   }
   
-  if (ConnectionGroupSize[i_spike_buffer]>0) {
+  if (ConnectionGroupSize[i_spike_buffer]>0 || den_delay_idx>0) {
     int Ns = SpikeBufferSize[i_spike_buffer]; 
     if (Ns>=MaxSpikeBufferSize) {
       printf("Maximum number of spikes in spike buffer exceeded"
@@ -214,9 +215,11 @@ __global__ void SpikeBufferUpdate()
   int den_delay_idx;
   float *den_delay_arr = NodeGroupArray[i_group].den_delay_arr_;
   if (den_delay_arr != NULL) {
+    int i_neuron = i_spike_buffer - NodeGroupArray[i_group].i_node_0_;
     int n_param = NodeGroupArray[i_group].n_param_;
-    den_delay_idx = (int)round(den_delay_arr[i_spike_buffer*n_param]
+    den_delay_idx = (int)round(den_delay_arr[i_neuron*n_param]
 			       /NeuronGPUTimeResolution);
+    //printf("isb update %d\tden_delay_idx: %d\n", i_spike_buffer, den_delay_idx);
   }
   else {
     den_delay_idx = 0;
@@ -227,6 +230,9 @@ __global__ void SpikeBufferUpdate()
   for (int is=0; is<Ns; is++) {
     int i_conn = SpikeBufferConnIdx[is*NSpikeBuffer+i_spike_buffer];
     int spike_time_idx = SpikeBufferTimeIdx[is*NSpikeBuffer+i_spike_buffer];
+    //if (i_spike_buffer==1) {
+    //printf("is %d st %d dd %d\n", is, spike_time_idx, den_delay_idx);
+    //}
     if (spike_time_idx+1 == den_delay_idx) {
       rev_spike = true;
     }

@@ -299,4 +299,13 @@ __global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
   }
 }
 
+__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id)
+{
+  int i_spike = threadIdx.x + blockIdx.x * blockDim.x;
+  if (i_spike<n_spikes) {
+    int isb = spike_buffer_id[i_spike];
+    PushSpike(isb, 1.0);
+  }
+}
+
 #endif

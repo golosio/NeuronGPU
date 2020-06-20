@@ -49,7 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define THREAD_IDX 0
 #endif
 
-#define VERBOSE_TIME
+				    //#define VERBOSE_TIME
 
 __constant__ float NeuronGPUTime;
 __constant__ int NeuronGPUTimeIdx;
@@ -81,6 +81,8 @@ NeuronGPU::NeuronGPU()
   
   on_exception_ = ON_EXCEPTION_EXIT;
 
+  verbosity_level_ = 3;
+  
 #ifdef HAVE_MPI
   connect_mpi_ = new ConnectMpi;
   mpi_flag_ = false;
@@ -244,17 +246,19 @@ int NeuronGPU::Calibrate()
   calibrate_flag_ = true;
   BuildDirectConnections();
 
+  if (verbosity_level_>=1) {
 #ifdef HAVE_MPI
-  if (mpi_flag_) {
-    std::cout << "Calibrating on host " << connect_mpi_->mpi_id_ << " ...\n";
-  }
-  else {
-    std::cout << "Calibrating ...\n";
-  }
-  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUMpiFlag, &mpi_flag_, sizeof(bool)));
+    if (mpi_flag_) {
+      std::cout << "Calibrating on host " << connect_mpi_->mpi_id_ << " ...\n";
+    }
+    else {
+      std::cout << "Calibrating ...\n";
+    }
+    gpuErrchk(cudaMemcpyToSymbol(NeuronGPUMpiFlag, &mpi_flag_, sizeof(bool)));
 #else
-  std::cout << "Calibrating ...\n";
+    std::cout << "Calibrating ...\n";
 #endif
+  }
   
   neural_time_ = t_min_;
   	    
@@ -314,23 +318,26 @@ int NeuronGPU::Simulate()
     build_real_time_ = getRealTime();
     first_simulation_flag_ = false;
   }
-  
+
+  if (verbosity_level_>=1) {
 #ifdef HAVE_MPI
-  if (mpi_flag_) {
-    std::cout << "Simulating on host " << connect_mpi_->mpi_id_ << " ...\n";
-  }
-  else {
-    std::cout << "Simulating ...\n";
-  }
+    if (mpi_flag_) {
+      std::cout << "Simulating on host " << connect_mpi_->mpi_id_ << " ...\n";
+    }
+    else {
+      std::cout << "Simulating ...\n";
+    }
 #else
-  std::cout << "Simulating ...\n";
+    std::cout << "Simulating ...\n";
 #endif
+    printf("Neural activity simulation time: %.3f\n", sim_time_);
+  }
   
   int Nt=(int)round(sim_time_/time_resolution_);
-  printf("Neural activity simulation time: %.3f\n", sim_time_);
+
   float neur_t0 = neural_time_;
   for (int it=0; it<Nt; it++) {
-    if (it%100==0) {
+    if (it%100==0 && verbosity_level_>=2) {
       printf("%.3f\n", neural_time_);
     }
     time_mark = getRealTime();
@@ -461,33 +468,41 @@ int NeuronGPU::Simulate()
       //RevSpikeBufferUpdate_time_ += (getRealTime() - time_mark);
     }
   }
-  printf("%.3f\n", neural_time_);
+  if (verbosity_level_>=2) {
+    printf("%.3f\n", neural_time_);
+  }
   end_real_time_ = getRealTime();
 
   //multimeter_->CloseFiles();
   //neuron.rk5.Free();
 
-#ifdef VERBOSE_TIME
-  std::cout << "\n";
-  std::cout << "  SpikeBufferUpdate_time: " << SpikeBufferUpdate_time_ << "\n";
-  std::cout << "  poisson_generator_time: " << poisson_generator_time_ << "\n";
-  std::cout << "  neuron_Update_time: " << neuron_Update_time_ << "\n";
-  std::cout << "  copy_ext_spike_time: " << copy_ext_spike_time_ << "\n";
-  std::cout << "  SendExternalSpike_time: " << SendExternalSpike_time_ << "\n";
-  std::cout << "  SendSpikeToRemote_time: " << SendSpikeToRemote_time_ << "\n";
-  std::cout << "  RecvSpikeFromRemote_time: " << RecvSpikeFromRemote_time_
-	    << "\n";
-  std::cout << "  NestedLoop_time: " << NestedLoop_time_ << "\n";
-  std::cout << "  GetSpike_time: " << GetSpike_time_ << "\n";
-  std::cout << "  SpikeReset_time: " << SpikeReset_time_ << "\n";
-  std::cout << "  ExternalSpikeReset_time: " << ExternalSpikeReset_time_
-	    << "\n";
-#endif
-  printf("Build real time = %lf\n",
-	 (build_real_time_ - start_real_time_));
-  printf("Simulation real time = %lf\n",
-	 (end_real_time_ - build_real_time_));
-
+  if (verbosity_level_>=3) {
+    std::cout << "\n";
+    std::cout << "  SpikeBufferUpdate_time: " << SpikeBufferUpdate_time_
+	      << "\n";
+    std::cout << "  poisson_generator_time: " << poisson_generator_time_
+	      << "\n";
+    std::cout << "  neuron_Update_time: " << neuron_Update_time_ << "\n";
+    std::cout << "  copy_ext_spike_time: " << copy_ext_spike_time_ << "\n";
+    std::cout << "  SendExternalSpike_time: " << SendExternalSpike_time_
+	      << "\n";
+    std::cout << "  SendSpikeToRemote_time: " << SendSpikeToRemote_time_
+	      << "\n";
+    std::cout << "  RecvSpikeFromRemote_time: " << RecvSpikeFromRemote_time_
+	      << "\n";
+    std::cout << "  NestedLoop_time: " << NestedLoop_time_ << "\n";
+    std::cout << "  GetSpike_time: " << GetSpike_time_ << "\n";
+    std::cout << "  SpikeReset_time: " << SpikeReset_time_ << "\n";
+    std::cout << "  ExternalSpikeReset_time: " << ExternalSpikeReset_time_
+	      << "\n";
+  }
+  if (verbosity_level_>=1) {
+    printf("Build real time = %lf\n",
+	   (build_real_time_ - start_real_time_));
+    printf("Simulation real time = %lf\n",
+	   (end_real_time_ - build_real_time_));
+  }
+  
   return 0;
 }
 
@@ -1361,3 +1376,43 @@ std::vector<float> NeuronGPU::GetRecSpikeTimes(int i_node)
   return node_vect_[i_group]->GetRecSpikeTimes(i_neuron);
 }
 
+int NeuronGPU::PushSpikesToNodes(int n_spikes, int *node_id,
+				 float *spike_height)
+{
+  int *d_node_id;
+  float *d_spike_height;
+  gpuErrchk(cudaMalloc(&d_node_id, n_spikes*sizeof(int)));
+  gpuErrchk(cudaMalloc(&d_spike_height, n_spikes*sizeof(float)));
+  gpuErrchk(cudaMemcpy(d_node_id, node_id, n_spikes*sizeof(int),
+		       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(d_spike_height, spike_height, n_spikes*sizeof(float),
+		       cudaMemcpyHostToDevice));
+  PushSpikeFromRemote<<<(n_spikes+1023)/1024, 1024>>>(n_spikes, d_node_id,
+						     d_spike_height);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  gpuErrchk(cudaFree(d_node_id));
+  gpuErrchk(cudaFree(d_spike_height));
+
+  return 0;
+}
+
+int NeuronGPU::PushSpikesToNodes(int n_spikes, int *node_id)
+{
+  //std::cout << "n_spikes: " << n_spikes << "\n";
+  //for (int i=0; i<n_spikes; i++) {
+  //  std::cout << node_id[i] << " ";
+  //}
+  //std::cout << "\n";
+
+  int *d_node_id;
+  gpuErrchk(cudaMalloc(&d_node_id, n_spikes*sizeof(int)));
+  gpuErrchk(cudaMemcpy(d_node_id, node_id, n_spikes*sizeof(int),
+		       cudaMemcpyHostToDevice));  
+  PushSpikeFromRemote<<<(n_spikes+1023)/1024, 1024>>>(n_spikes, d_node_id);
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  gpuErrchk(cudaFree(d_node_id));
+
+  return 0;
+}

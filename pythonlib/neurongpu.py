@@ -169,6 +169,17 @@ def SetSimTime(sim_time):
     return ret
 
 
+NeuronGPU_SetVerbosityLevel = _neurongpu.NeuronGPU_SetVerbosityLevel
+NeuronGPU_SetVerbosityLevel.argtypes = (ctypes.c_int,)
+NeuronGPU_SetVerbosityLevel.restype = ctypes.c_int
+def SetVerbosityLevel(verbosity_level):
+    "Set verbosity level"
+    ret = NeuronGPU_SetVerbosityLevel(ctypes.c_int(verbosity_level))
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
 NeuronGPU_Create = _neurongpu.NeuronGPU_Create
 NeuronGPU_Create.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int)
 NeuronGPU_Create.restype = ctypes.c_int

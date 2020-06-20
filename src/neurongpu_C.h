@@ -35,6 +35,8 @@ extern "C" {
 
   int NeuronGPU_GetMaxSpikeBufferSize();
 
+  int NeuronGPU_SetVerbosityLevel(int verbosity_level);
+
   int NeuronGPU_Create(char *model_name, int n_neuron, int n_port);
 
   int NeuronGPU_CreatePoissonGenerator(int n_node, float rate);
@@ -269,6 +271,9 @@ extern "C" {
 
   float* NeuronGPU_GetRecSpikeTimes(int i_node);
 
+  int NeuronGPU_PushSpikesToNodes(int n_spikes, int *node_id);
+ 
+  
 #ifdef __cplusplus
 }
 #endif

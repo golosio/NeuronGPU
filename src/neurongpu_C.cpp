@@ -84,6 +84,12 @@ extern "C" {
     ret = NeuronGPU_instance->SetSimTime(sim_time);
   } END_ERR_PROP return ret; }
 
+  int NeuronGPU_SetVerbosityLevel(int verbosity_level)
+  { int ret = 0; BEGIN_ERR_PROP {
+    ret = NeuronGPU_instance->SetVerbosityLevel(verbosity_level);
+  } END_ERR_PROP return ret; }
+
+  
   int NeuronGPU_Create(char *model_name, int n_neuron, int n_port)
   { int ret = 0; BEGIN_ERR_PROP {
     std::string model_name_str = std::string(model_name);
@@ -911,6 +917,12 @@ extern "C" {
       ret[i] = spike_time_vect[i];
     }
     
+  } END_ERR_PROP return ret; }
+  
+  int NeuronGPU_PushSpikesToNodes(int n_spikes, int *node_id)
+  { int ret = 0; BEGIN_ERR_PROP {
+    
+      ret = NeuronGPU_instance->PushSpikesToNodes(n_spikes, node_id);
   } END_ERR_PROP return ret; }
 
   

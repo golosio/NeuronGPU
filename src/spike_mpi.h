@@ -79,5 +79,7 @@ __global__ void DeviceExternalSpikeInit(int n_hosts,
 __global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
                                     float *spike_height);
 
+__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id);
+
 #endif
 #endif

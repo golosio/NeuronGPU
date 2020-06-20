@@ -121,6 +121,8 @@ class NeuronGPU
   std::string error_message_;
   unsigned char error_code_;
   int on_exception_;
+
+  int verbosity_level_;
   
   int CreateNodeGroup(int n_neuron, int n_port);
   int CheckUncalibrated(std::string message);
@@ -235,6 +237,12 @@ class NeuronGPU
   inline float GetSimTime() {
     return sim_time_;
   }
+
+  inline int SetVerbosityLevel(int verbosity_level) {
+    verbosity_level_ = verbosity_level;
+    return 0;
+  }
+    
 
   int SetMaxSpikeBufferSize(int max_size);
   int GetMaxSpikeBufferSize();
@@ -591,6 +599,10 @@ class NeuronGPU
   int GetNRecSpikeTimes(int i_node);
 
   std::vector<float> GetRecSpikeTimes(int i_node);
+
+  int PushSpikesToNodes(int n_spikes, int *node_id, float *spike_height);
+  
+  int PushSpikesToNodes(int n_spikes, int *node_id);
 
 };
 

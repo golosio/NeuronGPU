@@ -7,7 +7,7 @@ if len(sys.argv) != 2:
     print ("Usage: python %s n_neurons" % sys.argv[0])
     quit()
     
-order = int(sys.argv[1])
+order = int(sys.argv[1])//5
 
 print("Building ...")
 

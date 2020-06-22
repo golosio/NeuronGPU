@@ -11,7 +11,7 @@ if (mpi_np != 2) | (len(sys.argv) != 2):
     print ("Usage: mpirun -np 2 python %s n_neurons" % sys.argv[0])
     quit()
     
-order = int(sys.argv[1])
+order = int(sys.argv[1])//5
 
 mpi_id = ngpu.MpiId()
 print("Building on host ", mpi_id, " ...")

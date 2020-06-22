@@ -111,6 +111,9 @@ class NeuronGPU
   float t_min_;
   float neural_time_; // Neural activity time
   float sim_time_; // Simulation time in ms
+  float neur_t0_; // Neural activity simulation time origin
+  int it_; // simulation time index
+  int Nt_; // number of simulation time steps
   int n_poiss_node_;
 
   double start_real_time_;
@@ -123,6 +126,10 @@ class NeuronGPU
   int on_exception_;
 
   int verbosity_level_;
+
+  std::vector<int> ext_neuron_input_spike_node_;
+  std::vector<int> ext_neuron_input_spike_port_;
+  std::vector<float> ext_neuron_input_spike_height_;
   
   int CreateNodeGroup(int n_neuron, int n_port);
   int CheckUncalibrated(std::string message);
@@ -405,6 +412,12 @@ class NeuronGPU
 
   int Simulate(float sim_time);
 
+  int StartSimulation();
+
+  int SimulationStep();
+
+  int EndSimulation();
+  
   int ConnectMpiInit(int argc, char *argv[]);
 
   int MpiId();
@@ -604,6 +617,8 @@ class NeuronGPU
   
   int PushSpikesToNodes(int n_spikes, int *node_id);
 
+  int GetExtNeuronInputSpikes(int *n_spikes, int **node, int **port,
+			      float **spike_height, bool include_zeros);
 };
 
 

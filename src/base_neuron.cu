@@ -95,6 +95,7 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
 		     int i_group, unsigned long long *seed)
 {
   node_type_= 0; // NULL MODEL
+  ext_neuron_flag_ = false;
   i_node_0_ = i_node_0;
   n_node_ = n_node;
   n_port_ = n_port;
@@ -137,6 +138,36 @@ int BaseNeuron::Init(int i_node_0, int n_node, int n_port,
 
   return 0;
 }			    
+
+int BaseNeuron::AllocVarArr()
+{
+  gpuErrchk(cudaMalloc(&var_arr_, n_node_*n_var_*sizeof(float)));
+  return 0;
+}
+
+int BaseNeuron::AllocParamArr()
+{
+  gpuErrchk(cudaMalloc(&param_arr_, n_node_*n_param_*sizeof(float)));
+  return 0;
+}
+
+int BaseNeuron::FreeVarArr()
+{
+  if (var_arr_ != NULL) {
+    gpuErrchk(cudaFree(var_arr_));
+    var_arr_ = NULL;
+  }
+  return 0;
+}
+
+int BaseNeuron::FreeParamArr()
+{
+  if (param_arr_ != NULL) {
+    gpuErrchk(cudaFree(param_arr_));
+    param_arr_ = NULL;
+  }
+  return 0;
+}
 
 int BaseNeuron::SetScalParam(int i_neuron, int n_neuron,
 			     std::string param_name, float val)
@@ -1177,3 +1208,9 @@ std::vector<float> BaseNeuron::GetRecSpikeTimes(int i_neuron)
 		       sizeof(float)*n_spikes, cudaMemcpyDeviceToHost));
   return spike_time_vect;
 }
+
+float *BaseNeuron::GetExtNeuronInputSpikes(int *n_node, int *n_port)
+{
+  throw ngpu_exception("Cannot get extern neuron input spikes from this model");
+}
+

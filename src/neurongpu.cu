@@ -308,7 +308,21 @@ int NeuronGPU::Simulate(float sim_time) {
 
 int NeuronGPU::Simulate()
 {
-  double time_mark;
+  StartSimulation();
+  
+  for (int it=0; it<Nt_; it++) {
+    if (it%100==0 && verbosity_level_>=2) {
+      printf("%.3f\n", neural_time_);
+    }
+    SimulationStep();
+  }
+  EndSimulation();
+
+  return 0;
+}
+
+int NeuronGPU::StartSimulation()
+{
   if (!calibrate_flag_) {
     Calibrate();
   }
@@ -333,141 +347,15 @@ int NeuronGPU::Simulate()
     printf("Neural activity simulation time: %.3f\n", sim_time_);
   }
   
-  int Nt=(int)round(sim_time_/time_resolution_);
+  neur_t0_ = neural_time_;
+  it_ = 0;
+  Nt_ = (int)round(sim_time_/time_resolution_);
+  
+  return 0;
+}
 
-  float neur_t0 = neural_time_;
-  for (int it=0; it<Nt; it++) {
-    if (it%100==0 && verbosity_level_>=2) {
-      printf("%.3f\n", neural_time_);
-    }
-    time_mark = getRealTime();
-    SpikeBufferUpdate<<<(net_connection_->connection_.size()+1023)/1024,
-      1024>>>();
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-    SpikeBufferUpdate_time_ += (getRealTime() - time_mark);
-    time_mark = getRealTime();
-    if (n_poiss_node_>0) {
-      poiss_generator_->Update(Nt-it);
-      poisson_generator_time_ += (getRealTime() - time_mark);
-    }
-
-    time_mark = getRealTime();
-    neural_time_ = neur_t0 + time_resolution_*(it+1);
-    gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(float)));
-    int time_idx = (int)round(neur_t0/time_resolution_) + it + 1;
-    gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTimeIdx, &time_idx, sizeof(int)));
-
-    
-    for (unsigned int i=0; i<node_vect_.size(); i++) {
-      node_vect_[i]->Update(it, neural_time_);
-    }
-    neuron_Update_time_ += (getRealTime() - time_mark);
-    multimeter_->WriteRecords(neural_time_);
-
-#ifdef HAVE_MPI
-    if (mpi_flag_) {
-      int n_ext_spike;
-      time_mark = getRealTime();
-      gpuErrchk(cudaMemcpy(&n_ext_spike, d_ExternalSpikeNum, sizeof(int),
-			   cudaMemcpyDeviceToHost));
-      copy_ext_spike_time_ += (getRealTime() - time_mark);
-
-      if (n_ext_spike != 0) {
-	time_mark = getRealTime();
-	SendExternalSpike<<<(n_ext_spike+1023)/1024, 1024>>>();
-	gpuErrchk( cudaPeekAtLastError() );
-	gpuErrchk( cudaDeviceSynchronize() );
-	SendExternalSpike_time_ += (getRealTime() - time_mark);
-      }
-      for (int ih=0; ih<connect_mpi_->mpi_np_; ih++) {
-	if (ih == connect_mpi_->mpi_id_) {
-	  time_mark = getRealTime();
-	  connect_mpi_->SendSpikeToRemote(connect_mpi_->mpi_np_,
-					  max_spike_per_host_);
-	  SendSpikeToRemote_time_ += (getRealTime() - time_mark);
-	}
-	else {
-	  time_mark = getRealTime();
-	  connect_mpi_->RecvSpikeFromRemote(ih, max_spike_per_host_);
-	  RecvSpikeFromRemote_time_ += (getRealTime() - time_mark);
-	}
-      }
-    }
-#endif
-    
-    int n_spikes;
-    time_mark = getRealTime();
-    gpuErrchk(cudaMemcpy(&n_spikes, d_SpikeNum, sizeof(int),
-			 cudaMemcpyDeviceToHost));
-
-    ClearGetSpikeArrays();    
-    if (n_spikes > 0) {
-      time_mark = getRealTime();
-      NestedLoop::Run(n_spikes, d_SpikeTargetNum, 0);
-      NestedLoop_time_ += (getRealTime() - time_mark);
-      time_mark = getRealTime();
-    }
-    for (unsigned int i=0; i<node_vect_.size(); i++) {
-      if (node_vect_[i]->has_dir_conn_) {
-	node_vect_[i]->SendDirectSpikes(neural_time_, time_resolution_/1000.0);
-      }
-    }
-
-    for (unsigned int i=0; i<node_vect_.size(); i++) {
-      if (node_vect_[i]->n_port_>0) {
-	GetSpikes<<<(node_vect_[i]->n_node_
-		     *node_vect_[i]->n_port_+1023)/1024, 1024>>>
-	  (node_vect_[i]->i_group_, node_vect_[i]->n_node_,
-	   node_vect_[i]->n_port_,
-	   node_vect_[i]->n_var_,
-	   node_vect_[i]->port_weight_arr_,
-	   node_vect_[i]->port_weight_arr_step_,
-	   node_vect_[i]->port_weight_port_step_,
-	   node_vect_[i]->port_input_arr_,
-	   node_vect_[i]->port_input_arr_step_,
-	   node_vect_[i]->port_input_port_step_);
-	
-	gpuErrchk( cudaPeekAtLastError() );
-	gpuErrchk( cudaDeviceSynchronize() );
-      }
-    }
-    GetSpike_time_ += (getRealTime() - time_mark);
-
-    time_mark = getRealTime();
-    SpikeReset<<<1, 1>>>();
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-    SpikeReset_time_ += (getRealTime() - time_mark);
-
-#ifdef HAVE_MPI
-    if (mpi_flag_) {
-      time_mark = getRealTime();
-      ExternalSpikeReset<<<1, 1>>>();
-      gpuErrchk( cudaPeekAtLastError() );
-      gpuErrchk( cudaDeviceSynchronize() );
-      ExternalSpikeReset_time_ += (getRealTime() - time_mark);
-    }
-#endif
-
-    if (net_connection_->NRevConnections()>0) {
-      //time_mark = getRealTime();
-      RevSpikeReset<<<1, 1>>>();
-      gpuErrchk( cudaPeekAtLastError() );
-      gpuErrchk( cudaDeviceSynchronize() );
-      RevSpikeBufferUpdate<<<(net_connection_->connection_.size()+1023)/1024,
-	1024>>>(net_connection_->connection_.size());
-      gpuErrchk( cudaPeekAtLastError() );
-      gpuErrchk( cudaDeviceSynchronize() );
-      unsigned int n_rev_spikes;
-      gpuErrchk(cudaMemcpy(&n_rev_spikes, d_RevSpikeNum, sizeof(unsigned int),
-			   cudaMemcpyDeviceToHost));
-      if (n_rev_spikes > 0) {
-	NestedLoop::Run(n_rev_spikes, d_RevSpikeNConn, 1);
-      }      
-      //RevSpikeBufferUpdate_time_ += (getRealTime() - time_mark);
-    }
-  }
+int NeuronGPU::EndSimulation()
+{
   if (verbosity_level_>=2) {
     printf("%.3f\n", neural_time_);
   }
@@ -502,6 +390,146 @@ int NeuronGPU::Simulate()
     printf("Simulation real time = %lf\n",
 	   (end_real_time_ - build_real_time_));
   }
+  
+  return 0;
+}
+
+
+int NeuronGPU::SimulationStep()
+{
+  if (first_simulation_flag_) {
+    StartSimulation();
+  }
+  double time_mark;
+
+  time_mark = getRealTime();
+  SpikeBufferUpdate<<<(net_connection_->connection_.size()+1023)/1024,
+    1024>>>();
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  SpikeBufferUpdate_time_ += (getRealTime() - time_mark);
+  time_mark = getRealTime();
+  if (n_poiss_node_>0) {
+    poiss_generator_->Update(Nt_-it_);
+    poisson_generator_time_ += (getRealTime() - time_mark);
+  }
+
+  time_mark = getRealTime();
+  neural_time_ = neur_t0_ + time_resolution_*(it_+1);
+  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(float)));
+  int time_idx = (int)round(neur_t0_/time_resolution_) + it_ + 1;
+  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTimeIdx, &time_idx, sizeof(int)));
+
+    
+  for (unsigned int i=0; i<node_vect_.size(); i++) {
+    node_vect_[i]->Update(it_, neural_time_);
+  }
+  neuron_Update_time_ += (getRealTime() - time_mark);
+  multimeter_->WriteRecords(neural_time_);
+
+#ifdef HAVE_MPI
+  if (mpi_flag_) {
+    int n_ext_spike;
+    time_mark = getRealTime();
+    gpuErrchk(cudaMemcpy(&n_ext_spike, d_ExternalSpikeNum, sizeof(int),
+			 cudaMemcpyDeviceToHost));
+    copy_ext_spike_time_ += (getRealTime() - time_mark);
+
+    if (n_ext_spike != 0) {
+      time_mark = getRealTime();
+      SendExternalSpike<<<(n_ext_spike+1023)/1024, 1024>>>();
+      gpuErrchk( cudaPeekAtLastError() );
+      gpuErrchk( cudaDeviceSynchronize() );
+      SendExternalSpike_time_ += (getRealTime() - time_mark);
+    }
+    for (int ih=0; ih<connect_mpi_->mpi_np_; ih++) {
+      if (ih == connect_mpi_->mpi_id_) {
+	time_mark = getRealTime();
+	connect_mpi_->SendSpikeToRemote(connect_mpi_->mpi_np_,
+					max_spike_per_host_);
+	SendSpikeToRemote_time_ += (getRealTime() - time_mark);
+      }
+      else {
+	time_mark = getRealTime();
+	connect_mpi_->RecvSpikeFromRemote(ih, max_spike_per_host_);
+	RecvSpikeFromRemote_time_ += (getRealTime() - time_mark);
+      }
+    }
+  }
+#endif
+    
+  int n_spikes;
+  time_mark = getRealTime();
+  gpuErrchk(cudaMemcpy(&n_spikes, d_SpikeNum, sizeof(int),
+		       cudaMemcpyDeviceToHost));
+
+  ClearGetSpikeArrays();    
+  if (n_spikes > 0) {
+    time_mark = getRealTime();
+    NestedLoop::Run(n_spikes, d_SpikeTargetNum, 0);
+    NestedLoop_time_ += (getRealTime() - time_mark);
+    time_mark = getRealTime();
+  }
+  for (unsigned int i=0; i<node_vect_.size(); i++) {
+    if (node_vect_[i]->has_dir_conn_) {
+      node_vect_[i]->SendDirectSpikes(neural_time_, time_resolution_/1000.0);
+    }
+  }
+
+  for (unsigned int i=0; i<node_vect_.size(); i++) {
+    if (node_vect_[i]->n_port_>0) {
+      GetSpikes<<<(node_vect_[i]->n_node_
+		   *node_vect_[i]->n_port_+1023)/1024, 1024>>>
+	(node_vect_[i]->i_group_, node_vect_[i]->n_node_,
+	 node_vect_[i]->n_port_,
+	 node_vect_[i]->n_var_,
+	 node_vect_[i]->port_weight_arr_,
+	 node_vect_[i]->port_weight_arr_step_,
+	 node_vect_[i]->port_weight_port_step_,
+	 node_vect_[i]->port_input_arr_,
+	 node_vect_[i]->port_input_arr_step_,
+	 node_vect_[i]->port_input_port_step_);
+	
+      gpuErrchk( cudaPeekAtLastError() );
+      gpuErrchk( cudaDeviceSynchronize() );
+    }
+  }
+  GetSpike_time_ += (getRealTime() - time_mark);
+
+  time_mark = getRealTime();
+  SpikeReset<<<1, 1>>>();
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+  SpikeReset_time_ += (getRealTime() - time_mark);
+
+#ifdef HAVE_MPI
+  if (mpi_flag_) {
+    time_mark = getRealTime();
+    ExternalSpikeReset<<<1, 1>>>();
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+    ExternalSpikeReset_time_ += (getRealTime() - time_mark);
+  }
+#endif
+
+  if (net_connection_->NRevConnections()>0) {
+    //time_mark = getRealTime();
+    RevSpikeReset<<<1, 1>>>();
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+    RevSpikeBufferUpdate<<<(net_connection_->connection_.size()+1023)/1024,
+      1024>>>(net_connection_->connection_.size());
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+    unsigned int n_rev_spikes;
+    gpuErrchk(cudaMemcpy(&n_rev_spikes, d_RevSpikeNum, sizeof(unsigned int),
+			 cudaMemcpyDeviceToHost));
+    if (n_rev_spikes > 0) {
+      NestedLoop::Run(n_rev_spikes, d_RevSpikeNConn, 1);
+    }      
+    //RevSpikeBufferUpdate_time_ += (getRealTime() - time_mark);
+  }
+  it_++;
   
   return 0;
 }
@@ -1414,5 +1442,38 @@ int NeuronGPU::PushSpikesToNodes(int n_spikes, int *node_id)
   gpuErrchk( cudaDeviceSynchronize() );
   gpuErrchk(cudaFree(d_node_id));
 
+  return 0;
+}
+
+int NeuronGPU::GetExtNeuronInputSpikes(int *n_spikes, int **node, int **port,
+				       float **spike_height, bool include_zeros)
+{
+  ext_neuron_input_spike_node_.clear();
+  ext_neuron_input_spike_port_.clear();
+  ext_neuron_input_spike_height_.clear();
+  
+  for (unsigned int i=0; i<node_vect_.size(); i++) {
+    if (node_vect_[i]->IsExtNeuron()) {
+      int n_node;
+      int n_port;
+      float *sh = node_vect_[i]->GetExtNeuronInputSpikes(&n_node, &n_port);
+      for (int i_neur=0; i_neur<n_node; i_neur++) {
+	int i_node = i_neur + node_vect_[i]->i_node_0_;
+	for (int i_port=0; i_port<n_port; i_port++) {
+	  int j = i_neur*n_port + i_port;
+	  if (sh[j] != 0.0 || include_zeros) {
+	    ext_neuron_input_spike_node_.push_back(i_node);
+	    ext_neuron_input_spike_port_.push_back(i_port);
+	    ext_neuron_input_spike_height_.push_back(sh[j]);
+	  }
+	}
+      }	
+    }
+  }
+  *n_spikes = ext_neuron_input_spike_node_.size();
+  *node = ext_neuron_input_spike_node_.data();
+  *port = ext_neuron_input_spike_port_.data();
+  *spike_height = ext_neuron_input_spike_height_.data();
+  
   return 0;
 }

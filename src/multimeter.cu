@@ -41,6 +41,9 @@ Record::Record(std::vector<BaseNeuron*> neur_vect, std::string file_name,
 					     port_vect[i]);
       var_pt_vect_.push_back(var_pt);
     }
+    else {
+      var_pt_vect_.push_back(NULL);
+    }
   }
 }
 

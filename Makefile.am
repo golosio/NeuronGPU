@@ -12,6 +12,7 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
 ngpu_h_files=\
+$(top_srcdir)/src/ext_neuron.h \
 $(top_srcdir)/src/aeif_cond_alpha.h \
 $(top_srcdir)/src/aeif_cond_alpha_kernel.h \
 $(top_srcdir)/src/aeif_cond_alpha_rk5.h \
@@ -70,6 +71,7 @@ $(top_srcdir)/src/user_m2_kernel.h \
 $(top_srcdir)/src/user_m2_rk5.h
 
 ngpu_src_files=\
+$(top_srcdir)/src/ext_neuron.cu \
 $(top_srcdir)/src/aeif_cond_alpha.cu \
 $(top_srcdir)/src/aeif_cond_beta.cu \
 $(top_srcdir)/src/aeif_psc_alpha.cu \

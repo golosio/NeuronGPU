@@ -27,6 +27,7 @@ class BaseNeuron
  protected:
   friend class NeuronGPU;
   int node_type_;
+  bool ext_neuron_flag_;
   int i_node_0_;
   int n_node_;
   int n_port_;
@@ -68,6 +69,11 @@ class BaseNeuron
   int *n_rec_spike_times_;
   int max_n_rec_spike_times_;
   float *den_delay_arr_;
+
+  std::vector<float> port_weight_vect_;
+  std::vector<float> port_input_vect_;
+
+  std::vector<float> ext_neuron_input_spikes_;
   
  public:
   virtual ~BaseNeuron() {}
@@ -75,6 +81,24 @@ class BaseNeuron
   virtual int Init(int i_node_0, int n_neuron, int n_port,
 		   int i_neuron_group, unsigned long long *seed);
 
+
+  virtual int AllocVarArr();
+  
+  virtual int AllocParamArr();
+
+  virtual int FreeVarArr();
+  
+  virtual int FreeParamArr();
+  
+  int GetNodeType() {
+    return node_type_;
+  }
+
+  bool IsExtNeuron()
+  {
+    return ext_neuron_flag_;
+  }
+  
   virtual int Calibrate(float time_min, float time_resolution) {return 0;}
 		
   virtual int Update(int it, float t1) {return 0;}
@@ -249,6 +273,7 @@ class BaseNeuron
 
   std::vector<float> GetRecSpikeTimes(int i_neuron);
 
+  virtual float *GetExtNeuronInputSpikes(int *n_node, int *n_port);
 };
 
 #endif

@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cuda_error.h"
 #include "neuron_models.h"
 #include "neurongpu.h"
+#include "ext_neuron.h"
 #include "aeif_cond_beta.h"
 #include "aeif_cond_alpha.h"
 #include "aeif_psc_exp.h"
@@ -42,7 +43,11 @@ NodeSeq NeuronGPU::Create(std::string model_name, int n_node /*=1*/,
   else if (n_port < 0) {
     throw ngpu_exception("Number of ports must be >= zero.");
   }
-  if (model_name == neuron_model_name[i_aeif_cond_beta_model]) {
+  if (model_name == neuron_model_name[i_ext_neuron_model]) {
+    ext_neuron *ext_neuron_group = new ext_neuron;
+    node_vect_.push_back(ext_neuron_group);
+  }
+  else if (model_name == neuron_model_name[i_aeif_cond_beta_model]) {
     aeif_cond_beta *aeif_cond_beta_group = new aeif_cond_beta;
     node_vect_.push_back(aeif_cond_beta_group);
   }

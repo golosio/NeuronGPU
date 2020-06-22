@@ -386,6 +386,21 @@ extern "C" {
     ret = NeuronGPU_instance->Simulate();
   } END_ERR_PROP return ret; }
 
+  int NeuronGPU_StartSimulation()
+  { int ret = 0; BEGIN_ERR_PROP {
+    ret = NeuronGPU_instance->StartSimulation();
+  } END_ERR_PROP return ret; }
+
+  int NeuronGPU_SimulationStep()
+  { int ret = 0; BEGIN_ERR_PROP {
+    ret = NeuronGPU_instance->SimulationStep();
+  } END_ERR_PROP return ret; }
+
+  int NeuronGPU_EndSimulation()
+  { int ret = 0; BEGIN_ERR_PROP {
+    ret = NeuronGPU_instance->EndSimulation();
+  } END_ERR_PROP return ret; }
+
   int NeuronGPU_ConnectMpiInit(int argc, char *argv[])
   { int ret = 0; BEGIN_ERR_PROP {
     ret = NeuronGPU_instance->ConnectMpiInit(argc, argv);
@@ -925,6 +940,15 @@ extern "C" {
       ret = NeuronGPU_instance->PushSpikesToNodes(n_spikes, node_id);
   } END_ERR_PROP return ret; }
 
-  
+  int NeuronGPU_GetExtNeuronInputSpikes(int *n_spikes, int **node, int **port,
+			      float **spike_height, int include_zeros)
+  { int ret = 0; BEGIN_ERR_PROP {
+    
+      ret = NeuronGPU_instance->GetExtNeuronInputSpikes(n_spikes, node, port,
+							spike_height,
+							include_zeros>0);
+  } END_ERR_PROP return ret; }
+
+
 }
 

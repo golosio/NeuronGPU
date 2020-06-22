@@ -35,6 +35,8 @@ extern "C" {
 
   int NeuronGPU_GetMaxSpikeBufferSize();
 
+  int NeuronGPU_SetSimTime(float sim_time);
+
   int NeuronGPU_SetVerbosityLevel(int verbosity_level);
 
   int NeuronGPU_Create(char *model_name, int n_neuron, int n_port);
@@ -129,6 +131,12 @@ extern "C" {
   int NeuronGPU_Calibrate();
 
   int NeuronGPU_Simulate();
+
+  int NeuronGPU_StartSimulation();
+
+  int NeuronGPU_SimulationStep();
+
+  int NeuronGPU_EndSimulation();
 
   int NeuronGPU_ConnectMpiInit(int argc, char *argv[]);
 
@@ -273,6 +281,10 @@ extern "C" {
 
   int NeuronGPU_PushSpikesToNodes(int n_spikes, int *node_id);
  
+  int NeuronGPU_GetExtNeuronInputSpikes(int *n_spikes, int **node, int **port,
+					float **spike_height,
+					int include_zeros);
+
   
 #ifdef __cplusplus
 }

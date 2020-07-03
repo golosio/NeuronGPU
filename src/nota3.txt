@@ -1,0 +1,15 @@
+aeif_cond_alpha.cu
+Init()
+n_scal_param_ = N_SCAL_PARAM;
+
+var_arr_ = rk5_.GetYArr();
+param_arr_ = rk5_.GetParamArr();
+
+scal_param_name_ = aeif_cond_alpha_scal_param_name;
+
+  port_weight_arr_ = GetParamArr() + n_scal_param_
+    + GetPortParamIdx("g0");
+
+  port_input_arr_ = GetVarArr() + n_scal_var_
+    + GetPortVarIdx("g1");
+

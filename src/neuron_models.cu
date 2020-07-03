@@ -20,12 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cuda_error.h"
 #include "neuron_models.h"
 #include "neurongpu.h"
+#include "iaf_psc_exp.h"
 #include "ext_neuron.h"
 #include "aeif_cond_beta.h"
 #include "aeif_cond_alpha.h"
-#include "aeif_psc_exp.h"
 #include "aeif_psc_alpha.h"
 #include "aeif_psc_delta.h"
+#include "aeif_psc_exp.h"
 #include "poiss_gen.h"
 #include "spike_generator.h"
 #include "parrot_neuron.h"
@@ -37,13 +38,18 @@ NodeSeq NeuronGPU::Create(std::string model_name, int n_node /*=1*/,
 			  int n_port /*=1*/)
 {
   CheckUncalibrated("Nodes cannot be created after calibration");
-   if (n_node <= 0) {
-     throw ngpu_exception("Number of nodes must be greater than zero.");
+  if (n_node <= 0) {
+    throw ngpu_exception("Number of nodes must be greater than zero.");
   }
   else if (n_port < 0) {
     throw ngpu_exception("Number of ports must be >= zero.");
   }
-  if (model_name == neuron_model_name[i_ext_neuron_model]) {
+  if (model_name == neuron_model_name[i_iaf_psc_exp_model]) {
+    n_port = 2;
+    iaf_psc_exp *iaf_psc_exp_group = new iaf_psc_exp;
+    node_vect_.push_back(iaf_psc_exp_group);
+  }
+  else if (model_name == neuron_model_name[i_ext_neuron_model]) {
     ext_neuron *ext_neuron_group = new ext_neuron;
     node_vect_.push_back(ext_neuron_group);
   }

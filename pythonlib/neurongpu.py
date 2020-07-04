@@ -1058,6 +1058,13 @@ def SetNeuronStatus(nodes, var_name, val):
     "Set neuron group scalar or array variable or parameter"
     if (type(nodes)!=list) & (type(nodes)!=tuple) & (type(nodes)!=NodeSeq):
         raise ValueError("Unknown node type")
+    if (type(val)==dict):
+        array_size = len(nodes)
+        arr = DictToArray(val, array_size)
+        for i in range(array_size):
+            SetNeuronStatus([nodes[i]], var_name, arr[i])
+        return
+    
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
                                                len(var_name)+1)
     if type(nodes)==NodeSeq:

@@ -86,6 +86,13 @@ int ConnSpec::SetParam(std::string param_name, int value)
     outdegree_ = value;
     return 0;
   }
+  else if (param_name=="total_num") {
+    if (value<0) {
+      throw ngpu_exception("total_num must be >=0");
+    }
+    total_num_ = value;
+    return 0;
+  }
 
   throw ngpu_exception("Unknown connection int parameter");
 }

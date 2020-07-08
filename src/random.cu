@@ -52,16 +52,19 @@ float *curand_uniform(curandGenerator_t &gen, size_t n)
 float *curand_normal(curandGenerator_t &gen, size_t n, float mean,
 		     float stddev)
 {
+  size_t n1 = ( (n % 2) == 0 ) ? n : n + 1; // round up to multiple of 2
   float *dev_data;
   // Allocate n floats on host
   float *host_data = new float[n];
   
-  // Allocate n floats on device
-  CUDA_CALL(cudaMalloc((void **)&dev_data, n*sizeof(float)));
+  // Allocate n1 floats on device
+  CUDA_CALL(cudaMalloc((void **)&dev_data, n1*sizeof(float)));
   // Create pseudo-random number generator
 
-  // Generate n integers on device
-  CURAND_CALL(curandGenerateNormal(gen, dev_data, n, mean, stddev));
+  // Generate n1 integers on device
+  //printf("curandGenerateNormal n1: %d\tmean: %f\tstd: %f\n", (int)n1, mean,
+  //	 stddev);
+  CURAND_CALL(curandGenerateNormal(gen, dev_data, n1, mean, stddev));
   cudaDeviceSynchronize();
   // Copy device memory to host
   CUDA_CALL(cudaMemcpy(host_data, dev_data, n*sizeof(float),

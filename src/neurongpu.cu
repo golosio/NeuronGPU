@@ -413,7 +413,6 @@ int NeuronGPU::SimulationStep()
     poiss_generator_->Update(Nt_-it_);
     poisson_generator_time_ += (getRealTime() - time_mark);
   }
-
   time_mark = getRealTime();
   neural_time_ = neur_t0_ + time_resolution_*(it_+1);
   gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(float)));
@@ -468,14 +467,15 @@ int NeuronGPU::SimulationStep()
     time_mark = getRealTime();
     NestedLoop::Run(n_spikes, d_SpikeTargetNum, 0);
     NestedLoop_time_ += (getRealTime() - time_mark);
-    time_mark = getRealTime();
   }
+  time_mark = getRealTime();
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     if (node_vect_[i]->has_dir_conn_) {
       node_vect_[i]->SendDirectSpikes(neural_time_, time_resolution_/1000.0);
     }
   }
-
+  poisson_generator_time_ += (getRealTime() - time_mark);
+  time_mark = getRealTime();
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     if (node_vect_[i]->n_port_>0) {
       GetSpikes<<<(node_vect_[i]->n_node_
@@ -1064,7 +1064,7 @@ float *NeuronGPU::RandomNormalClipped(size_t n, float mean, float stddev,
 int NeuronGPU::BuildDirectConnections()
 {
   for (unsigned int iv=0; iv<node_vect_.size(); iv++) {
-    if (node_vect_[iv]->has_dir_conn_==true) {
+    if (node_vect_[iv]->has_dir_conn_) {
       std::vector<DirectConnection> dir_conn_vect;
       int i0 = node_vect_[iv]->i_node_0_;
       int n = node_vect_[iv]->n_node_;

@@ -160,7 +160,7 @@ class Network:
             None
 
         """
-
+        
         for i_pop in range(len(self.pops)):
             population = self.pops[i_pop]
             data = []
@@ -299,10 +299,21 @@ class Network:
         if self.Rank == 0:
             print('Creating neuronal populations.')
 
+        self.n_tot_neurons = 0
+        for i in np.arange(self.num_pops):
+            self.n_tot_neurons = self.n_tot_neurons + self.num_neurons[i]
+
+        self.neurons = ngpu.Create(self.net_dict['neuron_model'],
+                              self.n_tot_neurons)
+                                     
         self.pops = []
         for i in np.arange(self.num_pops):
-            population = ngpu.Create(self.net_dict['neuron_model'],
-                                     self.num_neurons[i])
+            if i==0:
+                i_node_0 = 0
+            i_node_1 = i_node_0 + self.num_neurons[i]
+            #print("i_node_1 ", i_node_1)
+            population = self.neurons[i_node_0:i_node_1]
+            i_node_0 = i_node_1
             
             tau_syn_ex=self.net_dict['neuron_params']['tau_syn']
             tau_syn_in=self.net_dict['neuron_params']['tau_syn']
@@ -312,13 +323,16 @@ class Network:
             t_ref=self.net_dict['neuron_params']['t_ref']
             I_e=self.DC_amp[i]
 
-            ngpu.SetStatus(population, {"tau_ex":tau_syn_ex,
-                                        "tau_in":tau_syn_in,
-                                        "E_L":E_L,
-                                        "Theta_rel":V_th - E_L,
-                                        "V_reset_rel":V_reset - E_L,
-                                        "t_ref":t_ref,
-                                        "I_e":I_e})
+            # ngpu.SetStatus(population, {"tau_ex":tau_syn_ex,
+            #                            "tau_in":tau_syn_in,
+            #                            "E_L":E_L,
+            #                            "Theta_rel":V_th - E_L,
+            #                            "V_reset_rel":V_reset - E_L,
+            #                            "t_ref":t_ref,
+            #                            "I_e":I_e})
+            #print(population.i0)
+            #print(population.n)
+            ngpu.SetStatus(population, {"I_e":I_e})
 
             if self.net_dict['V0_type'] == 'optimized':
                 V_rel_mean = self.net_dict['neuron_params']['V0_mean'] \
@@ -363,8 +377,8 @@ class Network:
         if 'spike_detector' in self.sim_dict['rec_dev']:
             if self.Rank == 0:
                 print('  Activating spike time recording.')
-                for pop in self.pops:
-                    ngpu.ActivateRecSpikeTimes(pop, 1000)
+                #for pop in self.pops:
+                ngpu.ActivateRecSpikeTimes(self.neurons, 1000)
                     
             #self.spike_detectors = ngpu.Create('spike_detector',
             #                                   self.num_pops)
@@ -434,11 +448,11 @@ class Network:
                     if w_mean < 0:
                         w_min = w_mean-3.0*w_std
                         w_max = 0.0
-                        i_receptor = 1
+                        # i_receptor = 1
                     else:
                         w_min = 0.0
                         w_max = w_mean+3.0*w_std
-                        i_receptor = 0
+                        # i_receptor = 0
                         
                     d_mean = self.net_dict['delay_matrix_mean'][i][j]
                     d_std = (self.net_dict['delay_matrix_mean'][i][j] *
@@ -454,8 +468,8 @@ class Network:
                         'delay': {'distribution':'normal_clipped',
                                        'mu':d_mean, 'low':d_min,
                                        'high':d_max,
-                                       'sigma':d_std},
-                        'receptor':i_receptor}
+                                       'sigma':d_std}}
+                        #'receptor':i_receptor}
 
                     ngpu.Connect(
                         source_pop, target_pop, conn_dict_rec, syn_dict)

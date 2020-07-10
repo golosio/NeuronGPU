@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_models.h"
 #include "neurongpu.h"
 #include "iaf_psc_exp.h"
+#include "fast_iaf_psc_exp.h"
 #include "ext_neuron.h"
 #include "aeif_cond_beta.h"
 #include "aeif_cond_alpha.h"
@@ -44,7 +45,12 @@ NodeSeq NeuronGPU::Create(std::string model_name, int n_node /*=1*/,
   else if (n_port < 0) {
     throw ngpu_exception("Number of ports must be >= zero.");
   }
-  if (model_name == neuron_model_name[i_iaf_psc_exp_model]) {
+  if (model_name == neuron_model_name[i_fast_iaf_psc_exp_model]) {
+    n_port = 1;
+    fast_iaf_psc_exp *fast_iaf_psc_exp_group = new fast_iaf_psc_exp;
+    node_vect_.push_back(fast_iaf_psc_exp_group);
+  }
+  else if (model_name == neuron_model_name[i_iaf_psc_exp_model]) {
     n_port = 2;
     iaf_psc_exp *iaf_psc_exp_group = new iaf_psc_exp;
     node_vect_.push_back(iaf_psc_exp_group);

@@ -481,9 +481,14 @@ int NeuronGPU::SimulationStep()
   time_mark = getRealTime();
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     if (node_vect_[i]->n_port_>0) {
-      GetSpikes<<<(node_vect_[i]->n_node_
-		   *node_vect_[i]->n_port_+1023)/1024, 1024>>>
-	(node_vect_[i]->i_group_, node_vect_[i]->n_node_,
+
+      int grid_dim_x = (node_vect_[i]->n_node_+1023)/1024;
+      int grid_dim_y = node_vect_[i]->n_port_;
+      dim3 grid_dim(grid_dim_x, grid_dim_y);
+      //dim3 block_dim(1024,1);
+					    
+      GetSpikes<<<grid_dim, 1024>>> //block_dim>>>
+	(node_vect_[i]->get_spike_array_, node_vect_[i]->n_node_,
 	 node_vect_[i]->n_port_,
 	 node_vect_[i]->n_var_,
 	 node_vect_[i]->port_weight_arr_,
@@ -492,11 +497,13 @@ int NeuronGPU::SimulationStep()
 	 node_vect_[i]->port_input_arr_,
 	 node_vect_[i]->port_input_arr_step_,
 	 node_vect_[i]->port_input_port_step_);
-	
-      gpuErrchk( cudaPeekAtLastError() );
-      gpuErrchk( cudaDeviceSynchronize() );
+      // gpuErrchk( cudaPeekAtLastError() );
+      // gpuErrchk( cudaDeviceSynchronize() );
     }
   }
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+
   GetSpike_time_ += (getRealTime() - time_mark);
 
   time_mark = getRealTime();

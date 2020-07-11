@@ -15,7 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef GETSPIKEH
 #define GETSPIKEH
 
-__global__ void GetSpikes(int i_group, int array_size, int n_port, int n_var,
+__global__ void GetSpikes(double *spike_array, int array_size, int n_port,
+			  int n_var,
 			  float *port_weight_arr,
 			  int port_weight_arr_step,
 			  int port_weight_port_step, //float *y_arr);

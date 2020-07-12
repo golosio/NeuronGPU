@@ -131,8 +131,8 @@ int spike_generator::Update(int i_time, float /*t1*/)
   spike_generatorUpdate<<<(n_node_+1023)/1024, 1024>>>
     (i_node_0_, n_node_, i_time, d_n_spikes_, d_i_spike_, d_spike_time_idx_,
      d_spike_height_);
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
+  //gpuErrchk( cudaPeekAtLastError() );
+  //gpuErrchk( cudaDeviceSynchronize() );
 
   return 0;
 }

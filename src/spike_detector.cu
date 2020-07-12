@@ -112,8 +112,8 @@ int spike_detector::Update(int /*i_time*/, float /*t1*/)
 {
   spike_detector_UpdateKernel<<<(n_node_+1023)/1024, 1024>>>
     (i_node_0_, n_node_, var_arr_, param_arr_, n_var_, n_param_);
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
+  //gpuErrchk( cudaPeekAtLastError() );
+  //gpuErrchk( cudaDeviceSynchronize() );
 
   return 0;
 }

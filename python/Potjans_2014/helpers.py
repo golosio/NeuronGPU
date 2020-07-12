@@ -402,7 +402,6 @@ def __load_spike_times(path, name, begin, end):
     data = {}
     dtype = {'names': ('sender', 'time_ms'),  # as in header
              'formats': ('i4', 'f8')}
-    print('In load')
     #print(node_ids)
 
     sd_names = {}

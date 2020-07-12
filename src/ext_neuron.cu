@@ -91,7 +91,7 @@ int ext_neuron::Update(int it, float t1) {
   
   UpdateExtNeuron<<<(n_node_*n_port_+1023)/1024, 1024>>>
     (port_input_pt, port_value_pt, n_node_, n_var_, n_port_var_, n_port_);
-  gpuErrchk( cudaDeviceSynchronize() );
+  //gpuErrchk( cudaDeviceSynchronize() );
   
   return 0;
 }

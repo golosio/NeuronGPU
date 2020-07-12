@@ -213,13 +213,15 @@ __device__ void PushSpike(int i_spike_buffer, float height)
     //////////////////////////////////
     SpikeBufferSize[i_spike_buffer]++; // increase n. of spikes in buffer
     for (int is=Ns; is>0; is--) {
+      int i_arr = is*NSpikeBuffer+i_spike_buffer; // spike index in array
+      int i_prev_arr = i_arr - NSpikeBuffer; // previous spike index in array
       // shift all buffer content by one position 
-      SpikeBufferTimeIdx[is*NSpikeBuffer+i_spike_buffer] =
-	SpikeBufferTimeIdx[(is-1)*NSpikeBuffer+i_spike_buffer];
-      SpikeBufferConnIdx[is*NSpikeBuffer+i_spike_buffer] =
-	SpikeBufferConnIdx[(is-1)*NSpikeBuffer+i_spike_buffer];
-      SpikeBufferHeight[is*NSpikeBuffer+i_spike_buffer] =
-	SpikeBufferHeight[(is-1)*NSpikeBuffer+i_spike_buffer];
+      SpikeBufferTimeIdx[i_arr] =
+	SpikeBufferTimeIdx[i_prev_arr];
+      SpikeBufferConnIdx[i_arr] =
+	SpikeBufferConnIdx[i_prev_arr];
+      SpikeBufferHeight[i_arr] =
+	SpikeBufferHeight[i_prev_arr];
     }
     SpikeBufferTimeIdx[i_spike_buffer] = 0; // time index is initialized to 0
     SpikeBufferConnIdx[i_spike_buffer] = 0; // connect. group index init. to 0
@@ -259,27 +261,28 @@ __global__ void SpikeBufferUpdate()
   int Ns = SpikeBufferSize[i_spike_buffer]; // n. of spikes in buffer
   for (int is=0; is<Ns; is++) {
     int i_arr = is*NSpikeBuffer+i_spike_buffer; // spike index in array
-    int i_conn = SpikeBufferConnIdx[is*NSpikeBuffer+i_spike_buffer];
-    int spike_time_idx = SpikeBufferTimeIdx[is*NSpikeBuffer+i_spike_buffer];
+    int i_conn = SpikeBufferConnIdx[i_arr];
+    int spike_time_idx = SpikeBufferTimeIdx[i_arr];
     //if (i_spike_buffer==1) {
     //printf("is %d st %d dd %d\n", is, spike_time_idx, den_delay_idx);
     //}
     if (spike_time_idx+1 == den_delay_idx) {
       rev_spike = true;
     }
+    // connection index in array
+    int i_conn_arr = i_conn*NSpikeBuffer+i_spike_buffer;
     // if spike time matches connection group delay deliver it
     // to global spike array
     if (i_conn<ConnectionGroupSize[i_spike_buffer] &&
-	spike_time_idx
-	== ConnectionGroupDelay[i_conn*NSpikeBuffer+i_spike_buffer]) {
+	spike_time_idx == ConnectionGroupDelay[i_conn_arr]) {
       // spike time matches connection group delay
-      float height = SpikeBufferHeight[is*NSpikeBuffer+i_spike_buffer]; // spike multiplicity
+      float height = SpikeBufferHeight[i_arr]; // spike multiplicity
       // deliver spike
       SendSpike(i_spike_buffer, i_conn, height,
-		ConnectionGroupTargetSize[i_conn*NSpikeBuffer+i_spike_buffer]);
+		ConnectionGroupTargetSize[i_conn_arr]);
       // increase index of the next conn. group that will emit this spike
       i_conn++;
-      SpikeBufferConnIdx[is*NSpikeBuffer+i_spike_buffer] = i_conn;
+      SpikeBufferConnIdx[i_arr] = i_conn;
     }
     // Check if the oldest spike should be removed from the buffer:
     // check if it is the oldest spike of the buffer
@@ -291,7 +294,7 @@ __global__ void SpikeBufferUpdate()
       SpikeBufferSize[i_spike_buffer]--; // so remove it from buffer
     }
     else {
-      SpikeBufferTimeIdx[is*NSpikeBuffer+i_spike_buffer]++;
+      SpikeBufferTimeIdx[i_arr]++;
       // increase time index
     }
   }

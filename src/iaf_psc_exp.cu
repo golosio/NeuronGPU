@@ -188,7 +188,7 @@ int iaf_psc_exp::Update(int it, float t1)
   // std::cout << "iaf_psc_exp neuron update\n";
   iaf_psc_exp_Update<<<(n_node_+1023)/1024, 1024>>>
     (n_node_, i_node_0_, var_arr_, param_arr_, n_var_, n_param_);
-  gpuErrchk( cudaDeviceSynchronize() );
+  // gpuErrchk( cudaDeviceSynchronize() );
   
   return 0;
 }

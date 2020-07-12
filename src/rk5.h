@@ -240,8 +240,8 @@ template<int NVAR, int NPARAM>
 {
   ArrayUpdate<NVAR, NPARAM, DataStruct><<<(array_size_+1023)/1024, 1024>>>
     (array_size_, d_XArr, d_HArr, d_YArr, d_ParamArr, x1, h_min, data_struct);
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
+  //gpuErrchk( cudaPeekAtLastError() );
+  //gpuErrchk( cudaDeviceSynchronize() );
 
   return 0;
 }

@@ -285,7 +285,9 @@ extern "C" {
 					float **spike_height,
 					int include_zeros);
 
-  
+  int NeuronGPU_SetNeuronGroupParam(int i_node, int n_node, char *param_name,
+				    float val);
+
 #ifdef __cplusplus
 }
 #endif

@@ -6,7 +6,7 @@ tolerance = 0.0005
 E_L = -65.0
 
 ngpu.SetVerbosityLevel(0)
-neuron = ngpu.Create('fast_iaf_psc_exp', 1)
+neuron = ngpu.Create('iaf_psc_exp_g', 1)
 
 spike = ngpu.Create("spike_generator")
 spike_times = [10.0, 400.0]

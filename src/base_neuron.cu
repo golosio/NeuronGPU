@@ -1214,3 +1214,8 @@ float *BaseNeuron::GetExtNeuronInputSpikes(int *n_node, int *n_port)
   throw ngpu_exception("Cannot get extern neuron input spikes from this model");
 }
 
+int BaseNeuron::SetNeuronGroupParam(std::string param_name, float val)
+{
+  throw ngpu_exception(std::string("Unrecognized neuron group parameter ")
+		       + param_name);
+}

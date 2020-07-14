@@ -619,6 +619,10 @@ class NeuronGPU
 
   int GetExtNeuronInputSpikes(int *n_spikes, int **node, int **port,
 			      float **spike_height, bool include_zeros);
+
+  int SetNeuronGroupParam(int i_node, int n_node,
+			  std::string param_name, float val);
+
 };
 
 

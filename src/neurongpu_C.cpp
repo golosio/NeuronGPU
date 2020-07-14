@@ -949,6 +949,15 @@ extern "C" {
 							include_zeros>0);
   } END_ERR_PROP return ret; }
 
+  int NeuronGPU_SetNeuronGroupParam(int i_node, int n_node, char *param_name,
+				    float val)
+  { float ret = 0.0; BEGIN_ERR_PROP {
+    
+    std::string param_name_str = std::string(param_name);
+    ret = NeuronGPU_instance->SetNeuronGroupParam(i_node, n_node,
+						  param_name_str,
+						  val);
+  } END_ERR_PROP return ret; }
 
 }
 

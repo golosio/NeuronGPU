@@ -12,7 +12,9 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
 ngpu_h_files=\
-$(top_srcdir)/src/fast_iaf_psc_exp.h \
+$(top_srcdir)/src/iaf_psc_exp_g.h \
+$(top_srcdir)/src/iaf_psc_exp_hc_params.h \
+$(top_srcdir)/src/iaf_psc_exp_hc.h \
 $(top_srcdir)/src/iaf_psc_exp.h \
 $(top_srcdir)/src/ext_neuron.h \
 $(top_srcdir)/src/aeif_cond_alpha.h \
@@ -73,7 +75,8 @@ $(top_srcdir)/src/user_m2_kernel.h \
 $(top_srcdir)/src/user_m2_rk5.h
 
 ngpu_src_files=\
-$(top_srcdir)/src/fast_iaf_psc_exp.cu \
+$(top_srcdir)/src/iaf_psc_exp_g.cu \
+$(top_srcdir)/src/iaf_psc_exp_hc.cu \
 $(top_srcdir)/src/iaf_psc_exp.cu \
 $(top_srcdir)/src/ext_neuron.cu \
 $(top_srcdir)/src/aeif_cond_alpha.cu \

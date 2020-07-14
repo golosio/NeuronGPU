@@ -274,6 +274,8 @@ class BaseNeuron
   std::vector<float> GetRecSpikeTimes(int i_neuron);
 
   virtual float *GetExtNeuronInputSpikes(int *n_node, int *n_port);
+
+  virtual int SetNeuronGroupParam(std::string param_name, float val);
 };
 
 #endif

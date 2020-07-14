@@ -1487,3 +1487,15 @@ int NeuronGPU::GetExtNeuronInputSpikes(int *n_spikes, int **node, int **port,
   
   return 0;
 }
+
+int NeuronGPU::SetNeuronGroupParam(int i_node, int n_node,
+				   std::string param_name, float val)
+{
+  int i_group;
+  int i_node_0 = GetNodeSequenceOffset(i_node, n_node, i_group);
+  if (i_node_0!=i_node || node_vect_[i_group]->n_node_!=n_node) {
+    throw ngpu_exception("Group parameter can only be set for all and only "
+			 " the nodes of the same group");
+  }
+  return node_vect_[i_group]->SetNeuronGroupParam(param_name, val);
+}

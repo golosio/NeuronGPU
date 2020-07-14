@@ -60,7 +60,7 @@ net_dict = {
     # factor to scale the indegrees
     'K_scaling': 1.0, # 0.1,
     # neuron model
-    'neuron_model': 'fast_iaf_psc_exp',
+    'neuron_model': 'iaf_psc_exp_g',
     # names of the simulated neuronal populations
     'populations': ['L23E', 'L23I', 'L4E', 'L4I', 'L5E', 'L5I', 'L6E', 'L6I'],
     # number of neurons in the different populations (same order as

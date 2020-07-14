@@ -53,12 +53,12 @@ extern __constant__ float NeuronGPUTimeResolution;
 __device__
 double propagator_32( double tau_syn, double tau, double C, double h )
 {
-  const double P32_linear = 1 / ( 2. * C * tau * tau ) * h * h
+  const double P32_linear = 1.0 / ( 2.0 * C * tau * tau ) * h * h
     * ( tau_syn - tau ) * exp( -h / tau );
   const double P32_singular = h / C * exp( -h / tau );
   const double P32 =
-    -tau / ( C * ( 1 - tau / tau_syn ) ) * exp( -h / tau_syn )
-    * expm1( h * ( 1 / tau_syn - 1 / tau ) );
+    -tau / ( C * ( 1.0 - tau / tau_syn ) ) * exp( -h / tau_syn )
+    * expm1( h * ( 1.0 / tau_syn - 1.0 / tau ) );
 
   const double dev_P32 = fabs( P32 - P32_singular );
 

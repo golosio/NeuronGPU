@@ -16,8 +16,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // https://github.com/nest/nest-simulator/blob/master/models/iaf_psc_exp.h
 
 
-#ifndef FASTIAFPSCEXPH
-#define FASTIAFPSCEXPH
+#ifndef IAFPSCEXPHCH
+#define IAFPSCEXPHCH
 
 #include <iostream>
 #include <string>
@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_models.h"
 
 
-namespace fast_iaf_psc_exp_ns
+namespace iaf_psc_exp_hc_ns
 {
 enum ScalVarIndexes {
   i_I_syn = 0,        // postsynaptic current for exc. inputs
@@ -41,23 +41,23 @@ enum ScalParamIndexes {
   N_SCAL_PARAM
 };
 
- const std::string fast_iaf_psc_exp_scal_var_name[N_SCAL_VAR] = {
+ const std::string iaf_psc_exp_hc_scal_var_name[N_SCAL_VAR] = {
   "I_syn",
   "V_m_rel",
   "refractory_step"
 };
 
-const std::string fast_iaf_psc_exp_scal_param_name[N_SCAL_PARAM] = {
+const std::string iaf_psc_exp_hc_scal_param_name[N_SCAL_PARAM] = {
   "I_e"
 };
 
 } // namespace
  
 
-class fast_iaf_psc_exp : public BaseNeuron
+class iaf_psc_exp_hc : public BaseNeuron
 {
  public:
-  ~fast_iaf_psc_exp();
+  ~iaf_psc_exp_hc();
   
   int Init(int i_node_0, int n_neuron, int n_port, int i_group,
 	   unsigned long long *seed);

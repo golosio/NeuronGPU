@@ -1,0 +1,25 @@
+9980.100
+9990.100
+10000.100
+
+  SpikeBufferUpdate_time: 5.46896
+  poisson_generator_time: 14.22
+  neuron_Update_time: 6.81275
+  copy_ext_spike_time: 0
+  SendExternalSpike_time: 0
+  SendSpikeToRemote_time: 0
+  RecvSpikeFromRemote_time: 0
+  NestedLoop_time: 25.5739
+  GetSpike_time: 4.04125
+  SpikeReset_time: 1.47209
+  ExternalSpikeReset_time: 0
+Build real time = 61.078281
+Simulation real time = 59.141828
+
+Times:
+  Total time:          119.954 s
+  Time to initialize:  0.001 s
+  Time to create:      3.471 s
+  Time to connect:     54.384 s
+  Time to calibrate: 2.956 s
+  Time to simulate:    59.142 s

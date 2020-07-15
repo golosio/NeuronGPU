@@ -42,9 +42,9 @@ enum ScalParamIndexes {
   i_C_m,             // Membrane capacitance in pF
   i_E_L,             // Resting potential in mV
   i_I_e,             // External current in pA
-  i_Theta_rel,           // Threshold, RELATIVE TO RESTING POTENTAIL(!)
+  i_Theta_rel,       // Threshold, RELATIVE TO RESTING POTENTAIL(!)
                      // i.e. the real threshold is (E_L_+Theta_rel_)
-  i_V_reset_rel,         // reset value of the membrane potential
+  i_V_reset_rel,     // relative reset value of the membrane potential
   i_tau_ex,          // Time constant of excitatory synaptic current in ms
   i_tau_in,          // Time constant of inhibitory synaptic current in ms
   // i_rho,          // Stochastic firing intensity at threshold in 1/s

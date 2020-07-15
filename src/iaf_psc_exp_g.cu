@@ -27,6 +27,14 @@ extern __constant__ float NeuronGPUTimeResolution;
 #define refractory_step var[i_refractory_step]
 #define I_e param[i_I_e]
 
+#define tau_m_ group_param_[i_tau_m]
+#define C_m_ group_param_[i_C_m]
+#define E_L_ group_param_[i_E_L]
+#define Theta_rel_ group_param_[i_Theta_rel]
+#define V_reset_rel_ group_param_[i_V_reset_rel]
+#define tau_syn_ group_param_[i_tau_syn]
+#define t_ref_ group_param_[i_t_ref]
+
 __global__ void iaf_psc_exp_g_Update
 ( int n_node, int i_node_0, float *var_arr, float *param_arr, int n_var,
   int n_param, float Theta_rel, float V_reset_rel, int n_refractory_steps,
@@ -92,13 +100,16 @@ int iaf_psc_exp_g::Init(int i_node_0, int n_node, int /*n_port*/,
   n_scal_var_ = N_SCAL_VAR;
   n_var_ = n_scal_var_;
   n_scal_param_ = N_SCAL_PARAM;
+  n_group_param_ = N_GROUP_PARAM;
   n_param_ = n_scal_param_;
   
   AllocParamArr();
   AllocVarArr();
+  group_param_ = new float[N_GROUP_PARAM];
 
   scal_var_name_ = iaf_psc_exp_g_scal_var_name;
   scal_param_name_ = iaf_psc_exp_g_scal_param_name;
+  group_param_name_ = iaf_psc_exp_g_group_param_name;
 
   SetScalParam(0, n_node, "I_e", 0.0 );              // in pA
 
@@ -106,13 +117,13 @@ int iaf_psc_exp_g::Init(int i_node_0, int n_node, int /*n_port*/,
   SetScalVar(0, n_node, "V_m_rel", 0.0 ); // in mV
   SetScalVar(0, n_node, "refractory_step", 0 );
 
-  tau_m_ = 10.0;
-  C_m_ = 250.0;
-  E_L_ = -65.0;
-  Theta_rel_ = 15.0;
-  V_reset_rel_ = 0.0;
-  tau_syn_ = 0.5;
-  t_ref_ = 2.0;
+  SetGroupParam("tau_m", 10.0);
+  SetGroupParam("C_m", 250.0);
+  SetGroupParam("E_L", -65.0);
+  SetGroupParam("Theta_rel", 15.0);
+  SetGroupParam("V_reset_rel", 0.0);
+  SetGroupParam("tau_syn", 0.5);
+  SetGroupParam("t_ref", 2.0);
 
   // multiplication factor of input signal is always 1 for all nodes
   float input_weight = 1.0;
@@ -152,37 +163,8 @@ int iaf_psc_exp_g::Free()
 {
   FreeVarArr();  
   FreeParamArr();
+  delete[] group_param_;
   
   return 0;
 }
 
-int iaf_psc_exp_g::SetNeuronGroupParam(std::string param_name, float val)
-{
-  if (param_name=="tau_m") {
-    tau_m_ = val;
-  }
-  else if (param_name=="C_m") {
-    C_m_ = val;
-  }
-  else if (param_name=="E_L") {
-     E_L_ = val;
-  }
-  else if (param_name=="Theta_rel") {
-     Theta_rel_ = val;
-  }
-  else if (param_name=="V_reset_rel") {
-     V_reset_rel_ = val;
-  }
-  else if (param_name=="tau_syn") {
-     tau_syn_ = val;
-  }
-  else if (param_name=="t_ref") {
-     t_ref_ = val;
-  }
-  else {
-    throw ngpu_exception(std::string("Unrecognized neuron group parameter ")
-			 + param_name);
-  }
-  
-  return 0;
-}

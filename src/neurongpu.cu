@@ -1494,8 +1494,47 @@ int NeuronGPU::SetNeuronGroupParam(int i_node, int n_node,
   int i_group;
   int i_node_0 = GetNodeSequenceOffset(i_node, n_node, i_group);
   if (i_node_0!=i_node || node_vect_[i_group]->n_node_!=n_node) {
-    throw ngpu_exception("Group parameter can only be set for all and only "
+    throw ngpu_exception(std::string("Group parameter ") + param_name
+			 + " can only be set for all and only "
 			 " the nodes of the same group");
   }
-  return node_vect_[i_group]->SetNeuronGroupParam(param_name, val);
+  return node_vect_[i_group]->SetGroupParam(param_name, val);
 }
+
+int NeuronGPU::IsNeuronGroupParam(int i_node, std::string param_name)
+{
+  int i_group;
+  int i_node_0 = GetNodeSequenceOffset(i_node, 1, i_group);
+
+  return node_vect_[i_group]->IsGroupParam(param_name);
+}
+
+float NeuronGPU::GetNeuronGroupParam(int i_node, std::string param_name)
+{
+  int i_group;
+  int i_node_0 = GetNodeSequenceOffset(i_node, 1, i_group);
+
+  return node_vect_[i_group]->GetGroupParam(param_name);
+}
+
+std::vector<std::string> NeuronGPU::GetGroupParamNames(int i_node)
+{
+  if (i_node<0 || i_node>(int)node_group_map_.size()) {
+    throw ngpu_exception("Unrecognized node in reading group parameter names");
+  }
+  int i_group = node_group_map_[i_node];
+  
+  return node_vect_[i_group]->GetGroupParamNames();
+}
+
+int NeuronGPU::GetNGroupParam(int i_node)
+{
+  if (i_node<0 || i_node>(int)node_group_map_.size()) {
+    throw ngpu_exception("Unrecognized node in reading number of "
+			 "group parameters");
+  }
+  int i_group = node_group_map_[i_node];
+  
+  return node_vect_[i_group]->GetNGroupParam();
+}
+

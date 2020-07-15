@@ -3,6 +3,7 @@ import sys, platform
 import ctypes, ctypes.util
 import os
 import unicodedata
+import gc
 
 print('-----------------------------------------------------------------')
 print('NeuronGPU')
@@ -391,6 +392,19 @@ def IsNeuronArrayParam(i_node, param_name):
         raise ValueError(GetErrorMessage())
     return ret
 
+NeuronGPU_IsNeuronGroupParam = _neurongpu.NeuronGPU_IsNeuronGroupParam
+NeuronGPU_IsNeuronGroupParam.argtypes = (ctypes.c_int, c_char_p)
+NeuronGPU_IsNeuronGroupParam.restype = ctypes.c_int
+def IsNeuronGroupParam(i_node, param_name):
+    "Check name of neuron scalar parameter"
+    c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
+                                               len(param_name)+1)
+    ret = (NeuronGPU_IsNeuronGroupParam(ctypes.c_int(i_node), c_param_name)!=0) 
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
 NeuronGPU_SetNeuronIntVar = _neurongpu.NeuronGPU_SetNeuronIntVar
 NeuronGPU_SetNeuronIntVar.argtypes = (ctypes.c_int, ctypes.c_int,
                                          c_char_p, ctypes.c_int)
@@ -577,9 +591,12 @@ def GetNeuronParam(i_node, n_node, param_name):
     array_size = GetNeuronParamSize(i_node, param_name)
     data_list = []
     for i_node in range(n_node):
-        row_list = []
-        for i in range(array_size):
-            row_list.append(data_pt[i_node*array_size + i])
+        if (array_size>1):
+            row_list = []
+            for i in range(array_size):
+                row_list.append(data_pt[i_node*array_size + i])
+        else:
+            row_list = data_pt[i_node]
         data_list.append(row_list)
         
     ret = data_list
@@ -606,9 +623,12 @@ def GetNeuronPtParam(nodes, param_name):
 
     data_list = []
     for i_node in range(n_node):
-        row_list = []
-        for i in range(array_size):
-            row_list.append(data_pt[i_node*array_size + i])
+        if (array_size>1):
+            row_list = []
+            for i in range(array_size):
+                row_list.append(data_pt[i_node*array_size + i])
+        else:
+            row_list = data_pt[i_node]
         data_list.append(row_list)
         
     ret = data_list
@@ -658,6 +678,21 @@ def GetNeuronListArrayParam(node_list, param_name):
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
+
+
+NeuronGPU_GetNeuronGroupParam = _neurongpu.NeuronGPU_GetNeuronGroupParam
+NeuronGPU_GetNeuronGroupParam.argtypes = (ctypes.c_int, c_char_p)
+NeuronGPU_GetNeuronGroupParam.restype = ctypes.c_float
+def GetNeuronGroupParam(i_node, param_name):
+    "Check name of neuron group parameter"
+    c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
+                                               len(param_name)+1)
+    ret = NeuronGPU_GetNeuronGroupParam(ctypes.c_int(i_node), c_param_name)
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
 
 #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 NeuronGPU_GetNeuronVarSize = _neurongpu.NeuronGPU_GetNeuronVarSize
@@ -709,9 +744,12 @@ def GetNeuronVar(i_node, n_node, var_name):
 
     data_list = []
     for i_node in range(n_node):
-        row_list = []
-        for i in range(array_size):
-            row_list.append(data_pt[i_node*array_size + i])
+        if (array_size>1):
+            row_list = []
+            for i in range(array_size):
+                row_list.append(data_pt[i_node*array_size + i])
+        else:
+            row_list = data_pt[i_node]
         data_list.append(row_list)
         
     ret = data_list
@@ -760,10 +798,14 @@ def GetNeuronPtVar(nodes, var_name):
     array_size = GetNeuronVarSize(nodes[0], var_name)
 
     data_list = []
+
     for i_node in range(n_node):
-        row_list = []
-        for i in range(array_size):
-            row_list.append(data_pt[i_node*array_size + i])
+        if (array_size>1):
+            row_list = []
+            for i in range(array_size):
+                row_list.append(data_pt[i_node*array_size + i])
+        else:
+            row_list = data_pt[i_node]
         data_list.append(row_list)
         
     ret = data_list
@@ -834,6 +876,9 @@ def GetNeuronStatus(nodes, var_name):
             ret = GetNeuronVar(nodes.i0, nodes.n, var_name)
         elif IsNeuronArrayVar(nodes.i0, var_name):
             ret = GetArrayVar(nodes.i0, nodes.n, var_name)
+        elif IsNeuronGroupParam(nodes.i0, var_name):
+            ret = GetNeuronStatus(nodes.ToList(), var_name)
+            
         else:
             raise ValueError("Unknown neuron variable or parameter")
     else:
@@ -849,6 +894,10 @@ def GetNeuronStatus(nodes, var_name):
             ret = GetNeuronPtVar(nodes, var_name)
         elif IsNeuronArrayVar(nodes[0], var_name):
             ret = GetNeuronListArrayVar(nodes, var_name)
+        elif IsNeuronGroupParam(nodes[0], var_name):
+            ret = []
+            for i_node in nodes:
+                ret.append(GetNeuronGroupParam(i_node, var_name))
         else:
             raise ValueError("Unknown neuron variable or parameter")
     return ret
@@ -1023,6 +1072,34 @@ def GetArrayParamNames(i_node):
     return param_name_list
 
 
+NeuronGPU_GetNGroupParam = _neurongpu.NeuronGPU_GetNGroupParam
+NeuronGPU_GetNGroupParam.argtypes = (ctypes.c_int,)
+NeuronGPU_GetNGroupParam.restype = ctypes.c_int
+def GetNGroupParam(i_node):
+    "Get number of scalar parameters for a given node"
+    ret = NeuronGPU_GetNGroupParam(ctypes.c_int(i_node))
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+NeuronGPU_GetGroupParamNames = _neurongpu.NeuronGPU_GetGroupParamNames
+NeuronGPU_GetGroupParamNames.argtypes = (ctypes.c_int,)
+NeuronGPU_GetGroupParamNames.restype = ctypes.POINTER(c_char_p)
+def GetGroupParamNames(i_node):
+    "Get list of scalar parameter names"
+    n_param = GetNGroupParam(i_node)
+    param_name_pp = ctypes.cast(NeuronGPU_GetGroupParamNames(
+        ctypes.c_int(i_node)), ctypes.POINTER(c_char_p))
+    param_name_list = []
+    for i in range(n_param):
+        param_name_p = param_name_pp[i]
+        param_name = ctypes.cast(param_name_p, ctypes.c_char_p).value
+        param_name_list.append(to_def_str(param_name))
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return param_name_list
+
 NeuronGPU_GetNArrayVar = _neurongpu.NeuronGPU_GetNArrayVar
 NeuronGPU_GetNArrayVar.argtypes = (ctypes.c_int,)
 NeuronGPU_GetNArrayVar.restype = ctypes.c_int
@@ -1068,7 +1145,9 @@ def SetNeuronStatus(nodes, var_name, val):
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
                                                len(var_name)+1)
     if type(nodes)==NodeSeq:
-        if IsNeuronScalParam(nodes.i0, var_name):
+        if IsNeuronGroupParam(nodes.i0, var_name):
+            SetNeuronGroupParam(nodes, var_name, val)
+        elif IsNeuronScalParam(nodes.i0, var_name):
             SetNeuronScalParam(nodes.i0, nodes.n, var_name, val)
         elif (IsNeuronPortParam(nodes.i0, var_name) |
               IsNeuronArrayParam(nodes.i0, var_name)):
@@ -1334,8 +1413,8 @@ def SetSynSpecFloatPtParam(param_name, arr):
     "Set synapse pointer to float parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
     if (type(arr) is list)  | (type(arr) is tuple):
-        arr = (ctypes.c_float * len(arr))(*arr) 
-    arr_pt = ctypes.cast(arr, ctypes.c_void_p)    
+        arr = (ctypes.c_float * len(arr))(*arr)
+    arr_pt = ctypes.cast(arr, ctypes.c_void_p)
     ret = NeuronGPU_SetSynSpecFloatPtParam(c_param_name, arr_pt)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
@@ -1442,12 +1521,11 @@ def SetSynParamFromArray(param_name, par_dict, array_size):
         raise ValueError("Synapse parameter cannot be set by"
                          " arrays or distributions")
     arr = DictToArray(par_dict, array_size)
+        
     array_pt = ctypes.cast(arr, ctypes.c_void_p)
     SetSynSpecFloatPtParam(arr_param_name, array_pt)
-    
 
     
-
 NeuronGPU_ConnectSeqSeq = _neurongpu.NeuronGPU_ConnectSeqSeq
 NeuronGPU_ConnectSeqSeq.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int,
                                     ctypes.c_int)
@@ -1474,7 +1552,8 @@ def Connect(source, target, conn_dict, syn_dict):
         raise ValueError("Unknown source type")
     if (type(target)!=list) & (type(target)!=tuple) & (type(target)!=NodeSeq):
         raise ValueError("Unknown target type")
-        
+
+    gc.disable()
     ConnSpecInit()
     SynSpecInit()
     for param_name in conn_dict:
@@ -1530,6 +1609,7 @@ def Connect(source, target, conn_dict, syn_dict):
                                               target_arr_pt, len(target))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
+    gc.enable()
     return ret
 
 
@@ -1634,8 +1714,11 @@ def RemoteConnect(i_source_host, source, i_target_host, target,
 
 def SetStatus(gen_object, params, val=None):
     "Set neuron or synapse group parameters or variables using dictionaries"
+    gc.disable()
     if type(gen_object)==SynGroup:
-        return SetSynGroupStatus(gen_object, params, val)
+        ret = SetSynGroupStatus(gen_object, params, val)
+        gc.enable()
+        return ret
     nodes = gen_object    
     if val != None:
          SetNeuronStatus(nodes, params, val)
@@ -1654,7 +1737,7 @@ def SetStatus(gen_object, params, val=None):
         raise ValueError("Wrong argument in SetStatus")
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
-    
+    gc.enable()
 
 #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -1806,7 +1889,9 @@ def GetStatus(gen_object, var_key=None):
             name_list = GetIntVarNames(i_node) \
                         + GetScalVarNames(i_node) + GetScalParamNames(i_node) \
                         + GetPortVarNames(i_node) + GetPortParamNames(i_node) \
-                        + GetArrayVarNames(i_node) + GetArrayParamNames(i_node)
+                        + GetArrayVarNames(i_node) \
+                        + GetArrayParamNames(i_node) \
+                        + GetGroupParamNames(i_node)
             for var_name in name_list:
                 val = GetStatus(i_node, var_name)
                 status_dict[var_name] = val
@@ -2040,6 +2125,25 @@ def GetRecSpikeTimes(i_node):
         
     ret = spike_time_list
     
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
+NeuronGPU_SetNeuronGroupParam = _neurongpu.NeuronGPU_SetNeuronGroupParam
+NeuronGPU_SetNeuronGroupParam.argtypes = (ctypes.c_int, ctypes.c_int,
+                                          c_char_p, ctypes.c_float)
+NeuronGPU_SetNeuronGroupParam.restype = ctypes.c_int
+def SetNeuronGroupParam(nodes, param_name, val):
+    "Set neuron group parameter value"
+    if type(nodes)!=NodeSeq:
+        raise ValueError("Wrong argument type in SetNeuronGroupParam")
+
+    c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
+                                               len(param_name)+1)
+    ret = NeuronGPU_SetNeuronGroupParam(ctypes.c_int(nodes.i0),
+                                        ctypes.c_int(nodes.n),
+                                        c_param_name, ctypes.c_float(val))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret

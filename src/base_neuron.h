@@ -39,6 +39,7 @@ class BaseNeuron
   int n_port_var_;
   int n_scal_param_;
   int n_port_param_;
+  int n_group_param_;
   int n_var_;
   int n_param_;
   
@@ -52,11 +53,13 @@ class BaseNeuron
   std::vector<int*> int_var_pt_; 
   float *var_arr_;
   float *param_arr_;
+  float *group_param_;
   std::vector<std::string> int_var_name_;
   const std::string *scal_var_name_;
   const std::string *port_var_name_;
   const std::string *scal_param_name_;
   const std::string *port_param_name_;
+  const std::string *group_param_name_;
   std::vector<std::string> array_var_name_;
   std::vector<std::string> array_param_name_;
   
@@ -127,6 +130,8 @@ class BaseNeuron
 			   std::string param_name, float *array,
 			   int array_size);
 
+  virtual int SetGroupParam(std::string param_name, float val);
+
   virtual int SetIntVar(int i_neuron, int n_neuron, std::string var_name, 
 			int val);
 
@@ -166,6 +171,8 @@ class BaseNeuron
 			      std::string param_name);
 
   virtual float *GetArrayParam(int i_neuron, std::string param_name);
+
+  virtual float GetGroupParam(std::string param_name);
 
   virtual int *GetIntVar(int i_neuron, int n_neuron,
 			   std::string var_name);
@@ -223,6 +230,8 @@ class BaseNeuron
 
   virtual bool IsArrayParam(std::string param_name);
 
+  virtual bool IsGroupParam(std::string param_name);
+
   int CheckNeuronIdx(int i_neuron);
 
   int CheckPortIdx(int port);
@@ -264,6 +273,10 @@ class BaseNeuron
   virtual std::vector<std::string> GetArrayParamNames();
   
   virtual int GetNArrayParam();
+
+  virtual std::vector<std::string> GetGroupParamNames();
+  
+  virtual int GetNGroupParam();
 
   virtual int ActivateSpikeCount();
 

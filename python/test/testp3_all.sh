@@ -11,7 +11,7 @@ for fn in test_iaf_psc_exp_g.py test_fixed_total_number.py test_iaf_psc_exp.py t
     fi
     echo ${pass_str[$res]}
 done
-for fn in syn_group connect getarr setvar2; do
+for fn in syn_group connect getarr setvar2 group_param; do
     python3 test_$fn.py 2>&1 | grep -v dyl > tmp
     diff -qs tmp logp3_$fn.txt 2>&1 >> log.txt
     res=$?

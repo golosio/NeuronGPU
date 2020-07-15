@@ -544,6 +544,10 @@ class NeuronGPU
 
   std::vector<std::string> GetArrayVarNames(int i_node);
 
+  std::vector<std::string> GetGroupParamNames(int i_node);
+
+  int GetNGroupParam(int i_node);
+  
   int GetNArrayVar(int i_node);
 
   ConnectionStatus GetConnectionStatus(ConnectionId conn_id);
@@ -622,6 +626,10 @@ class NeuronGPU
 
   int SetNeuronGroupParam(int i_node, int n_node,
 			  std::string param_name, float val);
+  
+  int IsNeuronGroupParam(int i_node, std::string param_name);
+
+  float GetNeuronGroupParam(int i_node, std::string param_name);
 
 };
 

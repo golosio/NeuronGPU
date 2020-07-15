@@ -676,6 +676,30 @@ extern "C" {
   } END_ERR_PROP return ret; }
 
 
+  char **NeuronGPU_GetGroupParamNames(int i_node)
+  { char **ret = NULL; BEGIN_ERR_PROP {
+    std::vector<std::string> var_name_vect =
+      NeuronGPU_instance->GetGroupParamNames(i_node);
+    char **var_name_array = (char**)malloc(var_name_vect.size()
+					   *sizeof(char*));
+    for (unsigned int i=0; i<var_name_vect.size(); i++) {
+      char *var_name = (char*)malloc((var_name_vect[i].length() + 1)
+				      *sizeof(char));
+      
+      strcpy(var_name, var_name_vect[i].c_str());
+      var_name_array[i] = var_name;
+    }
+    ret = var_name_array;
+    
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_GetNGroupParam(int i_node)
+  { int ret = 0; BEGIN_ERR_PROP {
+    ret = NeuronGPU_instance->GetNGroupParam(i_node);
+  } END_ERR_PROP return ret; }
+
+
   char **NeuronGPU_GetPortParamNames(int i_node)
   { char **ret = NULL; BEGIN_ERR_PROP {
     std::vector<std::string> var_name_vect =
@@ -959,5 +983,20 @@ extern "C" {
 						  val);
   } END_ERR_PROP return ret; }
 
+  int NeuronGPU_IsNeuronGroupParam(int i_node, char *param_name)
+  { int ret = 0; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuronGPU_instance->IsNeuronGroupParam(i_node, param_name_str);
+  } END_ERR_PROP return ret; }
+
+  float NeuronGPU_GetNeuronGroupParam(int i_node, char *param_name)
+  { float ret = 0; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuronGPU_instance->GetNeuronGroupParam(i_node, param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
 }
 

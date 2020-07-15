@@ -305,6 +305,17 @@ class Network:
 
         self.neurons = ngpu.Create(self.net_dict['neuron_model'],
                               self.n_tot_neurons)
+
+        tau_syn=self.net_dict['neuron_params']['tau_syn']
+        E_L=self.net_dict['neuron_params']['E_L']
+        V_th=self.net_dict['neuron_params']['V_th']
+        V_reset=self.net_dict['neuron_params']['V_reset']
+        t_ref=self.net_dict['neuron_params']['t_ref']
+        ngpu.SetStatus(self.neurons, {"tau_syn":tau_syn,
+                                      "E_L":E_L,
+                                      "Theta_rel":V_th - E_L,
+                                      "V_reset_rel":V_reset - E_L,
+                                      "t_ref":t_ref})
                                      
         self.pops = []
         for i in np.arange(self.num_pops):
@@ -315,24 +326,11 @@ class Network:
             population = self.neurons[i_node_0:i_node_1]
             i_node_0 = i_node_1
             
-            tau_syn_ex=self.net_dict['neuron_params']['tau_syn']
-            tau_syn_in=self.net_dict['neuron_params']['tau_syn']
-            E_L=self.net_dict['neuron_params']['E_L']
-            V_th=self.net_dict['neuron_params']['V_th']
-            V_reset=self.net_dict['neuron_params']['V_reset']
-            t_ref=self.net_dict['neuron_params']['t_ref']
             I_e=self.DC_amp[i]
-
-            # ngpu.SetStatus(population, {"tau_ex":tau_syn_ex,
-            #                            "tau_in":tau_syn_in,
-            #                            "E_L":E_L,
-            #                            "Theta_rel":V_th - E_L,
-            #                            "V_reset_rel":V_reset - E_L,
-            #                            "t_ref":t_ref,
-            #                            "I_e":I_e})
+            ngpu.SetStatus(population, {"I_e":I_e})
+            
             #print(population.i0)
             #print(population.n)
-            ngpu.SetStatus(population, {"I_e":I_e})
 
             if self.net_dict['V0_type'] == 'optimized':
                 V_rel_mean = self.net_dict['neuron_params']['V0_mean'] \

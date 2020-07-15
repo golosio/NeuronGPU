@@ -226,7 +226,11 @@ extern "C" {
   int NeuronGPU_GetNScalParam(int i_node);
     
   char **NeuronGPU_GetPortParamNames(int i_node);
+
+  int NeuronGPU_GetNGroupParam(int i_node);
   
+  char **NeuronGPU_GetGroupParamNames(int i_node);
+
   int NeuronGPU_GetNPortParam(int i_node);
 
   char **NeuronGPU_GetArrayParamNames(int i_node);
@@ -287,6 +291,10 @@ extern "C" {
 
   int NeuronGPU_SetNeuronGroupParam(int i_node, int n_node, char *param_name,
 				    float val);
+
+  int NeuronGPU_IsNeuronGroupParam(int i_node, char *param_name);
+
+  float NeuronGPU_GetNeuronGroupParam(int i_node, char *param_name);
 
 #ifdef __cplusplus
 }

@@ -423,7 +423,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   std::vector<std::vector<unsigned int> > rev_connections(n_spike_buffers);
   for (unsigned int i_conn=0; i_conn<n_conn; i_conn++) {
     unsigned char syn_group = h_conn_syn_group[i_conn];
-    if (syn_group==1) { // TEMPORARY, TO BE IMPROVED
+    if (syn_group>=1) { // TEMPORARY, TO BE IMPROVED
       n_rev_conn++;
       int target = h_conn_target[i_conn] & PORT_MASK;
       rev_connections[target].push_back(i_conn);

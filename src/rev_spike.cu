@@ -45,24 +45,10 @@ __device__ void NestedLoopFunction1(int i_spike, int i_target_rev_conn)
   unsigned char syn_group = ConnectionSynGroup[i_conn];
   if (syn_group>0) {
     float *weight = &ConnectionWeight[i_conn];
-    int spike_time_idx = ConnectionSpikeTime[i_conn];
-    int Dt_int = ((int)NeuronGPUTimeIdx - spike_time_idx)&0xffff;
-    //if (Dt<0) { // there was no spike from this connection
-    //  return;
-    //}
-    // The following lines are for solving the problem of limited size of
-    // connection spike time
-    //if (Dt>SPIKE_TIME_DIFF_THR) { // there was no spike from this connection
-    //  return;
-    //}
-    //if (Dt==SPIKE_TIME_DIFF_THR) { // there was no spike from this connection
-      // but due to the increase of time idx the difference
-      // reached the threshold, so let's put it well above threshold
-    //  ConnectionSpikeTime[i_conn]
-    //	= (unsigned short)((NeuronGPUTimeIdx + SPIKE_TIME_DIFF_GUARD)&0xffff);
-    //  return;
-    //}
-    if (Dt_int>=0 && Dt_int<MAX_SYN_DT) {
+    unsigned short spike_time_idx = ConnectionSpikeTime[i_conn];
+    unsigned short time_idx = (unsigned short)(NeuronGPUTimeIdx & 0xffff);
+    unsigned short Dt_int = time_idx - spike_time_idx;
+    if (Dt_int<MAX_SYN_DT) {
       SynapseUpdate(syn_group, weight, NeuronGPUTimeResolution*Dt_int);
     }
   }
@@ -98,6 +84,30 @@ __global__ void SetConnectionSpikeTime(unsigned int n_conn,
   ConnectionSpikeTime[i_conn] = time_idx;
 }
 
+__global__ void ResetConnectionSpikeTimeUpKernel(unsigned int n_conn)
+{
+  unsigned int i_conn = threadIdx.x + blockIdx.x * blockDim.x;
+  if (i_conn>=n_conn) {
+    return;
+  }
+  unsigned short spike_time = ConnectionSpikeTime[i_conn];
+  if (spike_time >= 0x8000) {
+    ConnectionSpikeTime[i_conn] = 0;
+  }
+}
+
+__global__ void ResetConnectionSpikeTimeDownKernel(unsigned int n_conn)
+{
+  unsigned int i_conn = threadIdx.x + blockIdx.x * blockDim.x;
+  if (i_conn>=n_conn) {
+    return;
+  }
+  unsigned short spike_time = ConnectionSpikeTime[i_conn];
+  if (spike_time < 0x8000) {
+    ConnectionSpikeTime[i_conn] = 0x8000;
+  }
+}
+
 __global__ void DeviceRevSpikeInit(unsigned int *rev_spike_num,
 				   unsigned int *rev_spike_target,
 				   int *rev_spike_n_conn)
@@ -114,14 +124,35 @@ __global__ void RevSpikeReset()
 }
   
 
+int ResetConnectionSpikeTimeUp(NetConnection *net_connection)
+{  
+  ResetConnectionSpikeTimeUpKernel
+    <<<(net_connection->StoredNConnections()+1023)/1024, 1024>>>
+    (net_connection->StoredNConnections());
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+
+  return 0;
+}
+
+int ResetConnectionSpikeTimeDown(NetConnection *net_connection)
+{  
+  ResetConnectionSpikeTimeDownKernel
+    <<<(net_connection->StoredNConnections()+1023)/1024, 1024>>>
+    (net_connection->StoredNConnections());
+  gpuErrchk( cudaPeekAtLastError() );
+  gpuErrchk( cudaDeviceSynchronize() );
+
+  return 0;
+}
+
 int RevSpikeInit(NetConnection *net_connection, int time_min_idx)
 {
   int n_spike_buffers = net_connection->connection_.size();
   
   SetConnectionSpikeTime
     <<<(net_connection->StoredNConnections()+1023)/1024, 1024>>>
-    (net_connection->StoredNConnections(),
-     time_min_idx + SPIKE_TIME_DIFF_GUARD);
+    (net_connection->StoredNConnections(), 0x8000);
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
 

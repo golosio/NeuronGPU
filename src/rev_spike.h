@@ -27,7 +27,8 @@ int RevSpikeInit(NetConnection *net_connection, int time_min_idx);
 
 int RevSpikeFree();
 
+int ResetConnectionSpikeTimeDown(NetConnection *net_connection);
 
-
+int ResetConnectionSpikeTimeUp(NetConnection *net_connection);
 
 #endif

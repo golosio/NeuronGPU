@@ -419,6 +419,12 @@ int NeuronGPU::SimulationStep()
   int time_idx = (int)round(neur_t0_/time_resolution_) + it_ + 1;
   gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTimeIdx, &time_idx, sizeof(int)));
 
+  if ( (time_idx & 0xffff) == 0x8000) {
+    ResetConnectionSpikeTimeUp(net_connection_);
+  }
+  else if ( (time_idx & 0xffff) == 0) {
+    ResetConnectionSpikeTimeDown(net_connection_);
+  }
     
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     node_vect_[i]->Update(it_, neural_time_);

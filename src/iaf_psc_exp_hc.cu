@@ -101,7 +101,7 @@ int iaf_psc_exp_hc::Init(int i_node_0, int n_node, int /*n_port*/,
   return 0;
 }
 
-int iaf_psc_exp_hc::Update(int it, float t1)
+int iaf_psc_exp_hc::Update(long long it, double t1)
 {
   // std::cout << "iaf_psc_exp_hc neuron update\n";
   iaf_psc_exp_hc_Update<<<(n_node_+1023)/1024, 1024>>>

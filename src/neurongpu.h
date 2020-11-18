@@ -108,12 +108,12 @@ class NeuronGPU
   int max_spike_num_;
   int max_spike_per_host_;
 
-  float t_min_;
-  float neural_time_; // Neural activity time
-  float sim_time_; // Simulation time in ms
-  float neur_t0_; // Neural activity simulation time origin
-  int it_; // simulation time index
-  int Nt_; // number of simulation time steps
+  double t_min_;
+  double neural_time_; // Neural activity time
+  double sim_time_; // Simulation time in ms
+  double neur_t0_; // Neural activity simulation time origin
+  long long it_; // simulation time index
+  long long Nt_; // number of simulation time steps
   int n_poiss_node_;
 
   double start_real_time_;

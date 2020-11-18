@@ -105,7 +105,7 @@ const std::string aeif_psc_delta_scal_param_name[N_SCAL_PARAM] = {
 
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
-    void Derivatives(float x, float *y, float *dydx, float *param,
+    void Derivatives(double x, float *y, float *dydx, float *param,
 		     aeif_psc_delta_rk5 data_struct)
 {
   
@@ -122,7 +122,7 @@ __device__
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void ExternalUpdate
-    (float x, float *y, float *param, bool end_time_step,
+    (double x, float *y, float *param, bool end_time_step,
 			aeif_psc_delta_rk5 data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
@@ -163,7 +163,7 @@ __device__
 
 template<int NVAR, int NPARAM>
 __device__
-void Derivatives(float x, float *y, float *dydx, float *param,
+void Derivatives(double x, float *y, float *dydx, float *param,
 		 aeif_psc_delta_rk5 data_struct)
 {
     aeif_psc_delta_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
@@ -172,7 +172,7 @@ void Derivatives(float x, float *y, float *dydx, float *param,
 
 template<int NVAR, int NPARAM>
 __device__
-void ExternalUpdate(float x, float *y, float *param, bool end_time_step,
+void ExternalUpdate(double x, float *y, float *param, bool end_time_step,
 		    aeif_psc_delta_rk5 data_struct)
 {
     aeif_psc_delta_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,

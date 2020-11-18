@@ -116,7 +116,7 @@ int parrot_neuron::Init(int i_node_0, int n_node, int /*n_port*/,
   return 0;
 }
 
-int parrot_neuron::Update(int /*i_time*/, float /*t1*/)
+int parrot_neuron::Update(long long /*i_time*/, double /*t1*/)
 {
   parrot_neuron_UpdateKernel<<<(n_node_+1023)/1024, 1024>>>
     (i_node_0_, n_node_, var_arr_, param_arr_, n_var_, n_param_);

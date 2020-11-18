@@ -102,11 +102,11 @@ class BaseNeuron
     return ext_neuron_flag_;
   }
   
-  virtual int Calibrate(float time_min, float time_resolution) {return 0;}
+  virtual int Calibrate(double time_min, float time_resolution) {return 0;}
 		
-  virtual int Update(int it, float t1) {return 0;}
+  virtual int Update(long long it, double t1) {return 0;}
   
-  virtual int GetX(int i_neuron, int n_neuron, float *x) {return 0;}
+  virtual int GetX(int i_neuron, int n_neuron, double *x) {return 0;}
   
   virtual int GetY(int i_var, int i_neuron, int n_neuron, float *y) {return 0;}
   
@@ -244,7 +244,7 @@ class BaseNeuron
 			    int port=0);
   virtual float GetSpikeActivity(int i_neuron);
 
-  virtual int SendDirectSpikes(float t, float time_step) {return 0;}
+  virtual int SendDirectSpikes(double t, float time_step) {return 0;}
 
   virtual std::vector<std::string> GetIntVarNames();
 

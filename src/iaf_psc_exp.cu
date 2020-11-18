@@ -183,7 +183,7 @@ int iaf_psc_exp::Init(int i_node_0, int n_node, int /*n_port*/,
   return 0;
 }
 
-int iaf_psc_exp::Update(int it, float t1)
+int iaf_psc_exp::Update(long long it, double t1)
 {
   // std::cout << "iaf_psc_exp neuron update\n";
   iaf_psc_exp_Update<<<(n_node_+1023)/1024, 1024>>>
@@ -201,7 +201,7 @@ int iaf_psc_exp::Free()
   return 0;
 }
 
-int iaf_psc_exp::Calibrate(float, float time_resolution)
+int iaf_psc_exp::Calibrate(double, float time_resolution)
 {
   iaf_psc_exp_Calibrate<<<(n_node_+1023)/1024, 1024>>>
     (n_node_, param_arr_, n_param_, time_resolution);

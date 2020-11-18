@@ -44,9 +44,9 @@ class spike_generator : public BaseNeuron
 
   int Free();
   
-  int Update(int i_time, float t1);
+  int Update(long long i_time, double t1);
 
-  int Calibrate(float time_min, float time_resolution);
+  int Calibrate(double time_min, float time_resolution);
 
   int SetArrayParam(int i_neuron, int n_neuron, std::string param_name,
 		    float *array, int array_size);

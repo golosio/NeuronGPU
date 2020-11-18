@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "spike_buffer.h"
 #include "cuda_error.h"
 
-extern __constant__ int NeuronGPUTimeIdx;
+extern __constant__ long long NeuronGPUTimeIdx;
 extern __constant__ float NeuronGPUTimeResolution;
 extern __constant__ NodeGroupStruct NodeGroupArray[];
 extern __device__ signed char *NodeGroupMap;
@@ -74,7 +74,7 @@ __device__ void NestedLoopFunction0(int i_spike, int i_syn)
     ConnectionGroupTargetSpikeTime[i_conn*NSpikeBuffer+i_source][i_syn]
       = (unsigned short)(NeuronGPUTimeIdx & 0xffff);
     
-    int Dt_int = NeuronGPUTimeIdx - LastRevSpikeTimeIdx[i_target];
+    long long Dt_int = NeuronGPUTimeIdx - LastRevSpikeTimeIdx[i_target];
      if (Dt_int>0 && Dt_int<MAX_SYN_DT) {
        SynapseUpdate(syn_group, &ConnectionGroupTargetWeight
 		    [i_conn*NSpikeBuffer+i_source][i_syn],

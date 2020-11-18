@@ -22,14 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-extern __constant__ int NeuronGPUTimeIdx; // temporary for check, remove
-
 __global__ void SetFloatArray(float *arr, int n_elem, int step, float val);
 
 template<class DataStruct>
 __global__
-void ArrayInit(int array_size, int n_var, int n_param, float *x_arr,
-	       float *h_arr, float *y_arr, float *par_arr, float x_min,
+void ArrayInit(int array_size, int n_var, int n_param, double *x_arr,
+	       float *h_arr, float *y_arr, float *par_arr, double x_min,
 	       float h, DataStruct data_struct)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -43,8 +41,8 @@ void ArrayInit(int array_size, int n_var, int n_param, float *x_arr,
 
 template<class DataStruct>
 __global__
-void ArrayCalibrate(int array_size, int n_var, int n_param, float *x_arr,
-		    float *h_arr, float *y_arr, float *par_arr, float x_min,
+void ArrayCalibrate(int array_size, int n_var, int n_param, double *x_arr,
+		    float *h_arr, float *y_arr, float *par_arr, double x_min,
 		    float h, DataStruct data_struct)
 {
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -58,7 +56,7 @@ void ArrayCalibrate(int array_size, int n_var, int n_param, float *x_arr,
 
 template<int NVAR, int NPARAM, class DataStruct>
 __device__
-void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
+void RK5Step(double &x, float *y, float &h, float h_min, float h_max,
 	     float *param, DataStruct data_struct)
 {
   float y_new[NVAR];
@@ -150,12 +148,12 @@ void RK5Step(float &x, float *y, float &h, float h_min, float h_max,
 
 template<int NVAR, int NPARAM, class DataStruct>
 __device__
-void RK5Update(float &x, float *y, float x1, float &h, float h_min,
+void RK5Update(double &x, float *y, double x1, float &h, float h_min,
 	       float *param, DataStruct data_struct)
 {
   bool end_time_step=false;
   while(!end_time_step) {
-    float hmax=x1-x;
+    float hmax=(float)(x1-x);
     RK5Step<NVAR, NPARAM, DataStruct>(x, y, h, h_min, hmax, param,
 				       data_struct);
     end_time_step = (x >= x1-h_min);
@@ -165,12 +163,12 @@ void RK5Update(float &x, float *y, float x1, float &h, float h_min,
 
 template<int NVAR, int NPARAM, class DataStruct>
 __global__
-void ArrayUpdate(int array_size, float *x_arr, float *h_arr, float *y_arr,
-		 float *par_arr, float x1, float h_min, DataStruct data_struct)
+void ArrayUpdate(int array_size, double *x_arr, float *h_arr, float *y_arr,
+		 float *par_arr, double x1, float h_min, DataStruct data_struct)
 {
   int ArrayIdx = threadIdx.x + blockIdx.x * blockDim.x;
   if (ArrayIdx<array_size) {
-    float x = x_arr[ArrayIdx];
+    double x = x_arr[ArrayIdx];
     float h = h_arr[ArrayIdx];
     float y[NVAR];
     float param[NPARAM];
@@ -203,7 +201,7 @@ class RungeKutta5
   int n_var_;
   int n_param_;
     
-  float *d_XArr;
+  double *d_XArr;
   float *d_HArr;
   float *d_YArr;
   float *d_ParamArr;
@@ -212,22 +210,22 @@ class RungeKutta5
 
   ~RungeKutta5();
  
-  float *GetXArr() {return d_XArr;}
+  double *GetXArr() {return d_XArr;}
   float *GetHArr() {return d_HArr;}
   float *GetYArr() {return d_YArr;}
   float *GetParamArr() {return d_ParamArr;}
-  int Init(int array_size, int n_var, int n_param, float x_min, float h,
+  int Init(int array_size, int n_var, int n_param, double x_min, float h,
 	   DataStruct data_struct);
-  int Calibrate(float x_min, float h, DataStruct data_struct);
+  int Calibrate(double x_min, float h, DataStruct data_struct);
 
   int Free();
 
-  int GetX(int i_array, int n_elem, float *x);
+  int GetX(int i_array, int n_elem, double *x);
   int GetY(int i_var, int i_array, int n_elem, float *y);
   int SetParam(int i_param, int i_array, int n_param, int n_elem, float val);
   int SetVectParam(int i_param, int i_array, int n_param, int n_elem,
 		    float *param, int vect_size);
-  template<int NVAR, int NPARAM> int Update(float x1, float h_min,
+  template<int NVAR, int NPARAM> int Update(double x1, float h_min,
 					     DataStruct data_struct);
 
 };
@@ -235,7 +233,7 @@ class RungeKutta5
 
 template<class DataStruct>
 template<int NVAR, int NPARAM>
-  int RungeKutta5<DataStruct>::Update(float x1, float h_min,
+  int RungeKutta5<DataStruct>::Update(double x1, float h_min,
 				      DataStruct data_struct)
 {
   ArrayUpdate<NVAR, NPARAM, DataStruct><<<(array_size_+1023)/1024, 1024>>>
@@ -265,14 +263,14 @@ int RungeKutta5<DataStruct>::Free()
 
 template<class DataStruct>
 int RungeKutta5<DataStruct>::Init(int array_size, int n_var, int n_param,
-				  float x_min, float h,
+				  double x_min, float h,
 				  DataStruct data_struct)
 {
   array_size_ = array_size;
   n_var_ = n_var;
   n_param_ = n_param; 
 
-  gpuErrchk(cudaMalloc(&d_XArr, array_size_*sizeof(float)));
+  gpuErrchk(cudaMalloc(&d_XArr, array_size_*sizeof(double)));
   gpuErrchk(cudaMalloc(&d_HArr, array_size_*sizeof(float)));
   gpuErrchk(cudaMalloc(&d_YArr, array_size_*n_var_*sizeof(float)));
   gpuErrchk(cudaMalloc(&d_ParamArr, array_size_*n_param_*sizeof(float)));
@@ -287,7 +285,7 @@ int RungeKutta5<DataStruct>::Init(int array_size, int n_var, int n_param,
 }
 
 template<class DataStruct>
-int RungeKutta5<DataStruct>::Calibrate(float x_min, float h,
+int RungeKutta5<DataStruct>::Calibrate(double x_min, float h,
 				       DataStruct data_struct)
 {
   ArrayCalibrate<DataStruct><<<(array_size_+1023)/1024, 1024>>>
@@ -300,9 +298,9 @@ int RungeKutta5<DataStruct>::Calibrate(float x_min, float h,
 }
 
 template<class DataStruct>
-int RungeKutta5<DataStruct>::GetX(int i_array, int n_elem, float *x)
+int RungeKutta5<DataStruct>::GetX(int i_array, int n_elem, double *x)
 {
-  cudaMemcpy(x, &d_XArr[i_array], n_elem*sizeof(float),
+  cudaMemcpy(x, &d_XArr[i_array], n_elem*sizeof(double),
 	     cudaMemcpyDeviceToHost);
 
   return 0;

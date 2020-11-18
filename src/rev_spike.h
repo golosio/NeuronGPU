@@ -23,7 +23,7 @@ __global__ void RevSpikeReset();
 
 __global__ void RevSpikeBufferUpdate(unsigned int n_node);
 
-int RevSpikeInit(NetConnection *net_connection, int time_min_idx);
+int RevSpikeInit(NetConnection *net_connection);
 
 int RevSpikeFree();
 

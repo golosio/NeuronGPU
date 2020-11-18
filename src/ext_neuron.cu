@@ -84,7 +84,7 @@ int ext_neuron::Init(int i_node_0, int n_node, int n_port,
   return 0;
 }
 
-int ext_neuron::Update(int it, float t1) {
+int ext_neuron::Update(long long it, double t1) {
   // std::cout << "Ext neuron update\n";
   float *port_input_pt =  GetVarPt(0, "port_input", 0);
   float *port_value_pt =  GetVarPt(0, "port_value", 0);

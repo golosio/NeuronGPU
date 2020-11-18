@@ -137,7 +137,7 @@ const std::string user_m2_port_param_name[N_PORT_PARAM] = {
 
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
-    void Derivatives(float x, float *y, float *dydx, float *param,
+    void Derivatives(double x, float *y, float *dydx, float *param,
 		     user_m2_rk5 data_struct)
 {
   enum { n_port = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
@@ -163,7 +163,7 @@ __device__
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void ExternalUpdate
-    (float x, float *y, float *param, bool end_time_step,
+    (double x, float *y, float *param, bool end_time_step,
 			user_m2_rk5 data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
@@ -202,10 +202,10 @@ __device__
 };
 
 template <>
-int user_m2::UpdateNR<0>(int it, float t1);
+int user_m2::UpdateNR<0>(long long it, double t1);
 
 template<int N_PORT>
-int user_m2::UpdateNR(int it, float t1)
+int user_m2::UpdateNR(long long it, double t1)
 {
   if (N_PORT == n_port_) {
     const int NVAR = user_m2_ns::N_SCAL_VAR
@@ -224,7 +224,7 @@ int user_m2::UpdateNR(int it, float t1)
 
 template<int NVAR, int NPARAM>
 __device__
-void Derivatives(float x, float *y, float *dydx, float *param,
+void Derivatives(double x, float *y, float *dydx, float *param,
 		 user_m2_rk5 data_struct)
 {
     user_m2_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
@@ -233,7 +233,7 @@ void Derivatives(float x, float *y, float *dydx, float *param,
 
 template<int NVAR, int NPARAM>
 __device__
-void ExternalUpdate(float x, float *y, float *param, bool end_time_step,
+void ExternalUpdate(double x, float *y, float *param, bool end_time_step,
 		    user_m2_rk5 data_struct)
 {
     user_m2_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,

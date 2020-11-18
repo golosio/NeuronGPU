@@ -30,7 +30,7 @@ int NetConnection::Connect(int i_source, int i_target, unsigned char port,
     throw ngpu_exception("Delay must be >= time resolution");
   }
   //TEMPORARY, TO BE IMPROVED
-  if (syn_group==1) {
+  if (syn_group>=1) {
     ConnectionSpikeTimeFlag=true;
   }
   

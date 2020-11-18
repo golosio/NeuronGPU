@@ -35,7 +35,7 @@ const std::string spike_gen_array_param_name[N_SPIKE_GEN_ARRAY_PARAM]
 = {"spike_times", "spike_heights"};
 
 __global__
-void spike_generatorUpdate(int i_node_0, int n_node, int i_time,
+void spike_generatorUpdate(int i_node_0, int n_node, long long i_time,
 			  int *n_spikes, int *i_spike, int **spike_time_idx,
 			  float **spike_height)
 {
@@ -126,7 +126,7 @@ spike_generator::~spike_generator()
   }
 }
 
-int spike_generator::Update(int i_time, float /*t1*/)
+int spike_generator::Update(long long i_time, double /*t1*/)
 {
   spike_generatorUpdate<<<(n_node_+1023)/1024, 1024>>>
     (i_node_0_, n_node_, i_time, d_n_spikes_, d_i_spike_, d_spike_time_idx_,
@@ -188,7 +188,7 @@ int spike_generator::SetArrayParam(int *i_neuron, int n_neuron,
   return 0;
 }
 
-int spike_generator::Calibrate(float time_min, float time_resolution)
+int spike_generator::Calibrate(double time_min, float time_resolution)
 {
   for (int in=0; in<n_node_; in++) {
     unsigned int n_spikes = spike_time_vect_[in].size();
@@ -202,7 +202,7 @@ int spike_generator::Calibrate(float time_min, float time_resolution)
 			     "must have the same size in spike generator");
       }
       SetSpikes(in, n_spikes, spike_time_vect_[in].data(),
-		spike_height_vect_[in].data(), time_min, time_resolution);
+		spike_height_vect_[in].data(), (float)time_min, time_resolution);
     }
   }
   

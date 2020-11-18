@@ -51,8 +51,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 				    //#define VERBOSE_TIME
 
-__constant__ float NeuronGPUTime;
-__constant__ int NeuronGPUTimeIdx;
+__constant__ double NeuronGPUTime;
+__constant__ long long NeuronGPUTimeIdx;
 __constant__ float NeuronGPUTimeResolution;
 
 NeuronGPU::NeuronGPU()
@@ -283,7 +283,7 @@ int NeuronGPU::Calibrate()
 #endif
   
   if (net_connection_->NRevConnections()>0) {
-    RevSpikeInit(net_connection_, round(t_min_/time_resolution_)); 
+    RevSpikeInit(net_connection_); 
   }
   
   multimeter_->OpenFiles();
@@ -310,9 +310,9 @@ int NeuronGPU::Simulate()
 {
   StartSimulation();
   
-  for (int it=0; it<Nt_; it++) {
+  for (long long it=0; it<Nt_; it++) {
     if (it%100==0 && verbosity_level_>=2) {
-      printf("%.3f\n", neural_time_);
+      printf("%.3lf\n", neural_time_);
     }
     SimulationStep();
   }
@@ -327,7 +327,7 @@ int NeuronGPU::StartSimulation()
     Calibrate();
   }
   if (first_simulation_flag_) {
-    gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(float)));
+    gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(double)));
     multimeter_->WriteRecords(neural_time_);
     build_real_time_ = getRealTime();
     first_simulation_flag_ = false;
@@ -344,12 +344,12 @@ int NeuronGPU::StartSimulation()
 #else
     std::cout << "Simulating ...\n";
 #endif
-    printf("Neural activity simulation time: %.3f\n", sim_time_);
+    printf("Neural activity simulation time: %.3lf\n", sim_time_);
   }
   
   neur_t0_ = neural_time_;
   it_ = 0;
-  Nt_ = (int)round(sim_time_/time_resolution_);
+  Nt_ = (long long)round(sim_time_/time_resolution_);
   
   return 0;
 }
@@ -357,7 +357,7 @@ int NeuronGPU::StartSimulation()
 int NeuronGPU::EndSimulation()
 {
   if (verbosity_level_>=2) {
-    printf("%.3f\n", neural_time_);
+    printf("%.3lf\n", neural_time_);
   }
   end_real_time_ = getRealTime();
 
@@ -414,16 +414,18 @@ int NeuronGPU::SimulationStep()
     poisson_generator_time_ += (getRealTime() - time_mark);
   }
   time_mark = getRealTime();
-  neural_time_ = neur_t0_ + time_resolution_*(it_+1);
-  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(float)));
-  int time_idx = (int)round(neur_t0_/time_resolution_) + it_ + 1;
+  neural_time_ = neur_t0_ + (double)time_resolution_*(it_+1);
+  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(double)));
+  long long time_idx = (int)round(neur_t0_/time_resolution_) + it_ + 1;
   gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTimeIdx, &time_idx, sizeof(int)));
 
-  if ( (time_idx & 0xffff) == 0x8000) {
-    ResetConnectionSpikeTimeUp(net_connection_);
-  }
-  else if ( (time_idx & 0xffff) == 0) {
-    ResetConnectionSpikeTimeDown(net_connection_);
+  if (ConnectionSpikeTimeFlag) {
+    if ( (time_idx & 0xffff) == 0x8000) {
+      ResetConnectionSpikeTimeUp(net_connection_);
+    }
+    else if ( (time_idx & 0xffff) == 0) {
+      ResetConnectionSpikeTimeDown(net_connection_);
+    }
   }
     
   for (unsigned int i=0; i<node_vect_.size(); i++) {

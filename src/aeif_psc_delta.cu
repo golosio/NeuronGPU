@@ -23,7 +23,7 @@ namespace aeif_psc_delta_ns
 {
 
 __device__
-void NodeInit(int n_var, int n_param, float x, float *y, float *param,
+void NodeInit(int n_var, int n_param, double x, float *y, float *param,
 	      aeif_psc_delta_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -48,7 +48,7 @@ void NodeInit(int n_var, int n_param, float x, float *y, float *param,
 }
 
 __device__
-void NodeCalibrate(int n_var, int n_param, float x, float *y,
+void NodeCalibrate(int n_var, int n_param, double x, float *y,
 		       float *param, aeif_psc_delta_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -64,14 +64,14 @@ void NodeCalibrate(int n_var, int n_param, float x, float *y,
 }
 
 __device__
-void NodeInit(int n_var, int n_param, float x, float *y,
+void NodeInit(int n_var, int n_param, double x, float *y,
 	     float *param, aeif_psc_delta_rk5 data_struct)
 {
     aeif_psc_delta_ns::NodeInit(n_var, n_param, x, y, param, data_struct);
 }
 
 __device__
-void NodeCalibrate(int n_var, int n_param, float x, float *y,
+void NodeCalibrate(int n_var, int n_param, double x, float *y,
 		  float *param, aeif_psc_delta_rk5 data_struct)
 
 {
@@ -117,14 +117,14 @@ int aeif_psc_delta::Init(int i_node_0, int n_node, int n_port,
   return 0;
 }
 
-int aeif_psc_delta::Calibrate(float time_min, float /*time_resolution*/)
+int aeif_psc_delta::Calibrate(double time_min, float /*time_resolution*/)
 {
   rk5_.Calibrate(time_min, h_, rk5_data_struct_);
   
   return 0;
 }
 
-int aeif_psc_delta::Update(int it, float t1)
+int aeif_psc_delta::Update(long long it, double t1)
 {
   rk5_.Update<N_SCAL_VAR, N_SCAL_PARAM>(t1, h_min_, rk5_data_struct_);
  

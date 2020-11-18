@@ -123,7 +123,7 @@ const std::string aeif_psc_exp_port_param_name[N_PORT_PARAM] = {
 
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
-    void Derivatives(float x, float *y, float *dydx, float *param,
+    void Derivatives(double x, float *y, float *dydx, float *param,
 		     aeif_psc_exp_rk5 data_struct)
 {
   enum { n_port = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
@@ -149,7 +149,7 @@ __device__
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void ExternalUpdate
-    (float x, float *y, float *param, bool end_time_step,
+    (double x, float *y, float *param, bool end_time_step,
 			aeif_psc_exp_rk5 data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
@@ -188,10 +188,10 @@ __device__
 };
 
 template <>
-int aeif_psc_exp::UpdateNR<0>(int it, float t1);
+int aeif_psc_exp::UpdateNR<0>(long long it, double t1);
 
 template<int N_PORT>
-int aeif_psc_exp::UpdateNR(int it, float t1)
+int aeif_psc_exp::UpdateNR(long long it, double t1)
 {
   if (N_PORT == n_port_) {
     const int NVAR = aeif_psc_exp_ns::N_SCAL_VAR
@@ -210,7 +210,7 @@ int aeif_psc_exp::UpdateNR(int it, float t1)
 
 template<int NVAR, int NPARAM>
 __device__
-void Derivatives(float x, float *y, float *dydx, float *param,
+void Derivatives(double x, float *y, float *dydx, float *param,
 		 aeif_psc_exp_rk5 data_struct)
 {
     aeif_psc_exp_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
@@ -219,7 +219,7 @@ void Derivatives(float x, float *y, float *dydx, float *param,
 
 template<int NVAR, int NPARAM>
 __device__
-void ExternalUpdate(float x, float *y, float *param, bool end_time_step,
+void ExternalUpdate(double x, float *y, float *param, bool end_time_step,
 		    aeif_psc_exp_rk5 data_struct)
 {
     aeif_psc_exp_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,

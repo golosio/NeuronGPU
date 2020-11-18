@@ -41,11 +41,11 @@ class aeif_psc_exp : public BaseNeuron
   int Init(int i_node_0, int n_neuron, int n_port, int i_group,
 	   unsigned long long *seed);
 
-  int Calibrate(float time_min, float time_resolution);
+  int Calibrate(double time_min, float time_resolution);
 		
-  int Update(int it, float t1);
+  int Update(long long it, double t1);
   
-  int GetX(int i_neuron, int n_node, float *x) {
+  int GetX(int i_neuron, int n_node, double *x) {
     return rk5_.GetX(i_neuron, n_node, x);
   }
   
@@ -54,7 +54,7 @@ class aeif_psc_exp : public BaseNeuron
   }
   
   template<int N_PORT>
-    int UpdateNR(int it, float t1);
+    int UpdateNR(long long it, double t1);
 
 };
 

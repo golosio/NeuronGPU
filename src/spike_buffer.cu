@@ -29,8 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LAST_SPIKE_TIME_GUARD 0x70000000
 
-extern __constant__ float NeuronGPUTime;
-extern __constant__ int NeuronGPUTimeIdx;
+extern __constant__ double NeuronGPUTime;
+extern __constant__ long long NeuronGPUTimeIdx;
 extern __constant__ float NeuronGPUTimeResolution;
 extern __constant__ NodeGroupStruct NodeGroupArray[];
 extern __device__ signed char *NodeGroupMap;
@@ -44,11 +44,11 @@ bool ConnectionSpikeTimeFlag;
 float *d_LastSpikeHeight; // [NSpikeBuffer];
 __device__ float *LastSpikeHeight; //
 
-int *d_LastSpikeTimeIdx; // [NSpikeBuffer];
-__device__ int *LastSpikeTimeIdx; //
+long long *d_LastSpikeTimeIdx; // [NSpikeBuffer];
+__device__ long long *LastSpikeTimeIdx; //
 
-int *d_LastRevSpikeTimeIdx; // [NSpikeBuffer];
-__device__ int *LastRevSpikeTimeIdx; //
+long long *d_LastRevSpikeTimeIdx; // [NSpikeBuffer];
+__device__ long long *LastRevSpikeTimeIdx; //
 
 float *d_ConnectionWeight; // [NConnection];
 __device__ float *ConnectionWeight; //
@@ -258,7 +258,7 @@ __global__ void SpikeBufferUpdate()
   
   int Ns = SpikeBufferSize[i_spike_buffer]; // n. of spikes in buffer
   for (int is=0; is<Ns; is++) {
-    int i_arr = is*NSpikeBuffer+i_spike_buffer; // spike index in array
+    //int i_arr = is*NSpikeBuffer+i_spike_buffer; // spike index in array
     int i_conn = SpikeBufferConnIdx[is*NSpikeBuffer+i_spike_buffer];
     int spike_time_idx = SpikeBufferTimeIdx[is*NSpikeBuffer+i_spike_buffer];
     //if (i_spike_buffer==1) {
@@ -319,9 +319,10 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   int max_delay_num = net_connection->MaxDelayNum();
   //printf("mdn: %d\n", max_delay_num);
   
-  gpuErrchk(cudaMalloc(&d_LastSpikeTimeIdx, n_spike_buffers*sizeof(int)));
+  gpuErrchk(cudaMalloc(&d_LastSpikeTimeIdx, n_spike_buffers*sizeof(long long)));
   gpuErrchk(cudaMalloc(&d_LastSpikeHeight, n_spike_buffers*sizeof(float)));
-  gpuErrchk(cudaMalloc(&d_LastRevSpikeTimeIdx, n_spike_buffers*sizeof(int)));
+  gpuErrchk(cudaMalloc(&d_LastRevSpikeTimeIdx, n_spike_buffers
+		       *sizeof(long long)));
   
   unsigned int n_conn = net_connection->StoredNConnections();
   unsigned int *h_conn_target = new unsigned int[n_conn];
@@ -534,7 +535,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
 
 __global__ void DeviceSpikeBufferInit(int n_spike_buffers, int max_delay_num,
 				int max_spike_buffer_size,
-				int *last_spike_time_idx,
+				long long *last_spike_time_idx,
 				float *last_spike_height,
 				float *conn_weight,
 				unsigned char *conn_syn_group,
@@ -551,7 +552,7 @@ __global__ void DeviceSpikeBufferInit(int n_spike_buffers, int max_delay_num,
 				unsigned int *rev_conn,
 				int *target_rev_conn_size,
 				unsigned int **target_rev_conn,
-				int *last_rev_spike_time_idx)
+				long long *last_rev_spike_time_idx)
 {
   NSpikeBuffer = n_spike_buffers;
   MaxDelayNum = max_delay_num;

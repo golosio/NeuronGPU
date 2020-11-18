@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SPIKE_TIME_DIFF_GUARD 15000 // must be less than 16384
 #define SPIKE_TIME_DIFF_THR 10000 // must be less than GUARD
 
-extern __constant__ int NeuronGPUTimeIdx;
+extern __constant__ long long NeuronGPUTimeIdx;
 extern __constant__ float NeuronGPUTimeResolution;
 
 unsigned int *d_RevSpikeNum;
@@ -61,7 +61,7 @@ __global__ void RevSpikeBufferUpdate(unsigned int n_node)
   if (i_node >= n_node) {
     return;
   }
-  int target_spike_time_idx = LastRevSpikeTimeIdx[i_node];
+  long long target_spike_time_idx = LastRevSpikeTimeIdx[i_node];
   // Check if a spike reached the input synapses now
   if (target_spike_time_idx!=NeuronGPUTimeIdx) {
     return;
@@ -146,7 +146,7 @@ int ResetConnectionSpikeTimeDown(NetConnection *net_connection)
   return 0;
 }
 
-int RevSpikeInit(NetConnection *net_connection, int time_min_idx)
+int RevSpikeInit(NetConnection *net_connection)
 {
   int n_spike_buffers = net_connection->connection_.size();
   

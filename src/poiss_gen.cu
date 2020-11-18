@@ -40,7 +40,7 @@ __global__ void SetupPoissKernel(curandState *curand_state, uint64_t n_dir_conn,
   }
 }
 
-__global__ void PoissGenSendSpikeKernel(curandState *curand_state, float t,
+__global__ void PoissGenSendSpikeKernel(curandState *curand_state, double t,
 					float time_step, float *param_arr,
 					int n_param,
 					DirectConnection *dir_conn_array,
@@ -56,7 +56,7 @@ __global__ void PoissGenSendSpikeKernel(curandState *curand_state, float t,
     float weight = dir_conn.weight_;
     float delay = dir_conn.delay_;
     float *param = param_arr + irel*n_param;
-    float t_rel = t - origin - delay;
+    double t_rel = t - origin - delay;
 
     if ((t_rel>=start) && (t_rel<=stop)){
       int n = curand_poisson(curand_state+i_conn, time_step*rate);
@@ -94,7 +94,7 @@ int poiss_gen::Init(int i_node_0, int n_node, int /*n_port*/,
   return 0;
 }
 
-int poiss_gen::Calibrate(float, float)
+int poiss_gen::Calibrate(double, float)
 {
   cudaMalloc(&d_curand_state_, n_dir_conn_*sizeof(curandState));
 
@@ -123,12 +123,12 @@ int poiss_gen::Calibrate(float, float)
 }
 
 
-int poiss_gen::Update(int it, float t1)
+int poiss_gen::Update(long long it, double t1)
 {
   return 0;
 }
 
-int poiss_gen::SendDirectSpikes(float t, float time_step)
+int poiss_gen::SendDirectSpikes(double t, float time_step)
 {
   unsigned int grid_dim_x, grid_dim_y;
   

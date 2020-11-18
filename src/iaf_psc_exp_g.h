@@ -89,12 +89,12 @@ class iaf_psc_exp_g : public BaseNeuron
   
   int Init(int i_node_0, int n_neuron, int n_port, int i_group,
 	   unsigned long long *seed);
-  int Calibrate(float /*time_min*/, float time_res) {
+  int Calibrate(double /*time_min*/, float time_res) {
     time_resolution_ = time_res;
     return 0;
   }
   
-  int Update(int it, float t1);
+  int Update(long long it, double t1);
 
   int Free();
 

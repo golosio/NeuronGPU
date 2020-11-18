@@ -32,7 +32,7 @@ class parrot_neuron : public BaseNeuron
 
   int Free();
   
-  int Update(int it, float t1);
+  int Update(long long it, double t1);
 
 };
 

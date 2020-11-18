@@ -23,7 +23,7 @@ namespace aeif_psc_alpha_ns
 {
 
 __device__
-void NodeInit(int n_var, int n_param, float x, float *y, float *param,
+void NodeInit(int n_var, int n_param, double x, float *y, float *param,
 	      aeif_psc_alpha_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -54,7 +54,7 @@ void NodeInit(int n_var, int n_param, float x, float *y, float *param,
 }
 
 __device__
-void NodeCalibrate(int n_var, int n_param, float x, float *y,
+void NodeCalibrate(int n_var, int n_param, double x, float *y,
 		       float *param, aeif_psc_alpha_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -73,14 +73,14 @@ void NodeCalibrate(int n_var, int n_param, float x, float *y,
 }
 
 __device__
-void NodeInit(int n_var, int n_param, float x, float *y,
+void NodeInit(int n_var, int n_param, double x, float *y,
 	     float *param, aeif_psc_alpha_rk5 data_struct)
 {
     aeif_psc_alpha_ns::NodeInit(n_var, n_param, x, y, param, data_struct);
 }
 
 __device__
-void NodeCalibrate(int n_var, int n_param, float x, float *y,
+void NodeCalibrate(int n_var, int n_param, double x, float *y,
 		  float *param, aeif_psc_alpha_rk5 data_struct)
 
 {
@@ -128,7 +128,7 @@ int aeif_psc_alpha::Init(int i_node_0, int n_node, int n_port,
   return 0;
 }
 
-int aeif_psc_alpha::Calibrate(float time_min, float /*time_resolution*/)
+int aeif_psc_alpha::Calibrate(double time_min, float /*time_resolution*/)
 {
   rk5_.Calibrate(time_min, h_, rk5_data_struct_);
   
@@ -136,12 +136,12 @@ int aeif_psc_alpha::Calibrate(float time_min, float /*time_resolution*/)
 }
 
 template <>
-int aeif_psc_alpha::UpdateNR<0>(int it, float t1)
+int aeif_psc_alpha::UpdateNR<0>(long long it, double t1)
 {
   return 0;
 }
 
-int aeif_psc_alpha::Update(int it, float t1) {
+int aeif_psc_alpha::Update(long long it, double t1) {
   UpdateNR<MAX_PORT_NUM>(it, t1);
 
   return 0;

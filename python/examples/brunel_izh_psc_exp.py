@@ -25,18 +25,18 @@ CE = 80     # number of excitatory synapses per neuron
 CI = CE//4  # number of inhibitory synapses per neuron
 
 #fact=0.002
-fact=0.0055
+fact=0.35
 Wex = 0.5*fact
-Win = 3.5*fact
+Win = -3.5*fact
 
 tau_plus = 20.0
 tau_minus = 20.0
-lambd_in = -1.0
-lambd_ex = 1.0
+lambd_in = -0.001
+lambd_ex = 0.001
 alpha = 1.0
 mu_plus = 1.0
 mu_minus = 1.0
-Wmax = 0.001
+Wmax = 10.0
 
 syn_group_ex = ngpu.CreateSynGroup \
                ("stdp", {"tau_plus":tau_plus, "tau_minus":tau_minus, \
@@ -58,18 +58,11 @@ pg = ngpu.Create("poisson_generator")
 ngpu.SetStatus(pg, "rate", poiss_rate)
 
 # Create n_neurons neurons with n_receptor receptor ports
-neuron = ngpu.Create("user_m1", n_neurons, n_receptors)
+neuron = ngpu.Create("user_m2", n_neurons, n_receptors)
 exc_neuron = neuron[0:NE]      # excitatory neurons
 inh_neuron = neuron[NE:n_neurons]   # inhibitory neurons
   
 # receptor parameters
-E_rev = [0.0, -85.0]
-tau_decay = [1.0, 1.0]
-tau_rise = [1.0, 1.0]
-
-ngpu.SetStatus(neuron, {"E_rev":E_rev, "tau_decay":tau_decay,
-                        "tau_rise":tau_rise})
-ngpu.SetStatus(neuron, {"h_min_rel":0.1, "h0_rel":0.1})
 
 delay = 2.0
 

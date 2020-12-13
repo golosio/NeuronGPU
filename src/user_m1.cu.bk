@@ -29,23 +29,29 @@ void NodeInit(int n_var, int n_param, double x, float *y, float *param,
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
 
-  V_th = 30.0;
-  a = 0.02;
-  b = 0.2;
-  c = -65.0;
-  d = 8.0;
+  V_th = -50.4;
+  Delta_T = 2.0;
+  g_L = 30.0;
+  E_L = -70.6;
+  C_m = 281.0;
+  a = 4.0;
+  b = 80.5;
+  tau_w = 144.0;
   I_e = 0.0;
+  V_peak = 0.0;
+  V_reset = -60.0;
   t_ref = 0.0;
   den_delay = 0.0;
   
-  V_m = -70.0;
-  u = b*V_m;
+  V_m = E_L;
+  w = 0;
   refractory_step = 0;
   for (int i = 0; i<n_port; i++) {
     g(i) = 0;
     g1(i) = 0;
     E_rev(i) = 0.0;
-    tau_syn(i) = 2.0;
+    tau_decay(i) = 20.0;
+    tau_rise(i) = 2.0;
   }
 }
 
@@ -58,8 +64,25 @@ void NodeCalibrate(int n_var, int n_param, double x, float *y,
 
   refractory_step = 0;
   for (int i = 0; i<n_port; i++) {
-    // use normalization for alpha function
-    g0(i) = M_E / tau_syn(i);
+    // denominator is computed here to check that it is != 0
+    float denom1 = tau_decay(i) - tau_rise(i);
+    float denom2 = 0;
+    if (denom1 != 0) {
+      // peak time
+      float t_p = tau_decay(i)*tau_rise(i)
+	*log(tau_decay(i)/tau_rise(i)) / denom1;
+      // another denominator is computed here to check that it is != 0
+      denom2 = exp(-t_p / tau_decay(i))
+	- exp(-t_p / tau_rise(i));
+    }
+    if (denom2 == 0) { // if rise time == decay time use alpha function
+      // use normalization for alpha function in this case
+      g0(i) = M_E / tau_decay(i);
+    }
+    else { // if rise time != decay time use beta function
+      g0(i) // normalization factor for conductance
+	= ( 1. / tau_rise(i) - 1. / tau_decay(i) ) / denom2;
+    }
   }
 }
 

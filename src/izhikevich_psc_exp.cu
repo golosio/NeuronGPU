@@ -34,12 +34,13 @@ extern __constant__ float NeuronGPUTimeResolution;
 #define b_ group_param_[i_b]
 #define c_ group_param_[i_c]
 #define d_ group_param_[i_d]
+#define tau_syn_ group_param_[i_tau_syn]
 #define t_ref_ group_param_[i_t_ref]
 
 __global__ void user_m2_Update
 ( int n_node, int i_node_0, float *var_arr, float *param_arr, int n_var,
   int n_param, float V_th, float a, float b, float c, float d,
-  int n_refractory_steps, float h)
+  int n_refractory_steps, float h, float C_syn)
 {
   int i_neuron = threadIdx.x + blockIdx.x * blockDim.x;
   if (i_neuron<n_node) {
@@ -55,10 +56,11 @@ __global__ void user_m2_Update
       float u_old = u;
 
       V_m += h*(0.04 * v_old * v_old + 5.0 * v_old + 140.0 - u_old
-		+ I_e) + I_syn;
+		+ I_syn + I_e);
       u += h*a*(b*v_old - u_old);
     }
-    I_syn = 0;
+    // exponential decaying PSC
+    I_syn *= C_syn;
     
     if ( V_m >= V_th ) { // send spike
       PushSpike(i_node_0 + i_neuron, 1.0);
@@ -112,6 +114,7 @@ int user_m2::Init(int i_node_0, int n_node, int /*n_port*/,
   SetGroupParam("b", 0.2);
   SetGroupParam("c", -65.0);
   SetGroupParam("d", 8.0);
+  SetGroupParam("tau_syn", 0.5);
   SetGroupParam("t_ref", 0.0);
 
   // multiplication factor of input signal is always 1 for all nodes
@@ -134,11 +137,12 @@ int user_m2::Update(long long it, double t1)
 {
   // std::cout << "user_m2 neuron update\n";
   float h = time_resolution_;
+  float C_syn = exp( -h / tau_syn_ );
   int n_refractory_steps = int(round(t_ref_ / h));
 
   user_m2_Update<<<(n_node_+1023)/1024, 1024>>>
     (n_node_, i_node_0_, var_arr_, param_arr_, n_var_, n_param_,
-     V_th_, a_, b_, c_, d_, n_refractory_steps, h);
+     V_th_, a_, b_, c_, d_, n_refractory_steps, h, C_syn);
   //gpuErrchk( cudaDeviceSynchronize() );
   
   return 0;

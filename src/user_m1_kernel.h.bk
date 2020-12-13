@@ -29,7 +29,7 @@ namespace user_m1_ns
 {
 enum ScalVarIndexes {
   i_V_m = 0,
-  i_u,
+  i_w,
   N_SCAL_VAR
 };
 
@@ -41,11 +41,16 @@ enum PortVarIndexes {
 
 enum ScalParamIndexes {
   i_V_th = 0,
+  i_Delta_T,
+  i_g_L,
+  i_E_L,
+  i_C_m,
   i_a,
   i_b,
-  i_c,
-  i_d,
+  i_tau_w,
   i_I_e,
+  i_V_peak,
+  i_V_reset,
   i_t_ref,
   i_refractory_step,
   i_den_delay,
@@ -54,7 +59,8 @@ enum ScalParamIndexes {
 
 enum PortParamIndexes {
   i_E_rev = 0,
-  i_tau_syn,
+  i_tau_rise,
+  i_tau_decay,
   i_g0,
   N_PORT_PARAM
 };
@@ -68,7 +74,7 @@ enum GroupParamIndexes {
  
 const std::string user_m1_scal_var_name[N_SCAL_VAR] = {
   "V_m",
-  "u"
+  "w"
 };
 
 const std::string user_m1_port_var_name[N_PORT_VAR] = {
@@ -78,11 +84,16 @@ const std::string user_m1_port_var_name[N_PORT_VAR] = {
 
 const std::string user_m1_scal_param_name[N_SCAL_PARAM] = {
   "V_th",
+  "Delta_T",
+  "g_L",
+  "E_L",
+  "C_m",
   "a",
   "b",
-  "c",
-  "d",
+  "tau_w",
   "I_e",
+  "V_peak",
+  "V_reset",
   "t_ref",
   "refractory_step",
   "den_delay"
@@ -90,7 +101,8 @@ const std::string user_m1_scal_param_name[N_SCAL_PARAM] = {
 
 const std::string user_m1_port_param_name[N_PORT_PARAM] = {
   "E_rev",
-  "tau_syn",
+  "tau_rise",
+  "tau_decay",
   "g0"  
 };
 
@@ -106,27 +118,33 @@ const std::string user_m1_group_param_name[N_GROUP_PARAM] = {
 // For every rule there is some exceptions!
 //
 #define V_m y[i_V_m]
-#define u y[i_u]
+#define w y[i_w]
 #define g(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_g]
 #define g1(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_g1]
 
 #define dVdt dydx[i_V_m]
-#define dudt dydx[i_u]
+#define dwdt dydx[i_w]
 #define dgdt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g]
 #define dg1dt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g1]
 
 #define V_th param[i_V_th]
+#define Delta_T param[i_Delta_T]
+#define g_L param[i_g_L]
+#define E_L param[i_E_L]
+#define C_m param[i_C_m]
 #define a param[i_a]
 #define b param[i_b]
-#define c param[i_c]
-#define d param[i_d]
+#define tau_w param[i_tau_w]
 #define I_e param[i_I_e]
+#define V_peak param[i_V_peak]
+#define V_reset param[i_V_reset]
 #define t_ref param[i_t_ref]
 #define refractory_step param[i_refractory_step]
 #define den_delay param[i_den_delay]
 
 #define E_rev(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_E_rev]
-#define tau_syn(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_syn]
+#define tau_rise(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_rise]
+#define tau_decay(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_decay]
 #define g0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_g0]
 
 
@@ -142,20 +160,20 @@ __device__
   enum { n_port = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
   float I_syn = 0.0;
 
-  float V = ( refractory_step > 0 ) ? c :  V_m;
+  float V = ( refractory_step > 0 ) ? V_reset :  MIN(V_m, V_peak);
   for (int i = 0; i<n_port; i++) {
     I_syn += g(i)*(E_rev(i) - V);
   }
+  float V_spike = Delta_T*exp((V - V_th)/Delta_T);
 
   dVdt = ( refractory_step > 0 ) ? 0 :
-    0.04 * V * V + 5.0 * V + 140.0 - u + I_syn + I_e;
-  
-  dudt = a*(b*V - u);
-
+    ( -g_L*(V - E_L - V_spike) + I_syn - w + I_e) / C_m;
+  // Adaptation current w.
+  dwdt = (a*(V - E_L) - w) / tau_w;
   for (int i=0; i<n_port; i++) {
     // Synaptic conductance derivative
-    dg1dt(i) = -g1(i) / tau_syn(i);
-    dgdt(i) = g1(i) - g(i) / tau_syn(i);
+    dg1dt(i) = -g1(i) / tau_rise(i);
+    dgdt(i) = g1(i) - g(i) / tau_decay(i);
   }
 }
 
@@ -167,28 +185,28 @@ __device__
 {
   if ( V_m < -1.0e3) { // numerical instability
     printf("V_m out of lower bound\n");
-    V_m = c;
-    u=0;
+    V_m = V_reset;
+    w=0;
     return;
   }
-  if ( u < -1.0e6 || u > 1.0e6) { // numerical instability
-    printf("u out of bound\n");
-    V_m = c;
-    u=0;
+  if ( w < -1.0e6 || w > 1.0e6) { // numerical instability
+    printf("w out of bound\n");
+    V_m = V_reset;
+    w=0;
     return;
   }
   if (refractory_step > 0.0) {
-    V_m = c;
+    V_m = V_reset;
     if (end_time_step) {
       refractory_step -= 1.0;
     }
   }
   else {
-    if ( V_m >= V_th ) { // send spike
+    if ( V_m >= V_peak ) { // send spike
       int neuron_idx = threadIdx.x + blockIdx.x * blockDim.x;
       PushSpike(data_struct.i_node_0_ + neuron_idx, 1.0);
-      V_m = c;
-      u += d; // spike-driven adaptation
+      V_m = V_reset;
+      w += b; // spike-driven adaptation
       refractory_step = (int)round(t_ref/NeuronGPUTimeResolution);
       if (refractory_step<0) {
 	refractory_step = 0;

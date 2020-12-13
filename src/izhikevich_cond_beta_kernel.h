@@ -54,7 +54,8 @@ enum ScalParamIndexes {
 
 enum PortParamIndexes {
   i_E_rev = 0,
-  i_tau_syn,
+  i_tau_rise,
+  i_tau_decay,
   i_g0,
   N_PORT_PARAM
 };
@@ -90,7 +91,8 @@ const std::string user_m1_scal_param_name[N_SCAL_PARAM] = {
 
 const std::string user_m1_port_param_name[N_PORT_PARAM] = {
   "E_rev",
-  "tau_syn",
+  "tau_rise",
+  "tau_decay",
   "g0"  
 };
 
@@ -126,7 +128,8 @@ const std::string user_m1_group_param_name[N_GROUP_PARAM] = {
 #define den_delay param[i_den_delay]
 
 #define E_rev(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_E_rev]
-#define tau_syn(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_syn]
+#define tau_rise(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_rise]
+#define tau_decay(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_decay]
 #define g0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_g0]
 
 
@@ -154,8 +157,8 @@ __device__
 
   for (int i=0; i<n_port; i++) {
     // Synaptic conductance derivative
-    dg1dt(i) = -g1(i) / tau_syn(i);
-    dgdt(i) = g1(i) - g(i) / tau_syn(i);
+    dg1dt(i) = -g1(i) / tau_rise(i);
+    dgdt(i) = g1(i) - g(i) / tau_decay(i);
   }
 }
 

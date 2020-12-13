@@ -45,7 +45,8 @@ void NodeInit(int n_var, int n_param, double x, float *y, float *param,
     g(i) = 0;
     g1(i) = 0;
     E_rev(i) = 0.0;
-    tau_syn(i) = 2.0;
+    tau_decay(i) = 20.0;
+    tau_rise(i) = 2.0;
   }
 }
 
@@ -58,8 +59,25 @@ void NodeCalibrate(int n_var, int n_param, double x, float *y,
 
   refractory_step = 0;
   for (int i = 0; i<n_port; i++) {
-    // use normalization for alpha function
-    g0(i) = M_E / tau_syn(i);
+    // denominator is computed here to check that it is != 0
+    float denom1 = tau_decay(i) - tau_rise(i);
+    float denom2 = 0;
+    if (denom1 != 0) {
+      // peak time
+      float t_p = tau_decay(i)*tau_rise(i)
+	*log(tau_decay(i)/tau_rise(i)) / denom1;
+      // another denominator is computed here to check that it is != 0
+      denom2 = exp(-t_p / tau_decay(i))
+	- exp(-t_p / tau_rise(i));
+    }
+    if (denom2 == 0) { // if rise time == decay time use alpha function
+      // use normalization for alpha function in this case
+      g0(i) = M_E / tau_decay(i);
+    }
+    else { // if rise time != decay time use beta function
+      g0(i) // normalization factor for conductance
+	= ( 1. / tau_rise(i) - 1. / tau_decay(i) ) / denom2;
+    }
   }
 }
 

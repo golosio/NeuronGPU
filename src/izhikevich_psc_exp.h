@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace user_m2_ns
 {
 enum ScalVarIndexes {
-  i_I_syn = 0,        // input current
+  i_I_syn = 0,        // postsynaptic current for exc. inputs
   i_V_m,              // membrane potential
   i_u,
   i_refractory_step,  // refractory step counter
@@ -49,6 +49,7 @@ enum GroupParamIndexes {
   i_b,
   i_c,
   i_d,
+  i_tau_syn,         // Time constant of synaptic current in ms
   i_t_ref,           // Refractory period in ms
   N_GROUP_PARAM
 };
@@ -73,6 +74,7 @@ const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
   "b",
   "c",
   "d",
+  "tau_syn",
   "t_ref"
 };
  

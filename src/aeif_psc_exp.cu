@@ -88,24 +88,30 @@ using namespace aeif_psc_exp_ns;
 int aeif_psc_exp::Init(int i_node_0, int n_node, int n_port,
 			 int i_group, unsigned long long *seed) {
   BaseNeuron::Init(i_node_0, n_node, n_port, i_group, seed);
-  h_min_=1.0e-4;
-  h_ = 1.0e-2;
   node_type_ = i_aeif_psc_exp_model;
   n_scal_var_ = N_SCAL_VAR;
   n_port_var_ = N_PORT_VAR;
   n_scal_param_ = N_SCAL_PARAM;
   n_port_param_ = N_PORT_PARAM;
+  n_group_param_ = N_GROUP_PARAM;
 
   n_var_ = n_scal_var_ + n_port_var_*n_port;
   n_param_ = n_scal_param_ + n_port_param_*n_port;
 
+  group_param_ = new float[N_GROUP_PARAM];
+  
   scal_var_name_ = aeif_psc_exp_scal_var_name;
   port_var_name_= aeif_psc_exp_port_var_name;
   scal_param_name_ = aeif_psc_exp_scal_param_name;
   port_param_name_ = aeif_psc_exp_port_param_name;
+  group_param_name_ = aeif_psc_exp_group_param_name;
   //rk5_data_struct_.node_type_ = i_aeif_psc_exp_model;
   rk5_data_struct_.i_node_0_ = i_node_0_;
 
+  SetGroupParam("h_min_rel", 1.0e-3);
+  SetGroupParam("h0_rel",  1.0e-2);
+  h_ = h0_rel_* 0.1;
+  
   rk5_.Init(n_node, n_var_, n_param_, 0.0, h_, rk5_data_struct_);
   var_arr_ = rk5_.GetYArr();
   param_arr_ = rk5_.GetParamArr();
@@ -127,8 +133,10 @@ int aeif_psc_exp::Init(int i_node_0, int n_node, int n_port,
   return 0;
 }
 
-int aeif_psc_exp::Calibrate(double time_min, float /*time_resolution*/)
+int aeif_psc_exp::Calibrate(double time_min, float time_resolution)
 {
+  h_min_ = h_min_rel_* time_resolution;
+  h_ = h0_rel_* time_resolution;
   rk5_.Calibrate(time_min, h_, rk5_data_struct_);
   
   return 0;

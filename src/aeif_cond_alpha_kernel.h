@@ -64,6 +64,12 @@ enum PortParamIndexes {
   N_PORT_PARAM
 };
 
+enum GroupParamIndexes {
+  i_h_min_rel = 0,  // Min. step in ODE integr. relative to time resolution
+  i_h0_rel,         // Starting step in ODE integr. relative to time resolution
+  N_GROUP_PARAM
+};
+
 const std::string aeif_cond_alpha_scal_var_name[N_SCAL_VAR] = {
   "V_m",
   "w"
@@ -95,6 +101,11 @@ const std::string aeif_cond_alpha_port_param_name[N_PORT_PARAM] = {
   "E_rev",
   "tau_syn",
   "g0"  
+};
+
+const std::string aeif_cond_alpha_group_param_name[N_GROUP_PARAM] = {
+  "h_min_rel",
+  "h0_rel"
 };
 
 //
@@ -131,7 +142,10 @@ const std::string aeif_cond_alpha_port_param_name[N_PORT_PARAM] = {
 #define tau_syn(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_syn]
 #define g0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_g0]
 
+#define h_min_rel_ group_param_[i_h_min_rel]
+#define h0_rel_ group_param_[i_h0_rel]
 
+ 
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void Derivatives(double x, float *y, float *dydx, float *param,

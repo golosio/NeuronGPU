@@ -55,6 +55,13 @@ enum ScalParamIndexes {
   N_SCAL_PARAM
 };
 
+enum GroupParamIndexes {
+  i_h_min_rel = 0,  // Min. step in ODE integr. relative to time resolution
+  i_h0_rel,         // Starting step in ODE integr. relative to time resolution
+  N_GROUP_PARAM
+};
+
+
 const std::string aeif_psc_delta_scal_var_name[N_SCAL_VAR] = {
   "V_m",
   "w"
@@ -76,6 +83,12 @@ const std::string aeif_psc_delta_scal_param_name[N_SCAL_PARAM] = {
   "refractory_step",
   "den_delay"
 };
+
+const std::string aeif_psc_delta_group_param_name[N_GROUP_PARAM] = {
+  "h_min_rel",
+  "h0_rel"
+};
+
 
 //
 // I know that defines are "bad", but the defines below make the
@@ -103,6 +116,10 @@ const std::string aeif_psc_delta_scal_param_name[N_SCAL_PARAM] = {
 #define refractory_step param[i_refractory_step]
 #define den_delay param[i_den_delay]
 
+#define h_min_rel_ group_param_[i_h_min_rel]
+#define h0_rel_ group_param_[i_h0_rel]
+
+ 
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void Derivatives(double x, float *y, float *dydx, float *param,

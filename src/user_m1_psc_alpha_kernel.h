@@ -12,20 +12,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef USERM2KERNELH
-#define USERM2KERNELH
+#ifndef USERM1KERNELH
+#define USERM1KERNELH
 
 #include <string>
 #include <cmath>
 #include "spike_buffer.h"
 #include "node_group.h"
-#include "user_m2.h"
+#include "user_m1.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
 extern __constant__ float NeuronGPUTimeResolution;
 
-namespace user_m2_ns
+namespace user_m1_ns
 {
 enum ScalVarIndexes {
   i_V_m = 0,
@@ -34,8 +34,8 @@ enum ScalVarIndexes {
 };
 
 enum PortVarIndexes {
-  i_g = 0,
-  i_g1,
+  i_I_syn = 0,
+  i_I1_syn,
   N_PORT_VAR
 };
 
@@ -58,10 +58,8 @@ enum ScalParamIndexes {
 };
 
 enum PortParamIndexes {
-  i_E_rev = 0,
-  i_tau_rise,
-  i_tau_decay,
-  i_g0,
+  i_tau_syn = 0,
+  i_I0,
   N_PORT_PARAM
 };
 
@@ -72,17 +70,17 @@ enum GroupParamIndexes {
 };
 
 
-const std::string user_m2_scal_var_name[N_SCAL_VAR] = {
+const std::string user_m1_scal_var_name[N_SCAL_VAR] = {
   "V_m",
   "w"
 };
 
-const std::string user_m2_port_var_name[N_PORT_VAR] = {
-  "g",
-  "g1"
+const std::string user_m1_port_var_name[N_PORT_VAR] = {
+  "I_syn",
+  "I1_syn"
 };
 
-const std::string user_m2_scal_param_name[N_SCAL_PARAM] = {
+const std::string user_m1_scal_param_name[N_SCAL_PARAM] = {
   "V_th",
   "Delta_T",
   "g_L",
@@ -99,14 +97,12 @@ const std::string user_m2_scal_param_name[N_SCAL_PARAM] = {
   "den_delay"
 };
 
-const std::string user_m2_port_param_name[N_PORT_PARAM] = {
-  "E_rev",
-  "tau_rise",
-  "tau_decay",
-  "g0"  
+const std::string user_m1_port_param_name[N_PORT_PARAM] = {
+  "tau_syn",
+  "I0"
 };
 
-const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
+const std::string user_m1_group_param_name[N_GROUP_PARAM] = {
   "h_min_rel",
   "h0_rel"
 };
@@ -118,13 +114,14 @@ const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
 //
 #define V_m y[i_V_m]
 #define w y[i_w]
-#define g(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_g]
-#define g1(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_g1]
+#define I_syn(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_I_syn]
+#define I1_syn(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_I1_syn]
 
 #define dVdt dydx[i_V_m]
 #define dwdt dydx[i_w]
-#define dgdt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g]
-#define dg1dt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g1]
+#define dI_syndt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_I_syn]
+#define dI1_syndt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_I1_syn]
+#define I0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_I0]
 
 #define V_th param[i_V_th]
 #define Delta_T param[i_Delta_T]
@@ -141,37 +138,35 @@ const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
 #define refractory_step param[i_refractory_step]
 #define den_delay param[i_den_delay]
 
-#define E_rev(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_E_rev]
-#define tau_rise(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_rise]
-#define tau_decay(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_decay]
-#define g0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_g0]
+#define tau_syn(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_syn]
 
 #define h_min_rel_ group_param_[i_h_min_rel]
 #define h0_rel_ group_param_[i_h0_rel]
 
- 
+
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void Derivatives(double x, float *y, float *dydx, float *param,
-		     user_m2_rk5 data_struct)
+		     user_m1_rk5 data_struct)
 {
   enum { n_port = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
-  float I_syn = 0.0;
+  float I_syn_tot = 0.0;
+  
 
   float V = ( refractory_step > 0 ) ? V_reset :  MIN(V_m, V_peak);
   for (int i = 0; i<n_port; i++) {
-    I_syn += g(i)*(E_rev(i) - V);
+    I_syn_tot += I_syn(i);
   }
-  float V_spike = Delta_T*exp((V - V_th)/Delta_T);
+  float V_spike = Delta_T == 0. ? 0. : Delta_T*exp((V - V_th)/Delta_T);
 
   dVdt = ( refractory_step > 0 ) ? 0 :
-    ( -g_L*(V - E_L - V_spike) + I_syn - w + I_e) / C_m;
+    ( -g_L*(V - E_L - V_spike) + I_syn_tot - w + I_e) / C_m;
   // Adaptation current w.
   dwdt = (a*(V - E_L) - w) / tau_w;
   for (int i=0; i<n_port; i++) {
-    // Synaptic conductance derivative
-    dg1dt(i) = -g1(i) / tau_rise(i);
-    dgdt(i) = g1(i) - g(i) / tau_decay(i);
+    // Synaptic current derivatives
+    dI1_syndt(i) = -I1_syn(i)/tau_syn(i);
+    dI_syndt(i) = I1_syn(i) - I_syn(i)/tau_syn(i);
   }
 }
 
@@ -179,7 +174,7 @@ __device__
 __device__
     void ExternalUpdate
     (double x, float *y, float *param, bool end_time_step,
-			user_m2_rk5 data_struct)
+			user_m1_rk5 data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
     printf("V_m out of lower bound\n");
@@ -217,16 +212,16 @@ __device__
 };
 
 template <>
-int user_m2::UpdateNR<0>(long long it, double t1);
+int user_m1::UpdateNR<0>(long long it, double t1);
 
 template<int N_PORT>
-int user_m2::UpdateNR(long long it, double t1)
+int user_m1::UpdateNR(long long it, double t1)
 {
   if (N_PORT == n_port_) {
-    const int NVAR = user_m2_ns::N_SCAL_VAR
-      + user_m2_ns::N_PORT_VAR*N_PORT;
-    const int NPARAM = user_m2_ns::N_SCAL_PARAM
-      + user_m2_ns::N_PORT_PARAM*N_PORT;
+    const int NVAR = user_m1_ns::N_SCAL_VAR
+      + user_m1_ns::N_PORT_VAR*N_PORT;
+    const int NPARAM = user_m1_ns::N_SCAL_PARAM
+      + user_m1_ns::N_PORT_PARAM*N_PORT;
 
     rk5_.Update<NVAR, NPARAM>(t1, h_min_, rk5_data_struct_);
   }
@@ -240,18 +235,18 @@ int user_m2::UpdateNR(long long it, double t1)
 template<int NVAR, int NPARAM>
 __device__
 void Derivatives(double x, float *y, float *dydx, float *param,
-		 user_m2_rk5 data_struct)
+		 user_m1_rk5 data_struct)
 {
-    user_m2_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
+    user_m1_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
 						 data_struct);
 }
 
 template<int NVAR, int NPARAM>
 __device__
 void ExternalUpdate(double x, float *y, float *param, bool end_time_step,
-		    user_m2_rk5 data_struct)
+		    user_m1_rk5 data_struct)
 {
-    user_m2_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,
+    user_m1_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,
 						    end_time_step,
 						    data_struct);
 }

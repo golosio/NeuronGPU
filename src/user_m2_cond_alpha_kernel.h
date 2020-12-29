@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define USERM2KERNELH
 
 #include <string>
-#include <cmath>
+				    //#include <cmath>
 #include "spike_buffer.h"
 #include "node_group.h"
 #include "user_m2.h"
@@ -59,8 +59,7 @@ enum ScalParamIndexes {
 
 enum PortParamIndexes {
   i_E_rev = 0,
-  i_tau_rise,
-  i_tau_decay,
+  i_tau_syn,
   i_g0,
   N_PORT_PARAM
 };
@@ -70,7 +69,6 @@ enum GroupParamIndexes {
   i_h0_rel,         // Starting step in ODE integr. relative to time resolution
   N_GROUP_PARAM
 };
-
 
 const std::string user_m2_scal_var_name[N_SCAL_VAR] = {
   "V_m",
@@ -101,8 +99,7 @@ const std::string user_m2_scal_param_name[N_SCAL_PARAM] = {
 
 const std::string user_m2_port_param_name[N_PORT_PARAM] = {
   "E_rev",
-  "tau_rise",
-  "tau_decay",
+  "tau_syn",
   "g0"  
 };
 
@@ -142,8 +139,7 @@ const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
 #define den_delay param[i_den_delay]
 
 #define E_rev(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_E_rev]
-#define tau_rise(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_rise]
-#define tau_decay(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_decay]
+#define tau_syn(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_syn]
 #define g0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_g0]
 
 #define h_min_rel_ group_param_[i_h_min_rel]
@@ -166,12 +162,13 @@ __device__
 
   dVdt = ( refractory_step > 0 ) ? 0 :
     ( -g_L*(V - E_L - V_spike) + I_syn - w + I_e) / C_m;
+
   // Adaptation current w.
   dwdt = (a*(V - E_L) - w) / tau_w;
   for (int i=0; i<n_port; i++) {
     // Synaptic conductance derivative
-    dg1dt(i) = -g1(i) / tau_rise(i);
-    dgdt(i) = g1(i) - g(i) / tau_decay(i);
+    dg1dt(i) = -g1(i) / tau_syn(i);
+    dgdt(i) = g1(i) - g(i) / tau_syn(i);
   }
 }
 
@@ -205,7 +202,7 @@ __device__
       PushSpike(data_struct.i_node_0_ + neuron_idx, 1.0);
       V_m = V_reset;
       w += b; // spike-driven adaptation
-      refractory_step = (int)round(t_ref/NeuronGPUTimeResolution);
+      refractory_step = (int)::round(t_ref/NeuronGPUTimeResolution);
       if (refractory_step<0) {
 	refractory_step = 0;
       }

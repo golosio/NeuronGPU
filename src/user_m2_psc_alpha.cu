@@ -44,14 +44,12 @@ void NodeInit(int n_var, int n_param, double x, float *y, float *param,
   den_delay = 0.0;
   
   V_m = E_L;
-  w = 0;
+  w = 0.0;
   refractory_step = 0;
   for (int i = 0; i<n_port; i++) {
-    g(i) = 0;
-    g1(i) = 0;
-    E_rev(i) = 0.0;
-    tau_decay(i) = 20.0;
-    tau_rise(i) = 2.0;
+    I_syn(i) = 0.0;
+    I1_syn(i) = 0.0;
+    tau_syn(i) = 0.2;
   }
 }
 
@@ -63,31 +61,17 @@ void NodeCalibrate(int n_var, int n_param, double x, float *y,
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
 
   refractory_step = 0;
+  // set the right threshold depending on Delta_T
+  if (Delta_T <= 0.0) {
+    V_peak = V_th; // same as IAF dynamics for spikes if Delta_T == 0.
+  }
   for (int i = 0; i<n_port; i++) {
-    // denominator is computed here to check that it is != 0
-    float denom1 = tau_decay(i) - tau_rise(i);
-    float denom2 = 0;
-    if (denom1 != 0) {
-      // peak time
-      float t_p = tau_decay(i)*tau_rise(i)
-	*log(tau_decay(i)/tau_rise(i)) / denom1;
-      // another denominator is computed here to check that it is != 0
-      denom2 = exp(-t_p / tau_decay(i))
-	- exp(-t_p / tau_rise(i));
-    }
-    if (denom2 == 0) { // if rise time == decay time use alpha function
-      // use normalization for alpha function in this case
-      g0(i) = M_E / tau_decay(i);
-    }
-    else { // if rise time != decay time use beta function
-      g0(i) // normalization factor for conductance
-	= ( 1. / tau_rise(i) - 1. / tau_decay(i) ) / denom2;
-    }
+    I0(i) = M_E / tau_syn(i);
   }
 }
 
 }
-			    
+
 __device__
 void NodeInit(int n_var, int n_param, double x, float *y,
 	     float *param, user_m2_rk5 data_struct)
@@ -131,18 +115,18 @@ int user_m2::Init(int i_node_0, int n_node, int n_port,
   SetGroupParam("h_min_rel", 1.0e-3);
   SetGroupParam("h0_rel",  1.0e-2);
   h_ = h0_rel_* 0.1;
-  
+
   rk5_.Init(n_node, n_var_, n_param_, 0.0, h_, rk5_data_struct_);
   var_arr_ = rk5_.GetYArr();
   param_arr_ = rk5_.GetParamArr();
 
   port_weight_arr_ = GetParamArr() + n_scal_param_
-    + GetPortParamIdx("g0");
+    + GetPortParamIdx("I0");
   port_weight_arr_step_ = n_param_;
   port_weight_port_step_ = n_port_param_;
-
+  
   port_input_arr_ = GetVarArr() + n_scal_var_
-    + GetPortVarIdx("g1");
+    + GetPortVarIdx("I1_syn");
   port_input_arr_step_ = n_var_;
   port_input_port_step_ = n_port_var_;
   den_delay_arr_ =  GetParamArr() + GetScalParamIdx("den_delay");

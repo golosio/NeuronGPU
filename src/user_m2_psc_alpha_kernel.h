@@ -34,8 +34,8 @@ enum ScalVarIndexes {
 };
 
 enum PortVarIndexes {
-  i_g = 0,
-  i_g1,
+  i_I_syn = 0,
+  i_I1_syn,
   N_PORT_VAR
 };
 
@@ -58,10 +58,8 @@ enum ScalParamIndexes {
 };
 
 enum PortParamIndexes {
-  i_E_rev = 0,
-  i_tau_rise,
-  i_tau_decay,
-  i_g0,
+  i_tau_syn = 0,
+  i_I0,
   N_PORT_PARAM
 };
 
@@ -78,8 +76,8 @@ const std::string user_m2_scal_var_name[N_SCAL_VAR] = {
 };
 
 const std::string user_m2_port_var_name[N_PORT_VAR] = {
-  "g",
-  "g1"
+  "I_syn",
+  "I1_syn"
 };
 
 const std::string user_m2_scal_param_name[N_SCAL_PARAM] = {
@@ -100,10 +98,8 @@ const std::string user_m2_scal_param_name[N_SCAL_PARAM] = {
 };
 
 const std::string user_m2_port_param_name[N_PORT_PARAM] = {
-  "E_rev",
-  "tau_rise",
-  "tau_decay",
-  "g0"  
+  "tau_syn",
+  "I0"
 };
 
 const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
@@ -118,13 +114,14 @@ const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
 //
 #define V_m y[i_V_m]
 #define w y[i_w]
-#define g(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_g]
-#define g1(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_g1]
+#define I_syn(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_I_syn]
+#define I1_syn(i) y[N_SCAL_VAR + N_PORT_VAR*i + i_I1_syn]
 
 #define dVdt dydx[i_V_m]
 #define dwdt dydx[i_w]
-#define dgdt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g]
-#define dg1dt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_g1]
+#define dI_syndt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_I_syn]
+#define dI1_syndt(i) dydx[N_SCAL_VAR + N_PORT_VAR*i + i_I1_syn]
+#define I0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_I0]
 
 #define V_th param[i_V_th]
 #define Delta_T param[i_Delta_T]
@@ -141,37 +138,35 @@ const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
 #define refractory_step param[i_refractory_step]
 #define den_delay param[i_den_delay]
 
-#define E_rev(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_E_rev]
-#define tau_rise(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_rise]
-#define tau_decay(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_decay]
-#define g0(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_g0]
+#define tau_syn(i) param[N_SCAL_PARAM + N_PORT_PARAM*i + i_tau_syn]
 
 #define h_min_rel_ group_param_[i_h_min_rel]
 #define h0_rel_ group_param_[i_h0_rel]
 
- 
+
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void Derivatives(double x, float *y, float *dydx, float *param,
 		     user_m2_rk5 data_struct)
 {
   enum { n_port = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
-  float I_syn = 0.0;
+  float I_syn_tot = 0.0;
+  
 
   float V = ( refractory_step > 0 ) ? V_reset :  MIN(V_m, V_peak);
   for (int i = 0; i<n_port; i++) {
-    I_syn += g(i)*(E_rev(i) - V);
+    I_syn_tot += I_syn(i);
   }
-  float V_spike = Delta_T*exp((V - V_th)/Delta_T);
+  float V_spike = Delta_T == 0. ? 0. : Delta_T*exp((V - V_th)/Delta_T);
 
   dVdt = ( refractory_step > 0 ) ? 0 :
-    ( -g_L*(V - E_L - V_spike) + I_syn - w + I_e) / C_m;
+    ( -g_L*(V - E_L - V_spike) + I_syn_tot - w + I_e) / C_m;
   // Adaptation current w.
   dwdt = (a*(V - E_L) - w) / tau_w;
   for (int i=0; i<n_port; i++) {
-    // Synaptic conductance derivative
-    dg1dt(i) = -g1(i) / tau_rise(i);
-    dgdt(i) = g1(i) - g(i) / tau_decay(i);
+    // Synaptic current derivatives
+    dI1_syndt(i) = -I1_syn(i)/tau_syn(i);
+    dI_syndt(i) = I1_syn(i) - I_syn(i)/tau_syn(i);
   }
 }
 

@@ -12,28 +12,28 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef USERM2RK5H
-#define USERM2RK5H
+#ifndef USERM1RK5H
+#define USERM1RK5H
 
-struct user_m2_rk5;
+struct user_m1_rk5;
 
 
 template<int NVAR, int NPARAM>
 __device__
 void Derivatives(double x, float *y, float *dydx, float *param,
-		 user_m2_rk5 data_struct);
+		 user_m1_rk5 data_struct);
 
 template<int NVAR, int NPARAM>
 __device__
 void ExternalUpdate(double x, float *y, float *param, bool end_time_step,
-		    user_m2_rk5 data_struct);
+		    user_m1_rk5 data_struct);
 
 __device__
 void NodeInit(int n_var, int n_param, double x, float *y,
-	      float *param, user_m2_rk5 data_struct);
+	      float *param, user_m1_rk5 data_struct);
 
 __device__
 void NodeCalibrate(int n_var, int n_param, double x, float *y,
-		   float *param, user_m2_rk5 data_struct);
+		   float *param, user_m1_rk5 data_struct);
 
 #endif

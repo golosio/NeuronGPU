@@ -12,102 +12,50 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// adapted from:
-// https://github.com/nest/nest-simulator/blob/master/models/user_m1.h
-
-
 #ifndef USERM1H
 #define USERM1H
 
 #include <iostream>
 #include <string>
 #include "cuda_error.h"
+#include "rk5.h"
 #include "node_group.h"
 #include "base_neuron.h"
 #include "neuron_models.h"
 
+#define MAX_PORT_NUM 20
 
-namespace user_m1_ns
+struct user_m1_rk5
 {
-enum ScalVarIndexes {
-  i_I_syn_ex = 0,        // postsynaptic current for exc. inputs
-  i_I_syn_in,            // postsynaptic current for inh. inputs
-  i_V_m_rel,                 // membrane potential
-  i_refractory_step,     // refractory step counter
-  N_SCAL_VAR
+  int i_node_0_;
 };
 
-enum ScalParamIndexes {
-  i_tau_m = 0,       // Membrane time constant in ms
-  i_C_m,             // Membrane capacitance in pF
-  i_E_L,             // Resting potential in mV
-  i_I_e,             // External current in pA
-  i_Theta_rel,       // Threshold, RELATIVE TO RESTING POTENTAIL(!)
-                     // i.e. the real threshold is (E_L_+Theta_rel_)
-  i_V_reset_rel,     // relative reset value of the membrane potential
-  i_tau_ex,          // Time constant of excitatory synaptic current in ms
-  i_tau_in,          // Time constant of inhibitory synaptic current in ms
-  // i_rho,          // Stochastic firing intensity at threshold in 1/s
-  // i_delta,        // Width of threshold region in mV
-  i_t_ref,           // Refractory period in ms
-  i_den_delay, // dendritic backpropagation delay
-  // time evolution operator
-  i_P20,
-  i_P11ex,
-  i_P11in,
-  i_P21ex,
-  i_P21in,
-  i_P22,
-  N_SCAL_PARAM
-};
-
- 
-const std::string user_m1_scal_var_name[N_SCAL_VAR] = {
-  "I_syn_ex",
-  "I_syn_in",
-  "V_m_rel",
-  "refractory_step"
-};
-
-
-const std::string user_m1_scal_param_name[N_SCAL_PARAM] = {
-  "tau_m",
-  "C_m",
-  "E_L",
-  "I_e",
-  "Theta_rel",
-  "V_reset_rel",
-  "tau_ex",
-  "tau_in",
-  // "rho",
-  //"delta",
-  "t_ref",
-  "den_delay",
-  "P20",
-  "P11ex",
-  "P11in",
-  "P21ex",
-  "P21in",
-  "P22"
-};
-
-} // namespace
- 
 class user_m1 : public BaseNeuron
 {
  public:
-  ~user_m1();
-  
+  RungeKutta5<user_m1_rk5> rk5_;
+  float h_min_;
+  float h_;
+  user_m1_rk5 rk5_data_struct_;
+    
   int Init(int i_node_0, int n_neuron, int n_port, int i_group,
 	   unsigned long long *seed);
 
-  int Calibrate(double, float time_resolution);
+  int Calibrate(double time_min, float time_resolution);
 		
   int Update(long long it, double t1);
-
-  int Free();
+  
+  int GetX(int i_neuron, int n_node, double *x) {
+    return rk5_.GetX(i_neuron, n_node, x);
+  }
+  
+  int GetY(int i_var, int i_neuron, int n_node, float *y) {
+    return rk5_.GetY(i_var, i_neuron, n_node, y);
+  }
+  
+  template<int N_PORT>
+    int UpdateNR(long long it, double t1);
 
 };
-
 
 #endif

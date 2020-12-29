@@ -26,7 +26,7 @@ done
 for syn in psc_exp psc_exp_g; do
     SYN=$(echo $syn | tr 'a-z' 'A-Z' | tr -d '_')
 
-    umf=user_m1_$syn
+    umf=user_m1_iaf_$syn
     um=user_m1
     UM=USERM1
     for fn in $(ls iaf_${syn}*.cu iaf_${syn}*.h); do
@@ -36,7 +36,7 @@ for syn in psc_exp psc_exp_g; do
 		  $fn1
     done
 	      
-    umf=user_m2_$syn
+    umf=user_m2_iaf_$syn
     um=user_m2
     UM=USERM2
     for fn in $(ls iaf_${syn}*.cu iaf_${syn}*.h); do

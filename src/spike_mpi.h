@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -12,9 +12,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef HAVE_MPI
 #ifndef SPIKEMPIH
 #define SPIKEMPIH
+
+__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
+                                    float *spike_height);
+
+__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id);
+
+
+#ifdef HAVE_MPI
 
 extern __constant__ bool NeuronGPUMpiFlag;
 
@@ -75,11 +82,6 @@ __global__ void DeviceExternalSpikeInit(int n_hosts,
 					int **ext_node_target_host_id,
 					int **ext_node_id
 					);
-
-__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
-                                    float *spike_height);
-
-__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id);
 
 #endif
 #endif

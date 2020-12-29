@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Bruno Golosio
+Copyright (C) 2020 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -14,15 +14,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <config.h>
 
-#ifdef HAVE_MPI
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "cuda_error.h"
 #include "spike_buffer.h"
+
 #include "spike_mpi.h"
 #include "connect_mpi.h"
+
+
+__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
+           float *spike_height)
+{
+  int i_spike = threadIdx.x + blockIdx.x * blockDim.x;
+  if (i_spike<n_spikes) {
+    int isb = spike_buffer_id[i_spike];
+    float height = spike_height[i_spike];
+    PushSpike(isb, height);
+  }
+}
+
+__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id)
+{
+  int i_spike = threadIdx.x + blockIdx.x * blockDim.x;
+  if (i_spike<n_spikes) {
+    int isb = spike_buffer_id[i_spike];
+    PushSpike(isb, 1.0);
+  }
+}
+
+#ifdef HAVE_MPI
 
 __constant__ bool NeuronGPUMpiFlag;
 
@@ -286,26 +308,6 @@ int ConnectMpi::RecvSpikeFromRemote(int i_host, int max_spike_per_host)
 
   //delete[] h_ExternalSourceSpikeNum;
   return 0;
-}
-
-__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
-           float *spike_height)
-{
-  int i_spike = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i_spike<n_spikes) {
-    int isb = spike_buffer_id[i_spike];
-    float height = spike_height[i_spike];
-    PushSpike(isb, height);
-  }
-}
-
-__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id)
-{
-  int i_spike = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i_spike<n_spikes) {
-    int isb = spike_buffer_id[i_spike];
-    PushSpike(isb, 1.0);
-  }
 }
 
 #endif

@@ -34,10 +34,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "nested_loop.h"
 #include "dir_connect.h"
 #include "rev_spike.h"
+#include "spike_mpi.h"
 
 #ifdef HAVE_MPI
 #include <mpi.h>
-#include "spike_mpi.h"
 #endif
 
 #ifdef _OPENMP

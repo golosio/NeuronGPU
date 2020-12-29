@@ -12,8 +12,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef USERM1H
-#define USERM1H
+#ifndef IZHIKEVICHCONDBETAH
+#define IZHIKEVICHCONDBETAH
 
 #include <iostream>
 #include <string>
@@ -25,18 +25,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_PORT_NUM 20
 
-struct user_m1_rk5
+struct izhikevich_cond_beta_rk5
 {
   int i_node_0_;
 };
 
-class user_m1 : public BaseNeuron
+class izhikevich_cond_beta : public BaseNeuron
 {
  public:
-  RungeKutta5<user_m1_rk5> rk5_;
+  RungeKutta5<izhikevich_cond_beta_rk5> rk5_;
   float h_min_;
   float h_;
-  user_m1_rk5 rk5_data_struct_;
+  izhikevich_cond_beta_rk5 rk5_data_struct_;
     
   int Init(int i_node_0, int n_neuron, int n_port, int i_group,
 	   unsigned long long *seed);

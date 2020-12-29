@@ -25,7 +25,7 @@ CE = 80     # number of excitatory synapses per neuron
 CI = CE//4  # number of inhibitory synapses per neuron
 
 #fact=0.002
-fact=0.35
+fact=0.44
 Wex = 0.5*fact
 Win = -3.5*fact
 
@@ -58,7 +58,7 @@ pg = ngpu.Create("poisson_generator")
 ngpu.SetStatus(pg, "rate", poiss_rate)
 
 # Create n_neurons neurons with n_receptor receptor ports
-neuron = ngpu.Create("user_m2", n_neurons, n_receptors)
+neuron = ngpu.Create("izhikevich_psc_exp_5s", n_neurons, n_receptors)
 exc_neuron = neuron[0:NE]      # excitatory neurons
 inh_neuron = neuron[NE:n_neurons]   # inhibitory neurons
   

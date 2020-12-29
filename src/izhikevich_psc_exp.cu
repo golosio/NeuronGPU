@@ -15,10 +15,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <config.h>
 #include <cmath>
 #include <iostream>
-#include "user_m2.h"
+#include "izhikevich_psc_exp.h"
 #include "spike_buffer.h"
 
-using namespace user_m2_ns;
+using namespace izhikevich_psc_exp_ns;
 
 extern __constant__ float NeuronGPUTimeResolution;
 
@@ -37,7 +37,7 @@ extern __constant__ float NeuronGPUTimeResolution;
 #define tau_syn_ group_param_[i_tau_syn]
 #define t_ref_ group_param_[i_t_ref]
 
-__global__ void user_m2_Update
+__global__ void izhikevich_psc_exp_Update
 ( int n_node, int i_node_0, float *var_arr, float *param_arr, int n_var,
   int n_param, float V_th, float a, float b, float c, float d,
   int n_refractory_steps, float h, float C_syn)
@@ -75,17 +75,17 @@ __global__ void user_m2_Update
 }
 
 
-user_m2::~user_m2()
+izhikevich_psc_exp::~izhikevich_psc_exp()
 {
   FreeVarArr();
   FreeParamArr();
 }
 
-int user_m2::Init(int i_node_0, int n_node, int /*n_port*/,
+int izhikevich_psc_exp::Init(int i_node_0, int n_node, int /*n_port*/,
 			   int i_group, unsigned long long *seed)
 {
   BaseNeuron::Init(i_node_0, n_node, 1 /*n_port*/, i_group, seed);
-  node_type_ = i_user_m2_model;
+  node_type_ = i_izhikevich_psc_exp_model;
 
   n_scal_var_ = N_SCAL_VAR;
   n_var_ = n_scal_var_;
@@ -97,9 +97,9 @@ int user_m2::Init(int i_node_0, int n_node, int /*n_port*/,
   AllocVarArr();
   group_param_ = new float[N_GROUP_PARAM];
 
-  scal_var_name_ = user_m2_scal_var_name;
-  scal_param_name_ = user_m2_scal_param_name;
-  group_param_name_ = user_m2_group_param_name;
+  scal_var_name_ = izhikevich_psc_exp_scal_var_name;
+  scal_param_name_ = izhikevich_psc_exp_scal_param_name;
+  group_param_name_ = izhikevich_psc_exp_group_param_name;
 
   SetScalParam(0, n_node, "I_e", 0.0 );              // in pA
   SetScalParam(0, n_node, "den_delay", 0.0 );        // in ms
@@ -133,14 +133,14 @@ int user_m2::Init(int i_node_0, int n_node, int /*n_port*/,
   return 0;
 }
 
-int user_m2::Update(long long it, double t1)
+int izhikevich_psc_exp::Update(long long it, double t1)
 {
-  // std::cout << "user_m2 neuron update\n";
+  // std::cout << "izhikevich_psc_exp neuron update\n";
   float h = time_resolution_;
   float C_syn = exp( -h / tau_syn_ );
   int n_refractory_steps = int(round(t_ref_ / h));
 
-  user_m2_Update<<<(n_node_+1023)/1024, 1024>>>
+  izhikevich_psc_exp_Update<<<(n_node_+1023)/1024, 1024>>>
     (n_node_, i_node_0_, var_arr_, param_arr_, n_var_, n_param_,
      V_th_, a_, b_, c_, d_, n_refractory_steps, h, C_syn);
   //gpuErrchk( cudaDeviceSynchronize() );
@@ -148,7 +148,7 @@ int user_m2::Update(long long it, double t1)
   return 0;
 }
 
-int user_m2::Free()
+int izhikevich_psc_exp::Free()
 {
   FreeVarArr();  
   FreeParamArr();

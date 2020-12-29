@@ -433,6 +433,12 @@ $(top_srcdir)/src/spike_mpi.h \
 $(top_srcdir)/src/stdp.h \
 $(top_srcdir)/src/syn_model.h \
 $(top_srcdir)/src/test_syn_model.h \
+$(top_srcdir)/src/izhikevich_cond_beta.h \
+$(top_srcdir)/src/izhikevich_cond_beta_kernel.h \
+$(top_srcdir)/src/izhikevich_cond_beta_rk5.h \
+$(top_srcdir)/src/izhikevich.h \
+$(top_srcdir)/src/izhikevich_psc_exp.h \
+$(top_srcdir)/src/izhikevich_psc_exp_5s.h \
 $(top_srcdir)/src/user_m1.h \
 $(top_srcdir)/src/user_m1_kernel.h \
 $(top_srcdir)/src/user_m1_rk5.h \
@@ -479,6 +485,10 @@ $(top_srcdir)/src/spike_mpi.cu \
 $(top_srcdir)/src/stdp.cu \
 $(top_srcdir)/src/syn_model.cu \
 $(top_srcdir)/src/test_syn_model.cu \
+$(top_srcdir)/src/izhikevich_cond_beta.cu \
+$(top_srcdir)/src/izhikevich.cu \
+$(top_srcdir)/src/izhikevich_psc_exp_5s.cu \
+$(top_srcdir)/src/izhikevich_psc_exp.cu \
 $(top_srcdir)/src/user_m1.cu \
 $(top_srcdir)/src/user_m2.cu
 

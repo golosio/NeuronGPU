@@ -2,7 +2,7 @@ import sys
 import neurongpu as ngpu
 import numpy as np
 tolerance = 0.0005
-neuron = ngpu.Create('user_m1', 1, 3)
+neuron = ngpu.Create('izhikevich_cond_beta', 1, 3)
 #ngpu.SetStatus(neuron, {'u':-0.2*70.0, 'V_m':-70.0})
 ngpu.SetStatus(neuron, {'E_rev':[20.0, 0.0, -85.0], \
                         'tau_decay':[40.0, 20.0, 30.0], \

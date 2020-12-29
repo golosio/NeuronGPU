@@ -15,10 +15,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <config.h>
 #include <cmath>
 #include <iostream>
-#include "user_m2.h"
+#include "izhikevich.h"
 #include "spike_buffer.h"
 
-using namespace user_m2_ns;
+using namespace izhikevich_ns;
 
 extern __constant__ float NeuronGPUTimeResolution;
 
@@ -36,7 +36,7 @@ extern __constant__ float NeuronGPUTimeResolution;
 #define d_ group_param_[i_d]
 #define t_ref_ group_param_[i_t_ref]
 
-__global__ void user_m2_Update
+__global__ void izhikevich_Update
 ( int n_node, int i_node_0, float *var_arr, float *param_arr, int n_var,
   int n_param, float V_th, float a, float b, float c, float d,
   int n_refractory_steps, float h)
@@ -73,17 +73,17 @@ __global__ void user_m2_Update
 }
 
 
-user_m2::~user_m2()
+izhikevich::~izhikevich()
 {
   FreeVarArr();
   FreeParamArr();
 }
 
-int user_m2::Init(int i_node_0, int n_node, int /*n_port*/,
+int izhikevich::Init(int i_node_0, int n_node, int /*n_port*/,
 			   int i_group, unsigned long long *seed)
 {
   BaseNeuron::Init(i_node_0, n_node, 1 /*n_port*/, i_group, seed);
-  node_type_ = i_user_m2_model;
+  node_type_ = i_izhikevich_model;
 
   n_scal_var_ = N_SCAL_VAR;
   n_var_ = n_scal_var_;
@@ -95,9 +95,9 @@ int user_m2::Init(int i_node_0, int n_node, int /*n_port*/,
   AllocVarArr();
   group_param_ = new float[N_GROUP_PARAM];
 
-  scal_var_name_ = user_m2_scal_var_name;
-  scal_param_name_ = user_m2_scal_param_name;
-  group_param_name_ = user_m2_group_param_name;
+  scal_var_name_ = izhikevich_scal_var_name;
+  scal_param_name_ = izhikevich_scal_param_name;
+  group_param_name_ = izhikevich_group_param_name;
 
   SetScalParam(0, n_node, "I_e", 0.0 );              // in pA
   SetScalParam(0, n_node, "den_delay", 0.0 );        // in ms
@@ -130,13 +130,13 @@ int user_m2::Init(int i_node_0, int n_node, int /*n_port*/,
   return 0;
 }
 
-int user_m2::Update(long long it, double t1)
+int izhikevich::Update(long long it, double t1)
 {
-  // std::cout << "user_m2 neuron update\n";
+  // std::cout << "izhikevich neuron update\n";
   float h = time_resolution_;
   int n_refractory_steps = int(round(t_ref_ / h));
 
-  user_m2_Update<<<(n_node_+1023)/1024, 1024>>>
+  izhikevich_Update<<<(n_node_+1023)/1024, 1024>>>
     (n_node_, i_node_0_, var_arr_, param_arr_, n_var_, n_param_,
      V_th_, a_, b_, c_, d_, n_refractory_steps, h);
   //gpuErrchk( cudaDeviceSynchronize() );
@@ -144,7 +144,7 @@ int user_m2::Update(long long it, double t1)
   return 0;
 }
 
-int user_m2::Free()
+int izhikevich::Free()
 {
   FreeVarArr();  
   FreeParamArr();

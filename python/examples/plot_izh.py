@@ -2,7 +2,7 @@ import sys
 import neurongpu as ngpu
 import numpy as np
 tolerance = 0.0005
-neuron = ngpu.Create('user_m2', 1)
+neuron = ngpu.Create('izhikevich', 1)
 #ngpu.SetStatus(neuron, {"tau_syn": 1.0e-6})
 spike = ngpu.Create("spike_generator")
 spike_times = [10.0, 40.0]

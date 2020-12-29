@@ -15,16 +15,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <config.h>
 #include <cmath>
 #include <iostream>
-#include "user_m1_kernel.h"
+#include "izhikevich_cond_beta_kernel.h"
 #include "rk5.h"
-#include "user_m1.h"
+#include "izhikevich_cond_beta.h"
 
-namespace user_m1_ns
+namespace izhikevich_cond_beta_ns
 {
 
 __device__
 void NodeInit(int n_var, int n_param, double x, float *y, float *param,
-	      user_m1_rk5 data_struct)
+	      izhikevich_cond_beta_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
@@ -52,7 +52,7 @@ void NodeInit(int n_var, int n_param, double x, float *y, float *param,
 
 __device__
 void NodeCalibrate(int n_var, int n_param, double x, float *y,
-		       float *param, user_m1_rk5 data_struct)
+		       float *param, izhikevich_cond_beta_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
@@ -85,26 +85,27 @@ void NodeCalibrate(int n_var, int n_param, double x, float *y,
 			    
 __device__
 void NodeInit(int n_var, int n_param, double x, float *y,
-	     float *param, user_m1_rk5 data_struct)
+	     float *param, izhikevich_cond_beta_rk5 data_struct)
 {
-    user_m1_ns::NodeInit(n_var, n_param, x, y, param, data_struct);
+    izhikevich_cond_beta_ns::NodeInit(n_var, n_param, x, y, param, data_struct);
 }
 
 __device__
 void NodeCalibrate(int n_var, int n_param, double x, float *y,
-		  float *param, user_m1_rk5 data_struct)
+		  float *param, izhikevich_cond_beta_rk5 data_struct)
 
 {
-    user_m1_ns::NodeCalibrate(n_var, n_param, x, y, param, data_struct);
+    izhikevich_cond_beta_ns::NodeCalibrate(n_var, n_param, x, y, param,
+					   data_struct);
 }
 
-using namespace user_m1_ns;
+using namespace izhikevich_cond_beta_ns;
 
-int user_m1::Init(int i_node_0, int n_node, int n_port,
+int izhikevich_cond_beta::Init(int i_node_0, int n_node, int n_port,
 			 int i_group, unsigned long long *seed) {
   BaseNeuron::Init(i_node_0, n_node, n_port, i_group, seed);
   
-  node_type_ = i_user_m1_model;
+  node_type_ = i_izhikevich_cond_beta_model;
   n_scal_var_ = N_SCAL_VAR;
   n_port_var_ = N_PORT_VAR;
   n_scal_param_ = N_SCAL_PARAM;
@@ -116,12 +117,12 @@ int user_m1::Init(int i_node_0, int n_node, int n_port,
 
   group_param_ = new float[N_GROUP_PARAM];
 
-  scal_var_name_ = user_m1_scal_var_name;
-  port_var_name_= user_m1_port_var_name;
-  scal_param_name_ = user_m1_scal_param_name;
-  port_param_name_ = user_m1_port_param_name;
-  group_param_name_ = user_m1_group_param_name;
-  //rk5_data_struct_.node_type_ = i_user_m1_model;
+  scal_var_name_ = izhikevich_cond_beta_scal_var_name;
+  port_var_name_= izhikevich_cond_beta_port_var_name;
+  scal_param_name_ = izhikevich_cond_beta_scal_param_name;
+  port_param_name_ = izhikevich_cond_beta_port_param_name;
+  group_param_name_ = izhikevich_cond_beta_group_param_name;
+  //rk5_data_struct_.node_type_ = i_izhikevich_cond_beta_model;
   rk5_data_struct_.i_node_0_ = i_node_0_;
 
   SetGroupParam("h_min_rel", 1.0e-3);
@@ -146,7 +147,7 @@ int user_m1::Init(int i_node_0, int n_node, int n_port,
   return 0;
 }
 
-int user_m1::Calibrate(double time_min, float time_resolution)
+int izhikevich_cond_beta::Calibrate(double time_min, float time_resolution)
 {
   h_min_ = h_min_rel_* time_resolution;
   h_ = h0_rel_* time_resolution;
@@ -156,12 +157,12 @@ int user_m1::Calibrate(double time_min, float time_resolution)
 }
 
 template <>
-int user_m1::UpdateNR<0>(long long it, double t1)
+int izhikevich_cond_beta::UpdateNR<0>(long long it, double t1)
 {
   return 0;
 }
 
-int user_m1::Update(long long it, double t1) {
+int izhikevich_cond_beta::Update(long long it, double t1) {
   UpdateNR<MAX_PORT_NUM>(it, t1);
 
   return 0;

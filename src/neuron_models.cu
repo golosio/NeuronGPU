@@ -33,6 +33,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "spike_generator.h"
 #include "parrot_neuron.h"
 #include "spike_detector.h"
+#include "izhikevich_cond_beta.h"
+#include "izhikevich.h"
+#include "izhikevich_psc_exp_5s.h"
+#include "izhikevich_psc_exp.h"
 #include "user_m1.h"
 #include "user_m2.h"
 
@@ -114,10 +118,26 @@ NodeSeq NeuronGPU::Create(std::string model_name, int n_node /*=1*/,
     spike_detector *spike_detector_group = new spike_detector;
     node_vect_.push_back(spike_detector_group);
   }
+  else if (model_name == neuron_model_name[i_izhikevich_model]) {
+    izhikevich *izhikevich_group = new izhikevich;
+    node_vect_.push_back(izhikevich_group);
+  }
+  else if (model_name == neuron_model_name[i_izhikevich_cond_beta_model]) {
+    izhikevich_cond_beta *izhikevich_cond_beta_group = new izhikevich_cond_beta;
+    node_vect_.push_back(izhikevich_cond_beta_group);
+  }
+  else if (model_name == neuron_model_name[i_izhikevich_psc_exp_5s_model]) {
+    izhikevich_psc_exp_5s *izhikevich_psc_exp_5s_group =
+      new izhikevich_psc_exp_5s;
+    node_vect_.push_back(izhikevich_psc_exp_5s_group);
+  }
+  else if (model_name == neuron_model_name[i_izhikevich_psc_exp_model]) {
+    izhikevich_psc_exp *izhikevich_psc_exp_group = new izhikevich_psc_exp;
+    node_vect_.push_back(izhikevich_psc_exp_group);
+  }
   else {
     throw ngpu_exception(std::string("Unknown neuron model name: ")
 			 + model_name);
   }
   return NodeSeq(CreateNodeGroup(n_node, n_port), n_node);
 }
-

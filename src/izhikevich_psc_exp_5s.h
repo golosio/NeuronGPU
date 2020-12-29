@@ -12,12 +12,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// adapted from:
-// https://github.com/nest/nest-simulator/blob/master/models/iaf_psc_exp.h
 
-
-#ifndef IAFPSCEXPGH
-#define IAFPSCEXPgH
+#ifndef IZHIKEVICHPSCEXP5SH
+#define IZHIKEVICHPSCEXP5SH
 
 #include <iostream>
 #include <string>
@@ -27,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "neuron_models.h"
 
 
-namespace user_m2_ns
+namespace izhikevich_psc_exp_5s_ns
 {
 enum ScalVarIndexes {
   i_I_syn = 0,        // postsynaptic current for exc. inputs
@@ -56,19 +53,19 @@ enum GroupParamIndexes {
 
 
  
-const std::string user_m2_scal_var_name[N_SCAL_VAR] = {
+const std::string izhikevich_psc_exp_5s_scal_var_name[N_SCAL_VAR] = {
   "I_syn",
   "V_m",
   "u",
   "refractory_step"
 };
 
-const std::string user_m2_scal_param_name[N_SCAL_PARAM] = {
+const std::string izhikevich_psc_exp_5s_scal_param_name[N_SCAL_PARAM] = {
   "I_e",
   "den_delay"
 };
 
-const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
+const std::string izhikevich_psc_exp_5s_group_param_name[N_GROUP_PARAM] = {
   "V_th",
   "a",
   "b",
@@ -83,12 +80,12 @@ const std::string user_m2_group_param_name[N_GROUP_PARAM] = {
 
 
 
-class user_m2 : public BaseNeuron
+class izhikevich_psc_exp_5s : public BaseNeuron
 {
   float time_resolution_;
 
  public:
-  ~user_m2();
+  ~izhikevich_psc_exp_5s();
   
   int Init(int i_node_0, int n_neuron, int n_port, int i_group,
 	   unsigned long long *seed);

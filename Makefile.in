@@ -258,6 +258,7 @@ ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
+GPU_ARCH = @GPU_ARCH@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -482,7 +483,7 @@ $(top_srcdir)/src/user_m1.cu \
 $(top_srcdir)/src/user_m2.cu
 
 COMPILER_FLAGS = -O3 -Wall -fPIC
-CUDA_FLAGS = -arch sm_30 --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true
+CUDA_FLAGS = -arch $(GPU_ARCH) --ptxas-options=-v --maxrregcount=55 --relocatable-device-code true
 CUDA_LIBS = -lm -lcurand
 lib_LTLIBRARIES = libneurongpu.la
 all: config.h

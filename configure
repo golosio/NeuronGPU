@@ -641,6 +641,7 @@ MPI_CXXFLAGS
 MPI_CXXLIBS
 MPILIBS
 MPICC
+GPU_ARCH
 CDLIBPATH
 CDINCPATH
 pkgpyexecdir
@@ -796,6 +797,7 @@ enable_dependency_tracking
 enable_silent_rules
 enable_openmp
 with_cuda
+with_gpu_arch
 with_mpi
 '
       ac_precious_vars='build_alias
@@ -1468,6 +1470,8 @@ Optional Packages:
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
  --with-cuda=PREFIX Prefix of your CUDA installation
+  --with-gpu-arch=GPU architecture
+                          Specify the GPU compute capability [default=sm_35]
   --with-mpi              enable MPI support [default=yes]
 
 Some influential environment variables:
@@ -17149,6 +17153,17 @@ fi
 
 # check for CUDA SDK
 #CT_CHECK_CUDA_SDK
+
+GPU_ARCH=sm_35
+
+# Check whether --with-gpu-arch was given.
+if test "${with_gpu_arch+set}" = set; then :
+  withval=$with_gpu_arch; GPU_ARCH=$withval
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: GPU architecture: ${GPU_ARCH}" >&5
+$as_echo "$as_me: GPU architecture: ${GPU_ARCH}" >&6;}
 
 
 # Check whether --with-mpi was given.

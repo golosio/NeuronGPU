@@ -77,6 +77,13 @@ CT_CHECK_CUDA_API
 # check for CUDA SDK
 #CT_CHECK_CUDA_SDK
 
+GPU_ARCH=sm_35
+AC_ARG_WITH(gpu-arch, [AC_HELP_STRING([--with-gpu-arch=GPU architecture],
+[Specify the GPU compute capability [default=sm_35]])],
+[GPU_ARCH=$withval])
+AC_SUBST(GPU_ARCH)
+AC_MSG_NOTICE(GPU architecture: ${GPU_ARCH})
+
 dnl Check for MPI
 dnl This check will set the MPICC and MPICXX variables to the MPI compiler ones
 dnl if the library is found, or to the regular compilers if not.

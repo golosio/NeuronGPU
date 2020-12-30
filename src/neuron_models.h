@@ -23,8 +23,8 @@ enum NeuronModels {
   i_poisson_generator_model, i_spike_generator_model, i_parrot_neuron_model,
   i_spike_detector_model,
   i_izhikevich_cond_beta_model, i_izhikevich_model,
-  i_izhikevich_psc_exp_5s_model, i_izhikevich_psc_exp_model,
-  i_user_m1_model, i_user_m2_model,
+  i_izhikevich_psc_exp_5s_model, i_izhikevich_psc_exp_2s_model,
+  i_izhikevich_psc_exp_model, i_user_m1_model, i_user_m2_model,
   N_NEURON_MODELS
 };
 
@@ -34,7 +34,7 @@ const std::string neuron_model_name[N_NEURON_MODELS] = {
   "aeif_psc_delta", "poisson_generator", "spike_generator",
   "parrot_neuron", "spike_detector",
   "izhikevich_cond_beta", "izhikevich", "izhikevich_psc_exp_5s",
-  "izhikevich_psc_exp", "user_m1", "user_m2"
+  "izhikevich_psc_exp_2s", "izhikevich_psc_exp", "user_m1", "user_m2"
 };
 
 #endif

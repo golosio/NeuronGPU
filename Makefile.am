@@ -73,6 +73,7 @@ $(top_srcdir)/src/izhikevich_cond_beta_rk5.h \
 $(top_srcdir)/src/izhikevich.h \
 $(top_srcdir)/src/izhikevich_psc_exp.h \
 $(top_srcdir)/src/izhikevich_psc_exp_5s.h \
+$(top_srcdir)/src/izhikevich_psc_exp_2s.h \
 $(top_srcdir)/src/user_m1.h \
 $(top_srcdir)/src/user_m1_kernel.h \
 $(top_srcdir)/src/user_m1_rk5.h \
@@ -122,6 +123,7 @@ $(top_srcdir)/src/test_syn_model.cu \
 $(top_srcdir)/src/izhikevich_cond_beta.cu \
 $(top_srcdir)/src/izhikevich.cu \
 $(top_srcdir)/src/izhikevich_psc_exp_5s.cu \
+$(top_srcdir)/src/izhikevich_psc_exp_2s.cu \
 $(top_srcdir)/src/izhikevich_psc_exp.cu \
 $(top_srcdir)/src/user_m1.cu \
 $(top_srcdir)/src/user_m2.cu

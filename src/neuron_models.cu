@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "izhikevich_cond_beta.h"
 #include "izhikevich.h"
 #include "izhikevich_psc_exp_5s.h"
+#include "izhikevich_psc_exp_2s.h"
 #include "izhikevich_psc_exp.h"
 #include "user_m1.h"
 #include "user_m2.h"
@@ -130,6 +131,11 @@ NodeSeq NeuronGPU::Create(std::string model_name, int n_node /*=1*/,
     izhikevich_psc_exp_5s *izhikevich_psc_exp_5s_group =
       new izhikevich_psc_exp_5s;
     node_vect_.push_back(izhikevich_psc_exp_5s_group);
+  }
+  else if (model_name == neuron_model_name[i_izhikevich_psc_exp_2s_model]) {
+    izhikevich_psc_exp_2s *izhikevich_psc_exp_2s_group =
+      new izhikevich_psc_exp_2s;
+    node_vect_.push_back(izhikevich_psc_exp_2s_group);
   }
   else if (model_name == neuron_model_name[i_izhikevich_psc_exp_model]) {
     izhikevich_psc_exp *izhikevich_psc_exp_group = new izhikevich_psc_exp;

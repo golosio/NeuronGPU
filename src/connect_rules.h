@@ -119,6 +119,38 @@ int NeuronGPU::_SingleConnect(T1 source, int i_source, T2 target, int i_target,
   throw ngpu_exception("Unknown type for _SingleConnect template");
 }
 
+template<class T>
+int NeuronGPU::_RemoteSingleConnect(int i_source, T target, int i_target,
+				    int i_array, SynSpec &syn_spec)
+{
+  float weight;
+  if (syn_spec.weight_array_ != NULL) {
+    weight = syn_spec.weight_array_[i_array];
+  }
+  else {
+    weight = syn_spec.weight_;
+  }
+  float delay;
+  if (syn_spec.delay_array_ != NULL) {
+    delay = syn_spec.delay_array_[i_array];
+  }
+  else {
+    delay = syn_spec.delay_;
+  }
+  return _RemoteSingleConnect<T>(i_source, target, i_target,
+				 weight, delay, i_array, syn_spec);
+}
+
+template<class T>
+int NeuronGPU::_RemoteSingleConnect(int i_source, T target, int i_target,
+				    float weight, float delay, int i_array,
+				    SynSpec &syn_spec)
+{
+  throw ngpu_exception("Unknown type for _RemoteSingleConnect template");
+}
+
+
+
 
 template <class T1, class T2>
 int NeuronGPU::_ConnectOneToOne(T1 source, T2 target, int n_node,
@@ -422,29 +454,19 @@ template <class T1, class T2>
   }
   else if (MpiId()==source.i_host_ || MpiId()==target.i_host_) {
     int *i_remote_node_arr = new int[n_node];
-    int i_new_remote_node;
     if (MpiId() == target.i_host_) {
-      i_new_remote_node = net_connection_->connection_.size();
-      connect_mpi_->MPI_Send_int(&i_new_remote_node, 1, source.i_host_);
-      connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, source.i_host_);
-
-      BaseNeuron *bn = new BaseNeuron;
-      node_vect_.push_back(bn);
-      int n_remote_node = i_new_remote_node
-	- net_connection_->connection_.size();
-
-      CreateNodeGroup(n_remote_node, 0);	
-      
-      connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_node,
-				 source.i_host_);
+      connect_mpi_->MPI_Send_int(&n_remote_node_, 1, source.i_host_);
+      connect_mpi_->MPI_Recv_int(&n_remote_node_, 1, source.i_host_);
+      connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_node, source.i_host_);
 
       for (int in=0; in<n_node; in++) {
 	int i_remote_node = i_remote_node_arr[in];
-	_SingleConnect<int,T2>(i_remote_node, 0, target.i_node_, in,
-			       in, syn_spec);
+	_RemoteSingleConnect<T2>(i_remote_node, target.i_node_, in,
+				 in, syn_spec);
       }
     }
     else if (MpiId() == source.i_host_) {
+      int i_new_remote_node;
       connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, target.i_host_);
       for (int in=0; in<n_node; in++) {
 	int i_source_node = source.GetINode(in);
@@ -488,19 +510,9 @@ template <class T1, class T2>
   }
   else if (MpiId()==source.i_host_ || MpiId()==target.i_host_) {
     int *i_remote_node_arr = new int[n_target*n_source];
-    int i_new_remote_node;
     if (MpiId() == target.i_host_) {
-      i_new_remote_node = net_connection_->connection_.size();
-      connect_mpi_->MPI_Send_int(&i_new_remote_node, 1, source.i_host_);
-      connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, source.i_host_);
-
-      BaseNeuron *bn = new BaseNeuron;
-      node_vect_.push_back(bn);
-      int n_remote_node = i_new_remote_node
-	- net_connection_->connection_.size();
-
-      CreateNodeGroup(n_remote_node, 0);	
-      
+      connect_mpi_->MPI_Send_int(&n_remote_node_, 1, source.i_host_);
+      connect_mpi_->MPI_Recv_int(&n_remote_node_, 1, source.i_host_);
       connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_target*n_source,
 				 source.i_host_);
 
@@ -508,12 +520,13 @@ template <class T1, class T2>
 	for (int i=0; i<n_source; i++) {
       	  int i_remote_node = i_remote_node_arr[k*n_source+i];
 	  size_t i_array = (size_t)k*n_source + i;
-	  _SingleConnect<int,T2>(i_remote_node, 0, target.i_node_, k,
-	  			 i_array, syn_spec);
+	  _RemoteSingleConnect<T2>(i_remote_node, target.i_node_, k,
+				   i_array, syn_spec);
 	}
       }
     }
     else if (MpiId() == source.i_host_) {
+      int i_new_remote_node;
       connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, target.i_host_);
       for (int k=0; k<n_target; k++) {
 	for (int i=0; i<n_source; i++) {
@@ -560,28 +573,20 @@ template <class T1, class T2>
   unsigned int *rnd = RandomInt(2*n_conn);
   if (MpiId()==source.i_host_ || MpiId()==target.i_host_) {
     int *i_remote_node_arr = new int[n_conn];
-    int i_new_remote_node;
     if (MpiId() == target.i_host_) {
-      i_new_remote_node = net_connection_->connection_.size();
-      connect_mpi_->MPI_Send_int(&i_new_remote_node, 1, source.i_host_);
-      connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, source.i_host_);
-      BaseNeuron *bn = new BaseNeuron;
-      node_vect_.push_back(bn);
-      int n_remote_node = i_new_remote_node
-	- net_connection_->connection_.size();
-
-      CreateNodeGroup(n_remote_node, 0);	
+      connect_mpi_->MPI_Send_int(&n_remote_node_, 1, source.i_host_);
+      connect_mpi_->MPI_Recv_int(&n_remote_node_, 1, source.i_host_);
+      connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_conn, source.i_host_);
       
-      connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_conn,
-				 source.i_host_);
       for (int i_conn=0; i_conn<n_conn; i_conn++) {
 	int i_remote_node = i_remote_node_arr[i_conn];
 	int itn = rnd[2*i_conn+1] % n_target;
-	_SingleConnect<int,T2>(i_remote_node, 0, target.i_node_, itn,
+	_RemoteSingleConnect<T2>(i_remote_node, target.i_node_, itn,
 			       i_conn, syn_spec);
       }
     }
     else if (MpiId() == source.i_host_) {
+      int i_new_remote_node;
       connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, target.i_host_);
       for (int i_conn=0; i_conn<n_conn; i_conn++) {
 	int isn = rnd[2*i_conn] % n_source;
@@ -631,18 +636,9 @@ template <class T1, class T2>
   }
   else if (MpiId()==source.i_host_ || MpiId()==target.i_host_) {
     int *i_remote_node_arr = new int[n_target*indegree];
-    int i_new_remote_node;
     if (MpiId() == target.i_host_) {
-      i_new_remote_node = net_connection_->connection_.size();
-      connect_mpi_->MPI_Send_int(&i_new_remote_node, 1, source.i_host_);
-      connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, source.i_host_);
-
-      BaseNeuron *bn = new BaseNeuron;
-      node_vect_.push_back(bn);
-      int n_remote_node = i_new_remote_node
-	- net_connection_->connection_.size();
-      CreateNodeGroup(n_remote_node, 0);	
-      
+      connect_mpi_->MPI_Send_int(&n_remote_node_, 1, source.i_host_);
+      connect_mpi_->MPI_Recv_int(&n_remote_node_, 1, source.i_host_);
       connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_target*indegree,
 				 source.i_host_);
 
@@ -650,13 +646,14 @@ template <class T1, class T2>
 	for (int i=0; i<indegree; i++) {
       	  int i_remote_node = i_remote_node_arr[k*indegree+i];
 	  size_t i_array = (size_t)k*indegree + i;
-	  _SingleConnect<int,T2>(i_remote_node, 0, target.i_node_, k,
-	  			 i_array, syn_spec);
+	  _RemoteSingleConnect<T2>(i_remote_node, target.i_node_, k,
+				   i_array, syn_spec);
 	  
 	}
       }
     }
     else if (MpiId() == source.i_host_) {
+      int i_new_remote_node;
       connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, target.i_host_);
       int n_rnd = indegree;
       if (n_source>=method_thresh*indegree) { // choose method
@@ -752,17 +749,9 @@ template <class T1, class T2>
   }
   else if (MpiId()==source.i_host_ || MpiId()==target.i_host_) {
     int *i_remote_node_arr = new int[n_source];
-    int i_new_remote_node;
     if (MpiId() == target.i_host_) {
-      i_new_remote_node = net_connection_->connection_.size();
-      connect_mpi_->MPI_Send_int(&i_new_remote_node, 1, source.i_host_);
-      connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, source.i_host_);
-      BaseNeuron *bn = new BaseNeuron;
-      node_vect_.push_back(bn);
-      int n_remote_node = i_new_remote_node
-	- net_connection_->connection_.size();
-      CreateNodeGroup(n_remote_node, 0);	
-      
+      connect_mpi_->MPI_Send_int(&n_remote_node_, 1, source.i_host_);
+      connect_mpi_->MPI_Recv_int(&n_remote_node_, 1, source.i_host_);
       connect_mpi_->MPI_Recv_int(i_remote_node_arr, n_source,
 				 source.i_host_);
 
@@ -809,13 +798,14 @@ template <class T1, class T2>
       	  int i_remote_node = i_remote_node_arr[isn];
 	  int itn = int_vect[k];
 	  size_t i_array = (size_t)isn*outdegree + k;
-	  _SingleConnect<int,T2>(i_remote_node, 0, target.i_node_, itn,
-	  			 i_array, syn_spec);
+	  _RemoteSingleConnect<T2>(i_remote_node, target.i_node_, itn,
+				   i_array, syn_spec);
 	}
       }
       delete[] rnd;
     }
     else if (MpiId() == source.i_host_) {
+      int i_new_remote_node;
       connect_mpi_->MPI_Recv_int(&i_new_remote_node, 1, target.i_host_);
       for (int isn=0; isn<n_source; isn++) {
 	int i_source_node = source.GetINode(isn);

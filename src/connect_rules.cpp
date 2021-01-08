@@ -309,6 +309,35 @@ int NeuronGPU::_SingleConnect<int*, int*>
 				  weight, delay);
 }
 
+
+template<>
+int NeuronGPU::_RemoteSingleConnect<int>
+(int i_source, int i_target0,
+ int i_target, float weight, float delay,
+ int i_array, SynSpec &syn_spec)
+{
+  
+  RemoteConnection rc = {i_source, i_target0 + i_target,
+			 syn_spec.port_, syn_spec.syn_group_,
+			 weight, delay};
+  remote_connection_vect_.push_back(rc);
+  return 0;
+}
+
+template<>
+int NeuronGPU::_RemoteSingleConnect<int*>
+(int i_source,
+ int *i_target0, int i_target,
+ float weight, float delay,
+ int i_array, SynSpec &syn_spec)
+{
+    RemoteConnection rc = {i_source, *(i_target0 + i_target),
+			   syn_spec.port_, syn_spec.syn_group_,
+			   weight, delay};
+    remote_connection_vect_.push_back(rc);
+    return 0;
+}
+
 int NeuronGPU::Connect(int i_source, int n_source, int i_target, int n_target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {

@@ -115,6 +115,8 @@ class NeuronGPU
   long long it_; // simulation time index
   long long Nt_; // number of simulation time steps
   int n_poiss_node_;
+  int n_remote_node_;
+  int i_remote_node_0_;
 
   double start_real_time_;
   double build_real_time_;
@@ -127,6 +129,7 @@ class NeuronGPU
 
   int verbosity_level_;
 
+  std::vector<RemoteConnection> remote_connection_vect_;
   std::vector<int> ext_neuron_input_spike_node_;
   std::vector<int> ext_neuron_input_spike_port_;
   std::vector<float> ext_neuron_input_spike_height_;
@@ -151,6 +154,14 @@ class NeuronGPU
     int _SingleConnect(T1 source, int i_source, T2 target, int i_target,
 		       float weight, float delay, int i_array,
 		       SynSpec &syn_spec);
+
+  template<class T>
+    int _RemoteSingleConnect(int i_source, T target, int i_target,
+			     int i_array, SynSpec &syn_spec);
+  template<class T>
+    int _RemoteSingleConnect(int i_source, T target, int i_target,
+			     float weight, float delay, int i_array,
+			     SynSpec &syn_spec);
 
   template <class T1, class T2>
     int _ConnectOneToOne(T1 source, T2 target, int n_node, SynSpec &syn_spec);
@@ -209,6 +220,7 @@ class NeuronGPU
     (RemoteNode<T1> source, int n_source, RemoteNode<T2> target, int n_target,
      int outdegree, SynSpec &syn_spec);
 #endif
+  int ConnectRemoteNodes();
 
   double SpikeBufferUpdate_time_;
   double poisson_generator_time_;

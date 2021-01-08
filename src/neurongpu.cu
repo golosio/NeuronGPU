@@ -73,6 +73,7 @@ NeuronGPU::NeuronGPU()
   t_min_ = 0.0;
   sim_time_ = 1000.0;        //Simulation time in ms
   n_poiss_node_ = 0;
+  n_remote_node_ = 0;
   SetTimeResolution(0.1);  // time resolution in ms
 
   error_flag_ = false;
@@ -243,6 +244,7 @@ int NeuronGPU::CheckUncalibrated(std::string message)
 int NeuronGPU::Calibrate()
 {
   CheckUncalibrated("Calibration can be made only once");
+  ConnectRemoteNodes();
   calibrate_flag_ = true;
   BuildDirectConnections();
 
@@ -461,7 +463,8 @@ int NeuronGPU::SimulationStep()
       }
       else {
 	time_mark = getRealTime();
-	connect_mpi_->RecvSpikeFromRemote(ih, max_spike_per_host_);
+	connect_mpi_->RecvSpikeFromRemote(ih, max_spike_per_host_,
+					  i_remote_node_0_);
 	RecvSpikeFromRemote_time_ += (getRealTime() - time_mark);
       }
     }
@@ -1546,3 +1549,22 @@ int NeuronGPU::GetNGroupParam(int i_node)
   return node_vect_[i_group]->GetNGroupParam();
 }
 
+// Connect spike buffers of remote source nodes to local target nodes
+// Maybe move this in connect_rules.cpp ? And parallelize with OpenMP?
+int NeuronGPU::ConnectRemoteNodes()
+{
+  if (n_remote_node_>0) {
+    i_remote_node_0_ = node_group_map_.size();
+    BaseNeuron *bn = new BaseNeuron;
+    node_vect_.push_back(bn);  
+    CreateNodeGroup(n_remote_node_, 0);       
+    for (unsigned int i=0; i<remote_connection_vect_.size(); i++) {
+      RemoteConnection rc = remote_connection_vect_[i];
+      net_connection_->Connect(i_remote_node_0_ + rc.i_source_rel, rc.i_target,
+			       rc.port, rc.syn_group, rc.weight, rc.delay);
+
+    }
+  }
+  
+  return 0;
+}

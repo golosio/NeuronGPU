@@ -44,6 +44,15 @@ __global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id)
   }
 }
 
+__global__ void AddOffset(int n_spikes, int *spike_buffer_id,
+			  int i_remote_node_0)
+{
+  int i_spike = threadIdx.x + blockIdx.x * blockDim.x;
+  if (i_spike<n_spikes) {
+    spike_buffer_id[i_spike] += i_remote_node_0;
+  }
+}
+
 #ifdef HAVE_MPI
 
 __constant__ bool NeuronGPUMpiFlag;
@@ -272,7 +281,8 @@ int ConnectMpi::SendSpikeToRemote(int n_hosts, int max_spike_per_host)
   return 0;
 }
 
-int ConnectMpi::RecvSpikeFromRemote(int i_host, int max_spike_per_host)
+int ConnectMpi::RecvSpikeFromRemote(int i_host, int max_spike_per_host,
+				    int i_remote_node_0)
 {
   MPI_Status Stat;
   int mpi_id, tag = 1; // id is already in the class, remove
@@ -298,6 +308,8 @@ int ConnectMpi::RecvSpikeFromRemote(int i_host, int max_spike_per_host)
     cudaMemcpy(d_ExternalSourceSpikeHeight, h_ExternalSpikeHeight,
 	       n_spike*sizeof(float), cudaMemcpyHostToDevice);
 #endif
+    AddOffset<<<(n_spike+1023)/1024, 1024>>>
+      (n_spike, d_ExternalSourceSpikeNodeId, i_remote_node_0);
     PushSpikeFromRemote<<<(n_spike+1023)/1024, 1024>>>
       (n_spike, d_ExternalSourceSpikeNodeId,
       d_ExternalSourceSpikeHeight); //[ih*max_spike_per_host])

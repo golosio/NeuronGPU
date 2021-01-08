@@ -57,6 +57,16 @@ struct ConnGroup // connections from the same source node with same delay
   std::vector<TargetSyn> target_vect;
 };
 
+struct RemoteConnection
+{
+  int i_source_rel;
+  int i_target;
+  unsigned char port;
+  unsigned char syn_group;
+  float weight;
+  float delay;
+};
+
 template<class T>
 int GetINode(T node, int in);
 

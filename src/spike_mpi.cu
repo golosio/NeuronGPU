@@ -103,6 +103,11 @@ float *h_ExternalSpikeHeight;
 __device__ void PushExternalSpike(int i_source, float height)
 {
   int pos = atomicAdd(ExternalSpikeNum, 1);
+  if (pos>=MaxSpikePerHost) {
+    printf("Number of spikes larger than MaxSpikePerHost: %d\n", MaxSpikePerHost);
+    *ExternalSpikeNum = MaxSpikePerHost;
+    return;
+  }
   ExternalSpikeSourceNode[pos] = i_source;
   ExternalSpikeHeight[pos] = height;
 }
@@ -135,30 +140,32 @@ __global__ void ExternalSpikeReset()
   }
 }
 
-int ConnectMpi::ExternalSpikeInit(int n_node, int max_spike_num, int n_hosts,
-				  int max_spike_per_host)
+int ConnectMpi::ExternalSpikeInit(int n_node, int n_hosts, int max_spike_per_host)
 {
   int *h_NExternalNodeTargetHost = new int[n_node];
   int **h_ExternalNodeTargetHostId = new int*[n_node];
   int **h_ExternalNodeId = new int*[n_node];
   
-  h_ExternalSpikeNodeId = new int[max_spike_num];
+  h_ExternalSpikeNodeId = new int[max_spike_per_host];
 
-  h_ExternalSpikeHeight = new float[max_spike_num];
+  h_ExternalSpikeHeight = new float[max_spike_per_host];
   
   gpuErrchk(cudaMalloc(&d_ExternalSpikeNum, sizeof(int)));
   gpuErrchk(cudaMalloc(&d_ExternalSpikeSourceNode,
-		       max_spike_num*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_ExternalSpikeHeight, max_spike_num*sizeof(int)));
+		       max_spike_per_host*sizeof(int)));
+  gpuErrchk(cudaMalloc(&d_ExternalSpikeHeight, max_spike_per_host*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_ExternalTargetSpikeNum, n_hosts*sizeof(int)));
+
+  //printf("n_hosts, max_spike_per_host: %d %d\n", n_hosts, max_spike_per_host);
+
   gpuErrchk(cudaMalloc(&d_ExternalTargetSpikeNodeId,
 		       n_hosts*max_spike_per_host*sizeof(int)));
   gpuErrchk(cudaMalloc(&d_ExternalTargetSpikeHeight,
 		       n_hosts*max_spike_per_host*sizeof(float)));
   //gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeNum, n_hosts*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeNodeId, //n_hosts*
+  gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeNodeId, n_hosts*
 		       max_spike_per_host*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeHeight, //n_hosts*
+  gpuErrchk(cudaMalloc(&d_ExternalSourceSpikeHeight, n_hosts*
 		       max_spike_per_host*sizeof(float)));
 	    
   gpuErrchk(cudaMalloc(&d_NExternalNodeTargetHost, n_node*sizeof(int)));
@@ -254,15 +261,23 @@ int ConnectMpi::SendSpikeToRemote(int n_hosts, int max_spike_per_host)
   for (int ih=0; ih<n_hosts; ih++) {
     if (ih == mpi_id) continue;
     int n_spike = h_ExternalTargetSpikeNum[ih];
+    // printf("MPI_Send (src,tgt,nspike): %d %d %d\n", mpi_id, ih, n_spike);
     MPI_Send(&n_spike, 1, MPI_INT, ih, tag, MPI_COMM_WORLD);
     if (n_spike>0) {
       //cout << "nspike send: " << n_spike << endl;
 #ifdef GPUDIRECT
       MPI_Send(&d_ExternalTargetSpikeNodeId[ih*max_spike_per_host],
 	       n_spike, MPI_INT, ih, tag, MPI_COMM_WORLD);
-      MPI_Send(&d_ExternalTargetSpikeHeight[ih*max_spike_per_host],
-	       n_spike, MPI_FLOAT, ih, tag, MPI_COMM_WORLD);
+      if (remote_spike_height_) {
+        MPI_Send(&d_ExternalTargetSpikeHeight[ih*max_spike_per_host],
+	         n_spike, MPI_FLOAT, ih, tag, MPI_COMM_WORLD);
+      }
 #else
+      //printf("ih, max_spike_per_host, n_spike, %d %d %d\n", ih, max_spike_per_host, n_spike);
+      if (n_spike>max_spike_per_host) {
+        printf("Number of spikes in SendSpikeToRemote larger than max_spike_per_host\n");
+	n_spike = max_spike_per_host;
+      } 
       gpuErrchk(cudaMemcpy(h_ExternalSpikeNodeId,
 			  &d_ExternalTargetSpikeNodeId[ih*max_spike_per_host],
 			   n_spike*sizeof(int), cudaMemcpyDeviceToHost));
@@ -271,8 +286,10 @@ int ConnectMpi::SendSpikeToRemote(int n_hosts, int max_spike_per_host)
       gpuErrchk(cudaMemcpy(h_ExternalSpikeHeight,
 			  &d_ExternalTargetSpikeHeight[ih*max_spike_per_host],
 			   n_spike*sizeof(float), cudaMemcpyDeviceToHost));
-      MPI_Send(h_ExternalSpikeHeight,
-               n_spike, MPI_FLOAT, ih, tag, MPI_COMM_WORLD);
+      if (remote_spike_height_) {
+        MPI_Send(h_ExternalSpikeHeight,
+                 n_spike, MPI_FLOAT, ih, tag, MPI_COMM_WORLD);
+      }
 #endif      
     }
   }
@@ -296,23 +313,33 @@ int ConnectMpi::RecvSpikeFromRemote(int i_host, int max_spike_per_host,
 #ifdef GPUDIRECT
     MPI_Recv(d_ExternalSourceSpikeNodeId, // [ih*max_spike_per_host],
 	     n_spike, MPI_INT, i_host, tag, MPI_COMM_WORLD, &Stat);
-    MPI_Recv(d_ExternalSourceSpikeHeight, // [ih*max_spike_per_host],
-	     n_spike, MPI_FLOAT, i_host, tag, MPI_COMM_WORLD, &Stat);
+    if (remote_spike_height_) {
+      MPI_Recv(d_ExternalSourceSpikeHeight, // [ih*max_spike_per_host],
+               n_spike, MPI_FLOAT, i_host, tag, MPI_COMM_WORLD, &Stat);
+    }
 #else
     MPI_Recv(h_ExternalSpikeNodeId,
 	     n_spike, MPI_INT, i_host, tag, MPI_COMM_WORLD, &Stat);
     cudaMemcpy(d_ExternalSourceSpikeNodeId, h_ExternalSpikeNodeId,
 	       n_spike*sizeof(int), cudaMemcpyHostToDevice);
-    MPI_Recv(h_ExternalSpikeHeight,
-	     n_spike, MPI_FLOAT, i_host, tag, MPI_COMM_WORLD, &Stat);
-    cudaMemcpy(d_ExternalSourceSpikeHeight, h_ExternalSpikeHeight,
-	       n_spike*sizeof(float), cudaMemcpyHostToDevice);
+    if (remote_spike_height_) {
+      MPI_Recv(h_ExternalSpikeHeight,
+	       n_spike, MPI_FLOAT, i_host, tag, MPI_COMM_WORLD, &Stat);
+      cudaMemcpy(d_ExternalSourceSpikeHeight, h_ExternalSpikeHeight,
+  	         n_spike*sizeof(float), cudaMemcpyHostToDevice);
+    }
 #endif
     AddOffset<<<(n_spike+1023)/1024, 1024>>>
       (n_spike, d_ExternalSourceSpikeNodeId, i_remote_node_0);
-    PushSpikeFromRemote<<<(n_spike+1023)/1024, 1024>>>
-      (n_spike, d_ExternalSourceSpikeNodeId,
-      d_ExternalSourceSpikeHeight); //[ih*max_spike_per_host])
+    if (remote_spike_height_) {
+      PushSpikeFromRemote<<<(n_spike+1023)/1024, 1024>>>
+        (n_spike, d_ExternalSourceSpikeNodeId,
+        d_ExternalSourceSpikeHeight); //[ih*max_spike_per_host])
+    }
+    else {
+      PushSpikeFromRemote<<<(n_spike+1023)/1024, 1024>>>
+        (n_spike, d_ExternalSourceSpikeNodeId); //[ih*max_spike_per_host])
+    }
     gpuErrchk( cudaPeekAtLastError() );
     cudaDeviceSynchronize();
     

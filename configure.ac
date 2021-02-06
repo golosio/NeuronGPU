@@ -72,7 +72,7 @@ AC_CHECK_LIB([m], [pow])
 AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 
 # check for CUDA
-CT_CHECK_CUDA_API
+#CT_CHECK_CUDA_API
 
 # check for CUDA SDK
 #CT_CHECK_CUDA_SDK

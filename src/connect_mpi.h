@@ -32,6 +32,7 @@ class ConnectMpi
   int mpi_id_;
   int mpi_np_;
   int mpi_master_;
+  bool remote_spike_height_;
     
   std::vector<std::vector<ExternalConnectionNode > > extern_connection_;
 
@@ -57,8 +58,7 @@ class ConnectMpi
   
   bool ProcMaster();
   
-  int ExternalSpikeInit(int n_node, int max_spike_num, int n_hosts,
-			int max_spike_per_host);
+  int ExternalSpikeInit(int n_node, int n_hosts, int max_spike_per_host);
 
   int SendSpikeToRemote(int n_hosts, int max_spike_per_host);
 

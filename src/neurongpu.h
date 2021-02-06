@@ -107,6 +107,8 @@ class NeuronGPU
   int max_spike_buffer_size_;
   int max_spike_num_;
   int max_spike_per_host_;
+  double max_spike_num_fact_;
+  double max_spike_per_host_fact_;
 
   double t_min_;
   double neural_time_; // Neural activity time

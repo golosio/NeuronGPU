@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <config.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -75,7 +76,9 @@ NeuronGPU::NeuronGPU()
   n_poiss_node_ = 0;
   n_remote_node_ = 0;
   SetTimeResolution(0.1);  // time resolution in ms
-
+  max_spike_num_fact_ = 0.001;
+  max_spike_per_host_fact_ = 0.001;
+  
   error_flag_ = false;
   error_message_ = "";
   error_code_ = 0;
@@ -88,6 +91,7 @@ NeuronGPU::NeuronGPU()
   connect_mpi_ = new ConnectMpi;
   mpi_flag_ = false;
   connect_mpi_->net_connection_ = net_connection_;
+  connect_mpi_->remote_spike_height_ = false;
 #endif
   
   NestedLoop::Init();
@@ -266,11 +270,14 @@ int NeuronGPU::Calibrate()
   	    
   NodeGroupArrayInit();
   
-  max_spike_num_ = net_connection_->connection_.size()
-    * net_connection_->MaxDelayNum();
+ 
+  max_spike_num_ = (int)round(max_spike_num_fact_
+                 * net_connection_->connection_.size()
+  		 * net_connection_->MaxDelayNum());
   
-  max_spike_per_host_ = net_connection_->connection_.size()
-    * net_connection_->MaxDelayNum();
+  max_spike_per_host_ = (int)round(max_spike_per_host_fact_
+                 * net_connection_->connection_.size()
+  		 * net_connection_->MaxDelayNum());
 
   SpikeInit(max_spike_num_);
   SpikeBufferInit(net_connection_, max_spike_buffer_size_);
@@ -279,7 +286,7 @@ int NeuronGPU::Calibrate()
   if (mpi_flag_) {
     // remove superfluous argument mpi_np
     connect_mpi_->ExternalSpikeInit(connect_mpi_->extern_connection_.size(),
-				    max_spike_num_, connect_mpi_->mpi_np_,
+				    connect_mpi_->mpi_np_,
 				    max_spike_per_host_);
   }
 #endif
@@ -328,6 +335,11 @@ int NeuronGPU::StartSimulation()
   if (!calibrate_flag_) {
     Calibrate();
   }
+#ifdef HAVE_MPI                                                                                                            
+  if (mpi_flag_) {
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+#endif
   if (first_simulation_flag_) {
     gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(double)));
     multimeter_->WriteRecords(neural_time_);
@@ -361,6 +373,12 @@ int NeuronGPU::EndSimulation()
   if (verbosity_level_>=2) {
     printf("%.3lf\n", neural_time_);
   }
+#ifdef HAVE_MPI                                                                                                            
+  if (mpi_flag_) {
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+#endif
+
   end_real_time_ = getRealTime();
 
   //multimeter_->CloseFiles();
@@ -1056,7 +1074,9 @@ float *NeuronGPU::RandomNormal(size_t n, float mean, float stddev)
 float *NeuronGPU::RandomNormalClipped(size_t n, float mean, float stddev,
 				      float vmin, float vmax)
 {
+  n = (n/4 + 1)*4; 
   int n_extra = n/10;
+  n_extra = (n_extra/4 + 1)*4; 
   if (n_extra<1024) {
     n_extra=1024;
   }
@@ -1073,6 +1093,7 @@ float *NeuronGPU::RandomNormalClipped(size_t n, float mean, float stddev,
       if (i_extra==n_extra) {
 	i_extra = 0;
 	delete[](arr_extra);
+	arr_extra = NULL;
       }
     }
   }

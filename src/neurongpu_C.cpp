@@ -1108,6 +1108,16 @@ extern "C" {
     ret = NeuronGPU_instance->SetIntParam(param_name_str, val);
   } END_ERR_PROP return ret; }
 
+  int NeuronGPU_RemoteCreate(int i_host, char *model_name, int n_neuron,
+			     int n_port)
+  { int ret = 0; BEGIN_ERR_PROP {
+    std::string model_name_str = std::string(model_name);
+    RemoteNodeSeq rneur = NeuronGPU_instance->RemoteCreate(i_host,
+							   model_name_str,
+							   n_neuron,
+							   n_port);
+    ret = rneur.node_seq[0];
+  } END_ERR_PROP return ret; }
 
 }
 

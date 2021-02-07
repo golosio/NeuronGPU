@@ -319,7 +319,10 @@ extern "C" {
   int NeuronGPU_GetIntParam(char *param_name);
   
   int NeuronGPU_SetIntParam(char *param_name, int val);
-  
+
+  int NeuronGPU_RemoteCreate(int i_host, char *model_name, int n_neuron,
+			     int n_port);
+
 #ifdef __cplusplus
 }
 #endif

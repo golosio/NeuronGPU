@@ -31,6 +31,8 @@ class NodeSeq(object):
         self.n = n
 
     def Subseq(self, first, last):
+        if last<0 and last>=-self.n:
+            last = last%self.n
         if first<0 | last<first:
             raise ValueError("Sequence subset range error")
         if last>=self.n:
@@ -42,16 +44,22 @@ class NodeSeq(object):
                 raise ValueError("Subsequence cannot have a step")
             return self.Subseq(i.start, i.stop-1)
  
-        if i<0:
-            raise ValueError("Sequence index cannot be negative")
+        if i<-self.n:
+            raise ValueError("Sequence index error")
         if i>=self.n:
             raise ValueError("Sequence index out of range")
+        if i<0:
+            i = i%self.n
         return self.i0 + i
     def ToList(self):
         return list(range(self.i0, self.i0 + self.n))
     def __len__(self):
         return self.n
 
+class RemoteNodeSeq(object):
+    def __init__(self, i_host=0, node_seq=NodeSeq(None)):
+        self.i_host = i_host
+        self.node_seq = node_seq
 
 class ConnectionId(object):
     def __init__(self, i_source, i_group, i_conn):
@@ -1714,6 +1722,12 @@ def RemoteConnect(i_source_host, source, i_target_host, target,
 
 def SetStatus(gen_object, params, val=None):
     "Set neuron or synapse group parameters or variables using dictionaries"
+
+    if type(gen_object)==RemoteNodeSeq:
+        if gen_object.i_host==MpiId():
+            SetStatus(gen_object.node_seq, params, val)
+        return
+    
     gc.disable()
     if type(gen_object)==SynGroup:
         ret = SetSynGroupStatus(gen_object, params, val)
@@ -2339,3 +2353,27 @@ def SetKernelStatus(params, val=None):
         raise ValueError("Wrong argument in SetKernelStatus")       
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
+
+
+NeuronGPU_RemoteCreate = _neurongpu.NeuronGPU_RemoteCreate
+NeuronGPU_RemoteCreate.argtypes = (ctypes.c_int, c_char_p, ctypes.c_int,
+                                   ctypes.c_int)
+NeuronGPU_Create.restype = ctypes.c_int
+def RemoteCreate(i_host, model_name, n_node=1, n_ports=1, status_dict=None):
+    "Create a remote neuron group"
+    if (type(status_dict)==dict):
+        remote_node_group = RemoteCreate(i_host, model_name, n_node, n_ports)
+        SetStatus(remote_node_group, status_dict)
+        return remote_node_group
+        
+    elif status_dict!=None:
+        raise ValueError("Wrong argument in RemoteCreate")
+    
+    c_model_name = ctypes.create_string_buffer(to_byte_str(model_name), len(model_name)+1)
+    i_node = NeuronGPU_RemoteCreate(ctypes.c_int(i_host), c_model_name, ctypes.c_int(n_node),
+                                    ctypes.c_int(n_ports))
+    node_seq = NodeSeq(i_node, n_node)
+    ret = RemoteNodeSeq(i_host, node_seq)
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret

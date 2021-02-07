@@ -79,6 +79,16 @@ class Sequence
 
 typedef Sequence NodeSeq;
 
+class RemoteNodeSeq
+{
+ public:
+  int i_host;
+  NodeSeq node_seq;
+  
+  RemoteNodeSeq(int i_host=0, NodeSeq node_seq=NodeSeq(0,0)) :
+    i_host(i_host), node_seq(node_seq) {}
+};
+
 enum {ON_EXCEPTION_EXIT=0, ON_EXCEPTION_HANDLE};
 
 class NeuronGPU
@@ -284,6 +294,9 @@ class NeuronGPU
 
   NodeSeq Create(std::string model_name, int n_neuron=1, int n_port=1);
   NodeSeq CreatePoissonGenerator(int n_node, float rate);
+  RemoteNodeSeq RemoteCreate(int i_host, std::string model_name,
+			     int n_node=1, int n_port=1);
+
   int CreateRecord(std::string file_name, std::string *var_name_arr,
 		   int *i_node_arr, int n_node);  
   int CreateRecord(std::string file_name, std::string *var_name_arr,

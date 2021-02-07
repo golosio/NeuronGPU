@@ -1800,3 +1800,21 @@ int NeuronGPU::SetIntParam(std::string param_name, int val)
   
   return 0;
 }
+
+RemoteNodeSeq NeuronGPU::RemoteCreate(int i_host, std::string model_name,
+				      int n_node /*=1*/, int n_port /*=1*/)
+{
+#ifdef HAVE_MPI
+  if (i_host<0 || i_host>=MpiNp()) {
+    throw ngpu_exception("Invalid host index in RemoteCreate");
+  }
+  NodeSeq node_seq;
+  if (i_host == MpiId()) {
+    node_seq = Create(model_name, n_node, n_port);
+  }
+  MPI_Bcast(&node_seq, sizeof(NodeSeq), MPI_BYTE, i_host, MPI_COMM_WORLD);
+  return RemoteNodeSeq(i_host, node_seq);
+#else
+  throw ngpu_exception("MPI is not available in your build");
+#endif
+}

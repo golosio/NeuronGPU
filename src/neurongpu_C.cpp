@@ -997,6 +997,117 @@ extern "C" {
     ret = NeuronGPU_instance->GetNeuronGroupParam(i_node, param_name_str);
   } END_ERR_PROP return ret; }
 
+
+  int NeuronGPU_GetNFloatParam()
+  { int ret = 0; BEGIN_ERR_PROP {
+    ret = NeuronGPU_instance->GetNFloatParam();
+  } END_ERR_PROP return ret; }
+
   
+  char **NeuronGPU_GetFloatParamNames()
+  { char **ret = NULL; BEGIN_ERR_PROP {
+    std::vector<std::string> name_vect =
+      NeuronGPU_instance->GetFloatParamNames();
+    char **name_array = (char**)malloc(name_vect.size()
+				       *sizeof(char*));
+    for (unsigned int i=0; i<name_vect.size(); i++) {
+      char *param_name = (char*)malloc((name_vect[i].length() + 1)
+				       *sizeof(char));
+      
+      strcpy(param_name, name_vect[i].c_str());
+      name_array[i] = param_name;
+    }
+    ret = name_array;
+    
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_IsFloatParam(char *param_name)
+  { int ret = 0; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuronGPU_instance->IsFloatParam(param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_GetFloatParamIdx(char *param_name)
+  { int ret = 0; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuronGPU_instance->GetFloatParamIdx(param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
+  float NeuronGPU_GetFloatParam(char *param_name)
+  { float ret = 0.0; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuronGPU_instance->GetFloatParam(param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_SetFloatParam(char *param_name, float val)
+  { int ret = 0; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuronGPU_instance->SetFloatParam(param_name_str, val);
+  } END_ERR_PROP return ret; }
+
+  int NeuronGPU_GetNIntParam()
+  { int ret = 0; BEGIN_ERR_PROP {
+    ret = NeuronGPU_instance->GetNIntParam();
+  } END_ERR_PROP return ret; }
+
+  
+  char **NeuronGPU_GetIntParamNames()
+  { char **ret = NULL; BEGIN_ERR_PROP {
+    std::vector<std::string> name_vect =
+      NeuronGPU_instance->GetIntParamNames();
+    char **name_array = (char**)malloc(name_vect.size()
+				       *sizeof(char*));
+    for (unsigned int i=0; i<name_vect.size(); i++) {
+      char *param_name = (char*)malloc((name_vect[i].length() + 1)
+				       *sizeof(char));
+      
+      strcpy(param_name, name_vect[i].c_str());
+      name_array[i] = param_name;
+    }
+    ret = name_array;
+    
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_IsIntParam(char *param_name)
+  { int ret = 0; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuronGPU_instance->IsIntParam(param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_GetIntParamIdx(char *param_name)
+  { int ret = 0; BEGIN_ERR_PROP {
+    std::string param_name_str = std::string(param_name);
+    
+    ret = NeuronGPU_instance->GetIntParamIdx(param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_GetIntParam(char *param_name)
+  { int ret = 0; BEGIN_ERR_PROP {
+    
+    std::string param_name_str = std::string(param_name);
+    ret = NeuronGPU_instance->GetIntParam(param_name_str);
+  } END_ERR_PROP return ret; }
+
+  
+  int NeuronGPU_SetIntParam(char *param_name, int val)
+  { int ret = 0; BEGIN_ERR_PROP {
+    
+    std::string param_name_str = std::string(param_name);
+    ret = NeuronGPU_instance->SetIntParam(param_name_str, val);
+  } END_ERR_PROP return ret; }
+
+
 }
 

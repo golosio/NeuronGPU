@@ -34,6 +34,11 @@ __device__ void SendSpike(int i_source, int i_conn, float height,
 			  int target_num)
 {
   int pos = atomicAdd(SpikeNum, 1);
+  if (pos>=MaxSpikeNum) {
+    printf("Number of spikes larger than MaxSpikeNum: %d\n", MaxSpikeNum);
+    *SpikeNum = MaxSpikeNum;
+    return;
+  }
   SpikeSourceIdx[pos] = i_source;
   SpikeConnIdx[pos] = i_conn;
   SpikeHeight[pos] = height;

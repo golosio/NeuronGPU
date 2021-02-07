@@ -5,7 +5,7 @@ tolerance = 0.0005
 
 E_L = -65.0
 
-ngpu.SetVerbosityLevel(0)
+ngpu.SetKernelStatus("verbosity_level", 0)
 neuron = ngpu.Create('iaf_psc_exp_hc', 1)
 
 spike = ngpu.Create("spike_generator")

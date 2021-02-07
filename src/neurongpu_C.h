@@ -296,6 +296,30 @@ extern "C" {
 
   float NeuronGPU_GetNeuronGroupParam(int i_node, char *param_name);
 
+  int NeuronGPU_GetNFloatParam();
+  
+  char **NeuronGPU_GetFloatParamNames();
+  
+  int NeuronGPU_IsFloatParam(char *param_name);
+  
+  int NeuronGPU_GetFloatParamIdx(char *param_name);
+  
+  float NeuronGPU_GetFloatParam(char *param_name);
+  
+  int NeuronGPU_SetFloatParam(char *param_name, float val);
+
+  int NeuronGPU_GetNIntParam();
+  
+  char **NeuronGPU_GetIntParamNames();
+  
+  int NeuronGPU_IsIntParam(char *param_name);
+  
+  int NeuronGPU_GetIntParamIdx(char *param_name);
+  
+  int NeuronGPU_GetIntParam(char *param_name);
+  
+  int NeuronGPU_SetIntParam(char *param_name, int val);
+  
 #ifdef __cplusplus
 }
 #endif

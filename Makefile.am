@@ -127,6 +127,7 @@ $(top_srcdir)/src/izhikevich_psc_exp_2s.cu \
 $(top_srcdir)/src/izhikevich_psc_exp.cu \
 $(top_srcdir)/src/user_m1.cu \
 $(top_srcdir)/src/user_m2.cu
+
 COMPILER_FLAGS= -O3 -Wall -fPIC
 if OSX
 	COMPILER_FLAGS += -Xpreprocessor $(OPENMP_CFLAGS)

@@ -5,7 +5,7 @@ import neurongpu as ngpu
 from random import randrange
 import numpy as np
 
-ngpu.SetRandomSeed(1234) # seed for GPU random numbers
+ngpu.SetKernelStatus("rnd_seed", 1234) # seed for GPU random numbers
 
 n_neurons = 30
 eps = 1.0e-6

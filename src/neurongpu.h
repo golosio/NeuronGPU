@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2020 Bruno Golosio
+Copyright (C) 2021 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -107,6 +107,7 @@ class NeuronGPU
   int max_spike_buffer_size_;
   int max_spike_num_;
   int max_spike_per_host_;
+
   double max_spike_num_fact_;
   double max_spike_per_host_fact_;
 
@@ -135,7 +136,7 @@ class NeuronGPU
   std::vector<int> ext_neuron_input_spike_node_;
   std::vector<int> ext_neuron_input_spike_port_;
   std::vector<float> ext_neuron_input_spike_height_;
-  
+
   int CreateNodeGroup(int n_neuron, int n_port);
   int CheckUncalibrated(std::string message);
   double *InitGetSpikeArray(int n_node, int n_port);
@@ -263,10 +264,24 @@ class NeuronGPU
     verbosity_level_ = verbosity_level;
     return 0;
   }
-    
 
   int SetMaxSpikeBufferSize(int max_size);
   int GetMaxSpikeBufferSize();
+
+  int GetNFloatParam();
+  std::vector<std::string> GetFloatParamNames();
+  bool IsFloatParam(std::string param_name);
+  int GetFloatParamIdx(std::string param_name);
+  float GetFloatParam(std::string param_name);
+  int SetFloatParam(std::string param_name, float val);
+
+  int GetNIntParam();
+  std::vector<std::string> GetIntParamNames();
+  bool IsIntParam(std::string param_name);
+  int GetIntParamIdx(std::string param_name);
+  int GetIntParam(std::string param_name);
+  int SetIntParam(std::string param_name, int val);
+
   NodeSeq Create(std::string model_name, int n_neuron=1, int n_port=1);
   NodeSeq CreatePoissonGenerator(int n_node, float rate);
   int CreateRecord(std::string file_name, std::string *var_name_arr,

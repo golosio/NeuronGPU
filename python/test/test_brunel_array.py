@@ -13,7 +13,7 @@ n_test = 1000
 
 print("Building ...")
 
-ngpu.SetRandomSeed(1234) # seed for GPU random numbers
+ngpu.SetKernelStatus("rnd_seed", 1234) # seed for GPU random numbers
 
 n_receptors = 2
 

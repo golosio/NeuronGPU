@@ -9,11 +9,11 @@ if len(sys.argv) != 2:
     
 order = int(sys.argv[1])//5
 
-ngpu.SetTimeResolution(1.0)
+ngpu.SetKernelStatus("time_resolution", 1.0)
 
 print("Building ...")
 
-ngpu.SetRandomSeed(1234) # seed for GPU random numbers
+ngpu.SetKernelStatus("rnd_seed", 1234) # seed for GPU random numbers
 
 sim_time = 10.0 # simulation time in seconds
 

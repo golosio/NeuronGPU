@@ -2148,3 +2148,194 @@ def SetNeuronGroupParam(nodes, param_name, val):
         raise ValueError(GetErrorMessage())
     return ret
 
+
+NeuronGPU_GetNFloatParam = _neurongpu.NeuronGPU_GetNFloatParam
+NeuronGPU_GetNFloatParam.restype = ctypes.c_int
+def GetNFloatParam():
+    "Get number of kernel float parameters"
+    
+    ret = NeuronGPU_GetNFloatParam()
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
+NeuronGPU_GetFloatParamNames = _neurongpu.NeuronGPU_GetFloatParamNames
+NeuronGPU_GetFloatParamNames.restype = ctypes.POINTER(c_char_p)
+def GetFloatParamNames():
+    "Get list of kernel float parameter names"
+
+    n_param = GetNFloatParam()
+    param_name_pp = ctypes.cast(NeuronGPU_GetFloatParamNames(),
+                                ctypes.POINTER(c_char_p))
+    param_name_list = []
+    for i in range(n_param):
+        param_name_p = param_name_pp[i]
+        param_name = ctypes.cast(param_name_p, ctypes.c_char_p).value
+        param_name_list.append(to_def_str(param_name))
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return param_name_list
+
+
+NeuronGPU_IsFloatParam = _neurongpu.NeuronGPU_IsFloatParam
+NeuronGPU_IsFloatParam.argtypes = (c_char_p,)
+NeuronGPU_IsFloatParam.restype = ctypes.c_int
+def IsFloatParam(param_name):
+    "Check name of kernel float parameter"
+
+    c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
+                                               len(param_name)+1)
+    ret = (NeuronGPU_IsFloatParam(c_param_name)!=0) 
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+    
+NeuronGPU_GetFloatParam = _neurongpu.NeuronGPU_GetFloatParam
+NeuronGPU_GetFloatParam.argtypes = (c_char_p,)
+NeuronGPU_GetFloatParam.restype = ctypes.c_float
+def GetFloatParam(param_name):
+    "Get kernel float parameter value"
+
+    c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
+                                               len(param_name)+1)
+
+    ret = NeuronGPU_GetFloatParam(c_param_name)
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+  
+NeuronGPU_SetFloatParam = _neurongpu.NeuronGPU_SetFloatParam
+NeuronGPU_SetFloatParam.argtypes = (c_char_p, ctypes.c_float)
+NeuronGPU_SetFloatParam.restype = ctypes.c_int
+def SetFloatParam(param_name, val):
+    "Set kernel float parameter value"
+
+    c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
+                                               len(param_name)+1)
+    ret = NeuronGPU_SetFloatParam(c_param_name, ctypes.c_float(val))
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
+NeuronGPU_GetNIntParam = _neurongpu.NeuronGPU_GetNIntParam
+NeuronGPU_GetNIntParam.restype = ctypes.c_int
+def GetNIntParam():
+    "Get number of kernel int parameters"
+    
+    ret = NeuronGPU_GetNIntParam()
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+
+NeuronGPU_GetIntParamNames = _neurongpu.NeuronGPU_GetIntParamNames
+NeuronGPU_GetIntParamNames.restype = ctypes.POINTER(c_char_p)
+def GetIntParamNames():
+    "Get list of kernel int parameter names"
+
+    n_param = GetNIntParam()
+    param_name_pp = ctypes.cast(NeuronGPU_GetIntParamNames(),
+                                ctypes.POINTER(c_char_p))
+    param_name_list = []
+    for i in range(n_param):
+        param_name_p = param_name_pp[i]
+        param_name = ctypes.cast(param_name_p, ctypes.c_char_p).value
+        param_name_list.append(to_def_str(param_name))
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return param_name_list
+
+
+NeuronGPU_IsIntParam = _neurongpu.NeuronGPU_IsIntParam
+NeuronGPU_IsIntParam.argtypes = (c_char_p,)
+NeuronGPU_IsIntParam.restype = ctypes.c_int
+def IsIntParam(param_name):
+    "Check name of kernel int parameter"
+
+    c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
+                                               len(param_name)+1)
+    ret = (NeuronGPU_IsIntParam(c_param_name)!=0) 
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+    
+NeuronGPU_GetIntParam = _neurongpu.NeuronGPU_GetIntParam
+NeuronGPU_GetIntParam.argtypes = (c_char_p,)
+NeuronGPU_GetIntParam.restype = ctypes.c_int
+def GetIntParam(param_name):
+    "Get kernel int parameter value"
+
+    c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
+                                               len(param_name)+1)
+
+    ret = NeuronGPU_GetIntParam(c_param_name)
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+  
+NeuronGPU_SetIntParam = _neurongpu.NeuronGPU_SetIntParam
+NeuronGPU_SetIntParam.argtypes = (c_char_p, ctypes.c_int)
+NeuronGPU_SetIntParam.restype = ctypes.c_int
+def SetIntParam(param_name, val):
+    "Set kernel int parameter value"
+
+    c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
+                                               len(param_name)+1)
+    ret = NeuronGPU_SetIntParam(c_param_name, ctypes.c_int(val))
+    
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())
+    return ret
+
+def GetKernelStatus(var_key=None):
+    "Get kernel status"
+    if (type(var_key)==list) | (type(var_key)==tuple):
+        status_list = []
+        for var_elem in var_key:
+            var_value = GetKernelStatus(var_elem)
+            status_list.append(var_value)
+        return status_list
+    elif (var_key==None):
+        status_dict = {}
+        name_list = GetFloatParamNames() + GetIntParamNames()
+        for param_name in name_list:
+            val = GetKernelStatus(param_name)
+            status_dict[param_name] = val
+        return status_dict
+    elif (type(var_key)==str) | (type(var_key)==bytes):
+        if IsFloatParam(var_key):
+            return GetFloatParam(var_key)        
+        elif IsIntParam(var_key):
+            return GetIntParam(var_key)
+        else:
+            raise ValueError("Unknown parameter in GetKernelStatus", var_key)
+    else:
+        raise ValueError("Unknown key type in GetSynGroupStatus", type(var_key))
+
+def SetKernelStatus(params, val=None):
+    "Set kernel parameters using dictionaries"
+    if ((type(params)==dict) & (val==None)):
+        for param_name in params:
+            SetKernelStatus(param_name, params[param_name])
+    elif (type(params)==str):
+        if IsFloatParam(params):
+            return SetFloatParam(params, val)        
+        elif IsIntParam(params):
+            return SetIntParam(params, val)
+        else:
+            raise ValueError("Unknown parameter in SetKernelStatus", params)
+    else:
+        raise ValueError("Wrong argument in SetKernelStatus")       
+    if GetErrorCode() != 0:
+        raise ValueError(GetErrorMessage())

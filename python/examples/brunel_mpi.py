@@ -16,7 +16,7 @@ order = int(sys.argv[1])//5
 mpi_id = ngpu.MpiId()
 print("Building on host ", mpi_id, " ...")
 
-ngpu.SetRandomSeed(1234) # seed for GPU random numbers
+ngpu.SetKernelStatus("rnd_seed", 1234) # seed for GPU random numbers
 
 n_receptors = 2
 

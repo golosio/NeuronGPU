@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2020 Bruno Golosio
+Copyright (C) 2021 Bruno Golosio
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -56,6 +56,34 @@ __constant__ double NeuronGPUTime;
 __constant__ long long NeuronGPUTimeIdx;
 __constant__ float NeuronGPUTimeResolution;
 
+enum KernelFloatParamIndexes {
+  i_time_resolution = 0,
+  i_max_spike_num_fact,
+  i_max_spike_per_host_fact,
+  N_KERNEL_FLOAT_PARAM
+};
+
+enum KernelIntParamIndexes {
+  i_rnd_seed = 0,
+  i_verbosity_level,
+  i_max_spike_buffer_size,
+  i_remote_spike_height_flag,
+  N_KERNEL_INT_PARAM
+};
+
+const std::string kernel_float_param_name[N_KERNEL_FLOAT_PARAM] = {
+  "time_resolution",
+  "max_spike_num_fact",
+  "max_spike_per_host_fact"
+};
+
+const std::string kernel_int_param_name[N_KERNEL_INT_PARAM] = {
+  "rnd_seed",
+  "verbosity_level",
+  "max_spike_buffer_size",
+  "remote_spike_height_flag"
+};
+
 NeuronGPU::NeuronGPU()
 {
   random_generator_ = new curandGenerator_t;
@@ -76,8 +104,8 @@ NeuronGPU::NeuronGPU()
   n_poiss_node_ = 0;
   n_remote_node_ = 0;
   SetTimeResolution(0.1);  // time resolution in ms
-  max_spike_num_fact_ = 0.001;
-  max_spike_per_host_fact_ = 0.001;
+  max_spike_num_fact_ = 1.0;
+  max_spike_per_host_fact_ = 1.0;
   
   error_flag_ = false;
   error_message_ = "";
@@ -270,15 +298,21 @@ int NeuronGPU::Calibrate()
   	    
   NodeGroupArrayInit();
   
- 
+
+  printf("max_spike_num_fact: %f\n", max_spike_num_fact_);
   max_spike_num_ = (int)round(max_spike_num_fact_
                  * net_connection_->connection_.size()
   		 * net_connection_->MaxDelayNum());
-  
+  max_spike_num_ = (max_spike_num_>1) ? max_spike_num_ : 1;
+  printf("max_spike_num: %d\n", max_spike_num_);
+
+  printf("max_spike_per_host_fact: %f\n", max_spike_per_host_fact_);
   max_spike_per_host_ = (int)round(max_spike_per_host_fact_
                  * net_connection_->connection_.size()
   		 * net_connection_->MaxDelayNum());
-
+  max_spike_per_host_ = (max_spike_per_host_>1) ? max_spike_per_host_ : 1;
+  printf("max_spike_per_host: %d\n", max_spike_per_host_);
+  
   SpikeInit(max_spike_num_);
   SpikeBufferInit(net_connection_, max_spike_buffer_size_);
 
@@ -1585,6 +1619,183 @@ int NeuronGPU::ConnectRemoteNodes()
 			       rc.port, rc.syn_group, rc.weight, rc.delay);
 
     }
+  }
+  
+  return 0;
+}
+
+int NeuronGPU::GetNFloatParam()
+{
+  return N_KERNEL_FLOAT_PARAM;
+}
+
+std::vector<std::string> NeuronGPU::GetFloatParamNames()
+{
+  std::vector<std::string> param_name_vect;
+  for (int i=0; i<N_KERNEL_FLOAT_PARAM; i++) {
+    param_name_vect.push_back(kernel_float_param_name[i]);
+  }
+  
+  return param_name_vect;
+}
+
+bool NeuronGPU::IsFloatParam(std::string param_name)
+{
+  int i_param;
+  for (i_param=0; i_param<N_KERNEL_FLOAT_PARAM; i_param++) {
+    if (param_name == kernel_float_param_name[i_param]) return true;
+  }
+  return false;
+}
+
+int NeuronGPU::GetFloatParamIdx(std::string param_name)
+{
+  int i_param;
+  for (i_param=0; i_param<N_KERNEL_FLOAT_PARAM; i_param++) {
+    if (param_name == kernel_float_param_name[i_param]) break;
+  }
+  if (i_param == N_KERNEL_FLOAT_PARAM) {
+    throw ngpu_exception(std::string("Unrecognized kernel float parameter ")
+			 + param_name);
+  }
+  
+  return i_param;
+}
+
+float NeuronGPU::GetFloatParam(std::string param_name)
+{
+  int i_param =  GetFloatParamIdx(param_name);
+  switch (i_param) {
+  case i_time_resolution:
+    return time_resolution_;
+  case i_max_spike_num_fact:
+    return max_spike_num_fact_;
+  case i_max_spike_per_host_fact:
+    return max_spike_per_host_fact_;
+  default:
+    throw ngpu_exception(std::string("Unrecognized kernel float parameter ")
+			 + param_name);
+  }
+}
+
+int NeuronGPU::SetFloatParam(std::string param_name, float val)
+{
+  int i_param =  GetFloatParamIdx(param_name);
+
+  switch (i_param) {
+  case i_time_resolution:
+    time_resolution_ = val;
+    break;
+  case i_max_spike_num_fact:
+    max_spike_num_fact_ = val;
+    break;
+  case i_max_spike_per_host_fact:
+    max_spike_per_host_fact_ = val;
+    break;
+  default:
+    throw ngpu_exception(std::string("Unrecognized kernel float parameter ")
+			 + param_name);
+  }
+  
+  return 0;
+}
+
+int NeuronGPU::GetNIntParam()
+{
+  return N_KERNEL_INT_PARAM;
+}
+
+std::vector<std::string> NeuronGPU::GetIntParamNames()
+{
+  std::vector<std::string> param_name_vect;
+  for (int i=0; i<N_KERNEL_INT_PARAM; i++) {
+    param_name_vect.push_back(kernel_int_param_name[i]);
+  }
+  
+  return param_name_vect;
+}
+
+bool NeuronGPU::IsIntParam(std::string param_name)
+{
+  int i_param;
+  for (i_param=0; i_param<N_KERNEL_INT_PARAM; i_param++) {
+    if (param_name == kernel_int_param_name[i_param]) return true;
+  }
+  return false;
+}
+
+int NeuronGPU::GetIntParamIdx(std::string param_name)
+{
+  int i_param;
+  for (i_param=0; i_param<N_KERNEL_INT_PARAM; i_param++) {
+    if (param_name == kernel_int_param_name[i_param]) break;
+  }
+  if (i_param == N_KERNEL_INT_PARAM) {
+    throw ngpu_exception(std::string("Unrecognized kernel int parameter ")
+			 + param_name);
+  }
+  
+  return i_param;
+}
+
+int NeuronGPU::GetIntParam(std::string param_name)
+{
+  int i_param =  GetIntParamIdx(param_name);
+  switch (i_param) {
+  case i_rnd_seed:
+    return kernel_seed_ - 12345; // see neurongpu.cu
+  case i_verbosity_level:
+    return verbosity_level_;
+  case i_max_spike_buffer_size:
+    return max_spike_buffer_size_;
+  case i_remote_spike_height_flag:
+#ifdef HAVE_MPI
+    if (connect_mpi_->remote_spike_height_) {
+      return 1;
+    }
+    else {
+      return 0;
+    }
+#else
+    return 0;
+#endif
+  default:
+    throw ngpu_exception(std::string("Unrecognized kernel int parameter ")
+			 + param_name);
+  }
+}
+
+int NeuronGPU::SetIntParam(std::string param_name, int val)
+{
+  int i_param =  GetIntParamIdx(param_name);
+  switch (i_param) {
+  case i_rnd_seed:
+    SetRandomSeed(val);
+    break;
+  case i_verbosity_level:
+    SetVerbosityLevel(val);
+    break;
+  case i_max_spike_per_host_fact:
+    SetMaxSpikeBufferSize(val);
+    break;
+  case i_remote_spike_height_flag:
+#ifdef HAVE_MPI
+    if (val==0) {
+      connect_mpi_->remote_spike_height_ = false;
+    }
+    else if (val==1) {
+      connect_mpi_->remote_spike_height_ = true;
+    }
+    else {
+      throw ngpu_exception("Admissible values of remote_spike_height_flag are only 0 or 1");
+    }
+    break;
+#else
+    throw ngpu_exception("remote_spike_height_flag cannot be changed in an installation without MPI support");
+#endif
+  default:
+    throw ngpu_exception(std::string("Unrecognized kernel int parameter ")
+			 + param_name);
   }
   
   return 0;

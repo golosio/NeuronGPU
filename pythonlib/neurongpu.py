@@ -1235,6 +1235,9 @@ def MpiId():
         raise ValueError(GetErrorMessage())
     return ret
 
+def Rank():
+    "Get MPI rank"
+    return MpiId()
 
 NeuronGPU_MpiNp = _neurongpu.NeuronGPU_MpiNp
 NeuronGPU_MpiNp.restype = ctypes.c_int

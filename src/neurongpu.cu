@@ -298,20 +298,15 @@ int NeuronGPU::Calibrate()
   	    
   NodeGroupArrayInit();
   
-
-  printf("max_spike_num_fact: %f\n", max_spike_num_fact_);
   max_spike_num_ = (int)round(max_spike_num_fact_
                  * net_connection_->connection_.size()
   		 * net_connection_->MaxDelayNum());
   max_spike_num_ = (max_spike_num_>1) ? max_spike_num_ : 1;
-  printf("max_spike_num: %d\n", max_spike_num_);
 
-  printf("max_spike_per_host_fact: %f\n", max_spike_per_host_fact_);
   max_spike_per_host_ = (int)round(max_spike_per_host_fact_
                  * net_connection_->connection_.size()
   		 * net_connection_->MaxDelayNum());
   max_spike_per_host_ = (max_spike_per_host_>1) ? max_spike_per_host_ : 1;
-  printf("max_spike_per_host: %d\n", max_spike_per_host_);
   
   SpikeInit(max_spike_num_);
   SpikeBufferInit(net_connection_, max_spike_buffer_size_);

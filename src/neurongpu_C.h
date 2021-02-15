@@ -155,7 +155,7 @@ extern "C" {
   float *NeuronGPU_RandomNormal(size_t n, float mean, float stddev);
   
   float *NeuronGPU_RandomNormalClipped(size_t n, float mean, float stddev,
-				       float vmin, float vmax);
+				       float vmin, float vmax, float vstep);
   
   int NeuronGPU_Connect(int i_source_node, int i_target_node,
 			unsigned char port, unsigned char syn_group,

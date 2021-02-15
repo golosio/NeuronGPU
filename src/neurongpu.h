@@ -494,7 +494,7 @@ class NeuronGPU
   float *RandomNormal(size_t n, float mean, float stddev);
 
   float *RandomNormalClipped(size_t n, float mean, float stddev, float vmin,
-			     float vmax);  
+			     float vmax, float vstep);  
 
   int Connect
     (

@@ -1101,8 +1101,10 @@ float *NeuronGPU::RandomNormal(size_t n, float mean, float stddev)
 }
 
 float *NeuronGPU::RandomNormalClipped(size_t n, float mean, float stddev,
-				      float vmin, float vmax)
+				      float vmin, float vmax, float vstep)
 {
+  const float epsi = 1.0e-6;
+  
   n = (n/4 + 1)*4; 
   int n_extra = n/10;
   n_extra = (n_extra/4 + 1)*4; 
@@ -1129,6 +1131,12 @@ float *NeuronGPU::RandomNormalClipped(size_t n, float mean, float stddev,
   if (arr_extra != NULL) {
     delete[](arr_extra);
   }
+  if (vstep>stddev*epsi) {
+    for (size_t i=0; i<n; i++) {
+      arr[i] = vmin + vstep*round((arr[i] - vmin)/vstep);
+    }
+  }
+
   return arr; 
 }
 

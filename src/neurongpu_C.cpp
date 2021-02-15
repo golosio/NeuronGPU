@@ -441,10 +441,10 @@ extern "C" {
   } END_ERR_PROP return ret; }
   
   float *NeuronGPU_RandomNormalClipped(size_t n, float mean, float stddev,
-				       float vmin, float vmax)
+				       float vmin, float vmax, float vstep)
   { float *ret = NULL; BEGIN_ERR_PROP {
     ret = NeuronGPU_instance->RandomNormalClipped(n, mean, stddev, vmin,
-							 vmax);
+						  vmax, vstep);
   } END_ERR_PROP return ret; }
   
   int NeuronGPU_Connect(int i_source_node, int i_target_node,

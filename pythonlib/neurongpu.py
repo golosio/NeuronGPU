@@ -1305,15 +1305,16 @@ def RandomNormal(n, mean, stddev):
 
 NeuronGPU_RandomNormalClipped = _neurongpu.NeuronGPU_RandomNormalClipped
 NeuronGPU_RandomNormalClipped.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float, ctypes.c_float,
-                                          ctypes.c_float)
+                                          ctypes.c_float, ctypes.c_float)
 NeuronGPU_RandomNormalClipped.restype = c_float_p
-def RandomNormalClipped(n, mean, stddev, vmin, vmax):
+def RandomNormalClipped(n, mean, stddev, vmin, vmax, vstep=0):
     "Generate n random floats with normal clipped distribution in CUDA memory"
     ret = NeuronGPU_RandomNormalClipped(ctypes.c_size_t(n),
                                         ctypes.c_float(mean),
                                         ctypes.c_float(stddev),
                                         ctypes.c_float(vmin),
-                                        ctypes.c_float(vmax))
+                                        ctypes.c_float(vmax),
+                                        ctypes.c_float(vstep))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
@@ -1475,6 +1476,7 @@ def DictToArray(param_dict, array_size):
     high = 1.0e35
     mu = None
     sigma = None
+    vstep = 0
     
     for param_name in param_dict:
         pval = param_dict[param_name]
@@ -1491,6 +1493,8 @@ def DictToArray(param_dict, array_size):
             mu = pval
         elif param_name=="sigma":
             sigma = pval
+        elif param_name=="step":
+            vstep = pval
         else:
             raise ValueError("Unknown parameter name in dictionary")
 
@@ -1505,7 +1509,7 @@ def DictToArray(param_dict, array_size):
     elif dist_name=="normal":
         return RandomNormal(array_size, mu, sigma)
     elif dist_name=="normal_clipped":
-        return RandomNormalClipped(array_size, mu, sigma, low, high)
+        return RandomNormalClipped(array_size, mu, sigma, low, high, vstep)
     else:
         raise ValueError("Unknown distribution")
 

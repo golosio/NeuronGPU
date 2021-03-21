@@ -422,6 +422,8 @@ int ConnectMpi::CopySpikeFromRemote(int n_hosts, int max_spike_per_host,
     // tolto controllo flag spike height ed eventuale ricezione
     AddOffset<<<(n_spike_tot+1023)/1024, 1024>>>
       (n_spike_tot, d_ExternalSourceSpikeNodeId, i_remote_node_0);
+    gpuErrchk( cudaPeekAtLastError() );
+    cudaDeviceSynchronize();
     PushSpikeFromRemote<<<(n_spike_tot+1023)/1024, 1024>>>
       (n_spike_tot, d_ExternalSourceSpikeNodeId);
     gpuErrchk( cudaPeekAtLastError() );

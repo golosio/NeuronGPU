@@ -33,7 +33,14 @@ class ConnectMpi
   int mpi_np_;
   int mpi_master_;
   bool remote_spike_height_;
-    
+  
+  double SendSpikeToRemote_MPI_time_;
+  double RecvSpikeFromRemote_MPI_time_;
+  double SendSpikeToRemote_CUDAcp_time_;
+  double RecvSpikeFromRemote_CUDAcp_time_;
+  double JoinSpike_time_;
+  
+  
   std::vector<std::vector<ExternalConnectionNode > > extern_connection_;
 
   int MPI_Recv_int(int *int_val, int n, int sender_id);
@@ -62,9 +69,12 @@ class ConnectMpi
 
   int SendSpikeToRemote(int n_hosts, int max_spike_per_host);
 
-  int RecvSpikeFromRemote(int i_host, int max_spike_per_host,
+  int RecvSpikeFromRemote(int n_hosts, int max_spike_per_host,
 			  int i_remote_node_0);
 
+  int CopySpikeFromRemote(int n_hosts, int max_spike_per_host);
+
+  int JoinSpikes(int n_hosts, int max_spike_per_host);
 
 };
 

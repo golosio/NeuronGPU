@@ -113,7 +113,7 @@ NeuronGPU::NeuronGPU()
   
   on_exception_ = ON_EXCEPTION_EXIT;
 
-  verbosity_level_ = 3;
+  verbosity_level_ = 4;
   
 #ifdef HAVE_MPI
   connect_mpi_ = new ConnectMpi;
@@ -135,6 +135,7 @@ NeuronGPU::NeuronGPU()
   GetSpike_time_ = 0;
   SpikeReset_time_ = 0;
   ExternalSpikeReset_time_ = 0;
+
   first_simulation_flag_ = true;
 }
 
@@ -433,6 +434,19 @@ int NeuronGPU::EndSimulation()
     std::cout << "  ExternalSpikeReset_time: " << ExternalSpikeReset_time_
 	      << "\n";
   }
+  if (mpi_flag_ && verbosity_level_>=4) {
+    std::cout << "  SendSpikeToRemote_MPI_time: " <<
+      connect_mpi_->SendSpikeToRemote_MPI_time_ << "\n";
+    std::cout << "  RecvSpikeFromRemote_MPI_time: " <<
+      connect_mpi_->RecvSpikeFromRemote_MPI_time_ << "\n";
+    std::cout << "  SendSpikeToRemote_CUDAcp_time: " <<
+      connect_mpi_->SendSpikeToRemote_CUDAcp_time_  << "\n";
+    std::cout << "  RecvSpikeFromRemote_CUDAcp_time: " <<
+      connect_mpi_->RecvSpikeFromRemote_CUDAcp_time_  << "\n";
+    std::cout << "  JoinSpike_time: " <<
+      connect_mpi_->JoinSpike_time_  << "\n";
+  }
+  
   if (verbosity_level_>=1) {
     printf("Build real time = %lf\n",
 	   (build_real_time_ - start_real_time_));
@@ -501,20 +515,19 @@ int NeuronGPU::SimulationStep()
       gpuErrchk( cudaDeviceSynchronize() );
       SendExternalSpike_time_ += (getRealTime() - time_mark);
     }
-    for (int ih=0; ih<connect_mpi_->mpi_np_; ih++) {
-      if (ih == connect_mpi_->mpi_id_) {
-	time_mark = getRealTime();
-	connect_mpi_->SendSpikeToRemote(connect_mpi_->mpi_np_,
-					max_spike_per_host_);
-	SendSpikeToRemote_time_ += (getRealTime() - time_mark);
-      }
-      else {
-	time_mark = getRealTime();
-	connect_mpi_->RecvSpikeFromRemote(ih, max_spike_per_host_,
-					  i_remote_node_0_);
-	RecvSpikeFromRemote_time_ += (getRealTime() - time_mark);
-      }
-    }
+    //for (int ih=0; ih<connect_mpi_->mpi_np_; ih++) {
+    //if (ih == connect_mpi_->mpi_id_) {
+    time_mark = getRealTime();
+    connect_mpi_->SendSpikeToRemote(connect_mpi_->mpi_np_,
+				    max_spike_per_host_);
+    SendSpikeToRemote_time_ += (getRealTime() - time_mark);
+    time_mark = getRealTime();
+    connect_mpi_->RecvSpikeFromRemote(connect_mpi_->mpi_np_,
+				      max_spike_per_host_,
+				      i_remote_node_0_);
+    RecvSpikeFromRemote_time_ += (getRealTime() - time_mark);
+    connect_mpi_->CopySpikeFromRemote(connect_mpi_->mpi_np_,
+				      max_spike_per_host_);
   }
 #endif
     

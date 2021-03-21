@@ -246,6 +246,7 @@ class NeuronGPU
   double GetSpike_time_;
   double SpikeReset_time_;
   double ExternalSpikeReset_time_;
+
   bool first_simulation_flag_;
 
  public:

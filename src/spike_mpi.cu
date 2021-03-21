@@ -333,8 +333,8 @@ int ConnectMpi::SendSpikeToRemote(int n_hosts, int max_spike_per_host)
   return 0;
 }
 
-int ConnectMpi::RecvSpikeFromRemote(int n_hosts, int max_spike_per_host,
-				    int i_remote_node_0)
+int ConnectMpi::RecvSpikeFromRemote(int n_hosts, int max_spike_per_host)
+				    
 {
   std::list<int> recv_list;
   std::list<int>::iterator list_it;
@@ -397,7 +397,8 @@ int ConnectMpi::RecvSpikeFromRemote(int n_hosts, int max_spike_per_host,
   return 0;
 }
 
-int ConnectMpi::CopySpikeFromRemote(int n_hosts, int max_spike_per_host)
+int ConnectMpi::CopySpikeFromRemote(int n_hosts, int max_spike_per_host,
+				    int i_remote_node_0)
 {
   double time_mark = getRealTime();
   int n_spike_tot = 0;
@@ -427,6 +428,7 @@ int ConnectMpi::CopySpikeFromRemote(int n_hosts, int max_spike_per_host)
   
   return n_spike_tot;
 }
+
 __global__ void JoinSpikeKernel(int n_hosts, int *ExternalTargetSpikeCumul,
 				int *ExternalTargetSpikeNodeId,
 				int *ExternalTargetSpikeNodeIdJoin,

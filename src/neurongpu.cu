@@ -523,11 +523,12 @@ int NeuronGPU::SimulationStep()
     SendSpikeToRemote_time_ += (getRealTime() - time_mark);
     time_mark = getRealTime();
     connect_mpi_->RecvSpikeFromRemote(connect_mpi_->mpi_np_,
-				      max_spike_per_host_,
-				      i_remote_node_0_);
+				      max_spike_per_host_);
+				      
     RecvSpikeFromRemote_time_ += (getRealTime() - time_mark);
     connect_mpi_->CopySpikeFromRemote(connect_mpi_->mpi_np_,
-				      max_spike_per_host_);
+				      max_spike_per_host_,
+				      i_remote_node_0_);
   }
 #endif
     

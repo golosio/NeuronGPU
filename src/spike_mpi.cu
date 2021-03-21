@@ -413,18 +413,20 @@ int ConnectMpi::CopySpikeFromRemote(int n_hosts, int max_spike_per_host,
   }
   JoinSpike_time_ += (getRealTime() - time_mark);
 
-  time_mark = getRealTime();
-  gpuErrchk(cudaMemcpy(d_ExternalSourceSpikeNodeId,
-		       h_ExternalSourceSpikeNodeId,
-		       n_spike_tot*sizeof(int), cudaMemcpyHostToDevice));
-  RecvSpikeFromRemote_CUDAcp_time_ += (getRealTime() - time_mark);
-  // tolto controllo flag spike height ed eventuale ricezione
-  AddOffset<<<(n_spike_tot+1023)/1024, 1024>>>
-    (n_spike_tot, d_ExternalSourceSpikeNodeId, i_remote_node_0);
-  PushSpikeFromRemote<<<(n_spike_tot+1023)/1024, 1024>>>
-    (n_spike_tot, d_ExternalSourceSpikeNodeId);
-  gpuErrchk( cudaPeekAtLastError() );
-  cudaDeviceSynchronize();
+  if (n_spike_tot>0) {
+    time_mark = getRealTime();
+    gpuErrchk(cudaMemcpy(d_ExternalSourceSpikeNodeId,
+			 h_ExternalSourceSpikeNodeId,
+			 n_spike_tot*sizeof(int), cudaMemcpyHostToDevice));
+    RecvSpikeFromRemote_CUDAcp_time_ += (getRealTime() - time_mark);
+    // tolto controllo flag spike height ed eventuale ricezione
+    AddOffset<<<(n_spike_tot+1023)/1024, 1024>>>
+      (n_spike_tot, d_ExternalSourceSpikeNodeId, i_remote_node_0);
+    PushSpikeFromRemote<<<(n_spike_tot+1023)/1024, 1024>>>
+      (n_spike_tot, d_ExternalSourceSpikeNodeId);
+    gpuErrchk( cudaPeekAtLastError() );
+    cudaDeviceSynchronize();
+  }
   
   return n_spike_tot;
 }

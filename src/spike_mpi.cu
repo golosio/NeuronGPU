@@ -363,7 +363,7 @@ int ConnectMpi::RecvSpikeFromRemote(int n_hosts, int max_spike_per_host)
 	MPI_Get_count(&Stat, MPI_INT, &count);
 	h_ExternalSourceSpikeNum[i_host] = count -1;
 	recv_list.erase(list_it);
-	list_it--;
+	break;
       }
     }
   }
@@ -468,13 +468,16 @@ int ConnectMpi::JoinSpikes(int n_hosts, int max_spike_per_host)
                        (n_hosts+1)*sizeof(int), cudaMemcpyHostToDevice));
   // prefix_scan(d_ExternalTargetSpikeCumul, d_ExternalTargetSpikeNum, n_hosts,
   //	      true);
-
-  JoinSpikeKernel<<<(n_spike_tot+1023)/1024, 1024>>>(n_hosts,
+  
+  if (n_spike_tot>0) {
+    JoinSpikeKernel<<<(n_spike_tot+1023)/1024, 1024>>>(n_hosts,
 		     d_ExternalTargetSpikeCumul,
 		     d_ExternalTargetSpikeNodeId,
 		     d_ExternalTargetSpikeNodeIdJoin,
 		     n_spike_tot, max_spike_per_host);
-  
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+  }
   JoinSpike_time_ += (getRealTime() - time_mark);
   
   return n_spike_tot;

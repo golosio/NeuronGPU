@@ -480,7 +480,7 @@ int NeuronGPU::SimulationStep()
   neural_time_ = neur_t0_ + (double)time_resolution_*(it_+1);
   gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTime, &neural_time_, sizeof(double)));
   long long time_idx = (int)round(neur_t0_/time_resolution_) + it_ + 1;
-  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTimeIdx, &time_idx, sizeof(int)));
+  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUTimeIdx, &time_idx, sizeof(long long)));
 
   if (ConnectionSpikeTimeFlag) {
     if ( (time_idx & 0xffff) == 0x8000) {

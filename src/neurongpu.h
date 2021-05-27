@@ -105,8 +105,8 @@ class NeuronGPU
   
   NetConnection *net_connection_;
 
-#ifdef HAVE_MPI
   bool mpi_flag_; // true if MPI is initialized
+#ifdef HAVE_MPI
   ConnectMpi *connect_mpi_;
 #endif
   
@@ -471,6 +471,8 @@ class NeuronGPU
 
   int MpiFinalize();
 
+  std::string MpiRankStr();
+  
   void SetErrorFlag(bool error_flag) {error_flag_ = error_flag;}
   
   void SetErrorMessage(std::string error_message) { error_message_

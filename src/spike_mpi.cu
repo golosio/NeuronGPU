@@ -56,9 +56,9 @@ __global__ void AddOffset(int n_spikes, int *spike_buffer_id,
   }
 }
 
-#ifdef HAVE_MPI
-
 __constant__ bool NeuronGPUMpiFlag;
+
+#ifdef HAVE_MPI
 
 __device__ int NExternalTargetHost;
 __device__ int MaxSpikePerHost;

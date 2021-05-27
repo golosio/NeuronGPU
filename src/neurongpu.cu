@@ -115,9 +115,9 @@ NeuronGPU::NeuronGPU()
 
   verbosity_level_ = 4;
   
+  mpi_flag_ = false;
 #ifdef HAVE_MPI
   connect_mpi_ = new ConnectMpi;
-  mpi_flag_ = false;
   connect_mpi_->net_connection_ = net_connection_;
   connect_mpi_->remote_spike_height_ = false;
 #endif
@@ -281,18 +281,10 @@ int NeuronGPU::Calibrate()
   calibrate_flag_ = true;
   BuildDirectConnections();
 
+  gpuErrchk(cudaMemcpyToSymbol(NeuronGPUMpiFlag, &mpi_flag_, sizeof(bool)));
+
   if (verbosity_level_>=1) {
-#ifdef HAVE_MPI
-    if (mpi_flag_) {
-      std::cout << "Calibrating on host " << connect_mpi_->mpi_id_ << " ...\n";
-    }
-    else {
-      std::cout << "Calibrating ...\n";
-    }
-    gpuErrchk(cudaMemcpyToSymbol(NeuronGPUMpiFlag, &mpi_flag_, sizeof(bool)));
-#else
-    std::cout << "Calibrating ...\n";
-#endif
+    std::cout << MpiRankStr() << "Calibrating ...\n";
   }
   
   neural_time_ = t_min_;
@@ -376,18 +368,8 @@ int NeuronGPU::StartSimulation()
     build_real_time_ = getRealTime();
     first_simulation_flag_ = false;
   }
-
   if (verbosity_level_>=1) {
-#ifdef HAVE_MPI
-    if (mpi_flag_) {
-      std::cout << "Simulating on host " << connect_mpi_->mpi_id_ << " ...\n";
-    }
-    else {
-      std::cout << "Simulating ...\n";
-    }
-#else
-    std::cout << "Simulating ...\n";
-#endif
+    std::cout << MpiRankStr() << "Simulating ...\n";
     printf("Neural activity simulation time: %.3lf\n", sim_time_);
   }
   
@@ -403,7 +385,7 @@ int NeuronGPU::EndSimulation()
   if (verbosity_level_>=2) {
     printf("%.3lf\n", neural_time_);
   }
-#ifdef HAVE_MPI                                                                                                            
+#ifdef HAVE_MPI                                        
   if (mpi_flag_) {
     MPI_Barrier(MPI_COMM_WORLD);
   }
@@ -416,42 +398,47 @@ int NeuronGPU::EndSimulation()
 
   if (verbosity_level_>=3) {
     std::cout << "\n";
-    std::cout << "  SpikeBufferUpdate_time: " << SpikeBufferUpdate_time_
-	      << "\n";
-    std::cout << "  poisson_generator_time: " << poisson_generator_time_
-	      << "\n";
-    std::cout << "  neuron_Update_time: " << neuron_Update_time_ << "\n";
-    std::cout << "  copy_ext_spike_time: " << copy_ext_spike_time_ << "\n";
-    std::cout << "  SendExternalSpike_time: " << SendExternalSpike_time_
-	      << "\n";
-    std::cout << "  SendSpikeToRemote_time: " << SendSpikeToRemote_time_
-	      << "\n";
-    std::cout << "  RecvSpikeFromRemote_time: " << RecvSpikeFromRemote_time_
-	      << "\n";
-    std::cout << "  NestedLoop_time: " << NestedLoop_time_ << "\n";
-    std::cout << "  GetSpike_time: " << GetSpike_time_ << "\n";
-    std::cout << "  SpikeReset_time: " << SpikeReset_time_ << "\n";
-    std::cout << "  ExternalSpikeReset_time: " << ExternalSpikeReset_time_
-	      << "\n";
+    std::cout << MpiRankStr() << "  SpikeBufferUpdate_time: " <<
+      SpikeBufferUpdate_time_ << "\n";
+    std::cout << MpiRankStr() << "  poisson_generator_time: " <<
+      poisson_generator_time_ << "\n";
+    std::cout << MpiRankStr() << "  neuron_Update_time: " <<
+      neuron_Update_time_ << "\n";
+    std::cout << MpiRankStr() << "  copy_ext_spike_time: " <<
+      copy_ext_spike_time_ << "\n";
+    std::cout << MpiRankStr() << "  SendExternalSpike_time: " <<
+      SendExternalSpike_time_ << "\n";
+    std::cout << MpiRankStr() << "  SendSpikeToRemote_time: " <<
+      SendSpikeToRemote_time_ << "\n";
+    std::cout << MpiRankStr() << "  RecvSpikeFromRemote_time: " <<
+      RecvSpikeFromRemote_time_ << "\n";
+    std::cout << MpiRankStr() << "  NestedLoop_time: " <<
+      NestedLoop_time_ << "\n";
+    std::cout << MpiRankStr() << "  GetSpike_time: " <<
+      GetSpike_time_ << "\n";
+    std::cout << MpiRankStr() << "  SpikeReset_time: " <<
+      SpikeReset_time_ << "\n";
+    std::cout << MpiRankStr() << "  ExternalSpikeReset_time: " <<
+      ExternalSpikeReset_time_ << "\n";
   }
   if (mpi_flag_ && verbosity_level_>=4) {
-    std::cout << "  SendSpikeToRemote_MPI_time: " <<
+    std::cout << MpiRankStr() << "  SendSpikeToRemote_MPI_time: " <<
       connect_mpi_->SendSpikeToRemote_MPI_time_ << "\n";
-    std::cout << "  RecvSpikeFromRemote_MPI_time: " <<
+    std::cout << MpiRankStr() << "  RecvSpikeFromRemote_MPI_time: " <<
       connect_mpi_->RecvSpikeFromRemote_MPI_time_ << "\n";
-    std::cout << "  SendSpikeToRemote_CUDAcp_time: " <<
+    std::cout << MpiRankStr() << "  SendSpikeToRemote_CUDAcp_time: " <<
       connect_mpi_->SendSpikeToRemote_CUDAcp_time_  << "\n";
-    std::cout << "  RecvSpikeFromRemote_CUDAcp_time: " <<
+    std::cout << MpiRankStr() << "  RecvSpikeFromRemote_CUDAcp_time: " <<
       connect_mpi_->RecvSpikeFromRemote_CUDAcp_time_  << "\n";
-    std::cout << "  JoinSpike_time: " <<
+    std::cout << MpiRankStr() << "  JoinSpike_time: " <<
       connect_mpi_->JoinSpike_time_  << "\n";
   }
   
   if (verbosity_level_>=1) {
-    printf("Build real time = %lf\n",
-	   (build_real_time_ - start_real_time_));
-    printf("Simulation real time = %lf\n",
-	   (end_real_time_ - build_real_time_));
+    std::cout << MpiRankStr() << "Building time: " <<
+      (build_real_time_ - start_real_time_) << "\n";
+    std::cout << MpiRankStr() << "Simulation time: " <<
+      (end_real_time_ - build_real_time_) << "\n";
   }
   
   return 0;
@@ -1097,6 +1084,17 @@ int NeuronGPU::MpiFinalize()
 #else
   throw ngpu_exception("MPI is not available in your build");
 #endif
+}
+
+std::string NeuronGPU::MpiRankStr()
+{
+  if (mpi_flag_) {
+    return std::string("MPI rank ") + std::to_string(connect_mpi_->mpi_id_)
+      + " : ";
+  }
+  else {
+    return "";
+  }
 }
 
 unsigned int *NeuronGPU::RandomInt(size_t n)

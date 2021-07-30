@@ -516,6 +516,7 @@ int NeuronGPU::SimulationStep()
     connect_mpi_->CopySpikeFromRemote(connect_mpi_->mpi_np_,
 				      max_spike_per_host_,
 				      i_remote_node_0_);
+    MPI_Barrier(MPI_COMM_WORLD);
   }
 #endif
     

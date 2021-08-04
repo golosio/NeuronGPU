@@ -519,7 +519,7 @@ int SpikeBufferInit(NetConnection *net_connection, int max_spike_buffer_size)
   gpuErrchk( cudaPeekAtLastError() );
   gpuErrchk( cudaDeviceSynchronize() );
   gpuErrchk(cudaMemset(d_LastSpikeHeight, 0,
-		       n_spike_buffers*sizeof(unsigned short)));
+		       n_spike_buffers*sizeof(float)));
 
   delete[] h_ConnectionGroupSize;
   delete[] h_ConnectionGroupDelay;

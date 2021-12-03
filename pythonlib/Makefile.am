@@ -1,1 +1,1 @@
-python_PYTHON = neurongpu.py
+python_PYTHON = nestgpu.py

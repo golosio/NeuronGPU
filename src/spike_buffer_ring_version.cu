@@ -1,16 +1,26 @@
 /*
-Copyright (C) 2020 Bruno Golosio
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *  This file is part of NESTGPU.
+ *
+ *  Copyright (C) 2021 The NEST Initiative
+ *
+ *  NESTGPU is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NESTGPU is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NESTGPU.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
+
 
 #include <config.h>
 #include <iostream>
@@ -29,9 +39,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LAST_SPIKE_TIME_GUARD 0x70000000
 
-extern __constant__ float NeuronGPUTime;
-extern __constant__ int NeuronGPUTimeIdx;
-extern __constant__ float NeuronGPUTimeResolution;
+extern __constant__ float NESTGPUTime;
+extern __constant__ int NESTGPUTimeIdx;
+extern __constant__ float NESTGPUTimeResolution;
 extern __constant__ NodeGroupStruct NodeGroupArray[];
 extern __device__ signed char *NodeGroupMap;
 
@@ -150,7 +160,7 @@ __device__ unsigned int **TargetRevConnection;
 ////////////////////////////////////////////////////////////
 __device__ void PushSpike(int i_spike_buffer, float height)
 {
-  LastSpikeTimeIdx[i_spike_buffer] = NeuronGPUTimeIdx;
+  LastSpikeTimeIdx[i_spike_buffer] = NESTGPUTimeIdx;
   LastSpikeHeight[i_spike_buffer] = height;
   int i_group = NodeGroupMap[i_spike_buffer];
   int den_delay_idx;
@@ -163,7 +173,7 @@ __device__ void PushSpike(int i_spike_buffer, float height)
     // den_delay_arr points to the dendritic delay if the first
     // node of the group. The other are separate by steps = n_param
     den_delay_idx = (int)round(den_delay_arr[i_neuron*n_param]
-			       /NeuronGPUTimeResolution);
+			       /NESTGPUTimeResolution);
     //printf("isb %d\tden_delay_idx: %d\n", i_spike_buffer, den_delay_idx);
   }
   else {
@@ -171,11 +181,11 @@ __device__ void PushSpike(int i_spike_buffer, float height)
   }
   if (den_delay_idx==0) {
     // last time when spike is sent back to dendrites (e.g. for STDP)
-    LastRevSpikeTimeIdx[i_spike_buffer] = NeuronGPUTimeIdx;
+    LastRevSpikeTimeIdx[i_spike_buffer] = NESTGPUTimeIdx;
   }
   
 #ifdef HAVE_MPI
-  if (NeuronGPUMpiFlag) {
+  if (NESTGPUMpiFlag) {
     // if MPI is active spike should eventually be sent to remote connections
     PushExternalSpike(i_spike_buffer, height);
   }
@@ -200,7 +210,7 @@ __device__ void PushSpike(int i_spike_buffer, float height)
     else { // record spike time
       NodeGroupArray[i_group].rec_spike_times_
 	[i_node_rel*max_n_rec_spike_times + n_rec_spike_times]
-	= NeuronGPUTime;
+	= NESTGPUTime;
       NodeGroupArray[i_group].n_rec_spike_times_[i_node_rel]++;
     }
   }
@@ -250,7 +260,7 @@ __global__ void SpikeBufferUpdate()
     // den_delay_arr points to the dendritic delay if the first
     // node of the group. The other are separate by steps = n_param
     den_delay_idx = (int)round(den_delay_arr[i_neuron*n_param]
-			       /NeuronGPUTimeResolution);
+			       /NESTGPUTimeResolution);
     //printf("isb update %d\tden_delay_idx: %d\n", i_spike_buffer, den_delay_idx);
   }
   else {
@@ -303,7 +313,7 @@ __global__ void SpikeBufferUpdate()
   }
 
   if (rev_spike) {
-    LastRevSpikeTimeIdx[i_spike_buffer] = NeuronGPUTimeIdx+1;
+    LastRevSpikeTimeIdx[i_spike_buffer] = NESTGPUTimeIdx+1;
   }
 }
 

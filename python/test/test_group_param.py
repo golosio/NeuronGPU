@@ -1,4 +1,4 @@
-import neurongpu as ngpu
+import nestgpu as ngpu
 n=ngpu.Create('iaf_psc_exp_g',3)
 print(ngpu.GetStatus(n))
 print(ngpu.GetStatus(n, "V_m_rel"))

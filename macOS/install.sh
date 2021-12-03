@@ -4,7 +4,7 @@ if [ $# -eq 0 ]
     echo "No source directory supplied"
     exit
 fi
-srcdir=$1/NeuronGPU
+srcdir=$1/NESTGPU
 
 if [ ! -f /usr/local/cuda/lib/libcurand.10.dylib ]; then
     echo "File not found /usr/local/cuda/libcurand.10.dylib"
@@ -15,20 +15,20 @@ if [ ! -f /usr/local/cuda/lib/libcurand.10.dylib ]; then
 fi
 
 # create installation directory if it doesn't exist and clean it
-mkdir -p "/usr/local/neurongpu"
-rm -fr /usr/local/neurongpu/*
+mkdir -p "/usr/local/nestgpu"
+rm -fr /usr/local/nestgpu/*
 mkdir -p "/usr/local/lib"
 
 # copy subdirectories
-cp -r $srcdir/src /usr/local/neurongpu
-cp -r $srcdir/python /usr/local/neurongpu
-cp -r $srcdir/c++ /usr/local/neurongpu
-cp -r $srcdir/macOS/pythonlib /usr/local/neurongpu
-cp -r $srcdir/macOS/lib /usr/local/neurongpu
+cp -r $srcdir/src /usr/local/nestgpu
+cp -r $srcdir/python /usr/local/nestgpu
+cp -r $srcdir/c++ /usr/local/nestgpu
+cp -r $srcdir/macOS/pythonlib /usr/local/nestgpu
+cp -r $srcdir/macOS/lib /usr/local/nestgpu
 
 #create include directory and copy header file
-mkdir /usr/local/neurongpu/include
-cp $srcdir/src/neurongpu.h /usr/local/neurongpu/include/
+mkdir /usr/local/nestgpu/include
+cp $srcdir/src/nestgpu.h /usr/local/nestgpu/include/
 
 # find python package directory
 SITEDIR=$(python -m site --user-site)
@@ -38,9 +38,9 @@ SITEDIR3=$(python3 -m site --user-site)
 mkdir -p "$SITEDIR"
 mkdir -p "$SITEDIR3"
 
-# create new .pth file with path to neurongpu python module
-echo "/usr/local/neurongpu/pythonlib/" > "$SITEDIR/neurongpu.pth"
-echo "/usr/local/neurongpu/pythonlib/" > "$SITEDIR3/neurongpu.pth"
+# create new .pth file with path to nestgpu python module
+echo "/usr/local/nestgpu/pythonlib/" > "$SITEDIR/nestgpu.pth"
+echo "/usr/local/nestgpu/pythonlib/" > "$SITEDIR3/nestgpu.pth"
 
 # create a symbolic link in /usr/local/lib to the dynamic-link library
-ln -s /usr/local/neurongpu/lib/libneurongpu.so /usr/local/lib/libneurongpu.so
+ln -s /usr/local/nestgpu/lib/libnestgpu.so /usr/local/lib/libnestgpu.so

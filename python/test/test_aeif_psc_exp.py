@@ -1,5 +1,5 @@
 import sys
-import neurongpu as ngpu
+import nestgpu as ngpu
 import numpy as np
 tolerance = 0.0005
 neuron = ngpu.Create('aeif_psc_exp', 1, 2)

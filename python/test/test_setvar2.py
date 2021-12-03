@@ -1,5 +1,5 @@
 import sys
-import neurongpu as ngpu
+import nestgpu as ngpu
 
 n_neurons = 6
 

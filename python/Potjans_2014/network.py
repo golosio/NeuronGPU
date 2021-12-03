@@ -2,7 +2,7 @@
 #
 # network.py
 #
-# adapted for NeuronGPU by Bruno Golosio
+# adapted for NESTGPU by Bruno Golosio
 # Copyright (C) 2004 The NEST Initiative
 #
 # NEST is free software: you can redistribute it and/or modify
@@ -28,16 +28,16 @@ build and simulate the network.
 
 import os
 import numpy as np
-import neurongpu as ngpu
+import nestgpu as ngpu
 import helpers
 
 
 class Network:
-    """ Provides functions to setup NeuronGPU, to create and connect all nodes
+    """ Provides functions to setup NESTGPU, to create and connect all nodes
     of the network, to simulate, and to evaluate the resulting spike data.
 
     Instantiating a Network object derives dependent parameters and already
-    initializes NeuronGPU.
+    initializes NESTGPU.
 
     Parameters
     ---------
@@ -75,7 +75,7 @@ class Network:
         # derive parameters based on input dictionaries
         self.__derive_parameters()
 
-        # initialize NeuronGPU
+        # initialize NESTGPU
         self.__setup_ngpu()
 
     def create(self):
@@ -277,7 +277,7 @@ class Network:
             print(message)
 
     def __setup_ngpu(self):
-        """ Initializes NeuronGPU.
+        """ Initializes NESTGPU.
 
         """
 

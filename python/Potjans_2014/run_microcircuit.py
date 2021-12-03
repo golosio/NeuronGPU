@@ -34,7 +34,7 @@ from stimulus_params import stim_dict
 from network_params import net_dict
 from sim_params import sim_dict
 import network
-#import neurongpu as ngpu
+#import nestgpu as ngpu
 import numpy as np
 import time
 time_start = time.time()

@@ -1,22 +1,32 @@
 /*
-Copyright (C) 2020 Bruno Golosio
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *  This file is part of NESTGPU.
+ *
+ *  Copyright (C) 2021 The NEST Initiative
+ *
+ *  NESTGPU is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NESTGPU is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NESTGPU.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
+
 
 #include <config.h>
 #include <iostream>
 #include "ngpu_exception.h"
 #include "cuda_error.h"
-#include "neurongpu.h"
+#include "nestgpu.h"
 #include "syn_model.h"
 #include "test_syn_model.h"
 #include "stdp.h"
@@ -121,7 +131,7 @@ int SynModel::SetParam(std::string param_name, float val)
 }
 
   
-int NeuronGPU::CreateSynGroup(std::string model_name)
+int NESTGPU::CreateSynGroup(std::string model_name)
 {
   CheckUncalibrated("Nodes cannot be created after calibration");
   if (model_name == syn_model_name[i_test_syn_model]) {
@@ -139,7 +149,7 @@ int NeuronGPU::CreateSynGroup(std::string model_name)
   return syn_group_vect_.size(); // 0 is standard synapse
 }
 
-int NeuronGPU::GetSynGroupNParam(int syn_group)
+int NESTGPU::GetSynGroupNParam(int syn_group)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -148,7 +158,7 @@ int NeuronGPU::GetSynGroupNParam(int syn_group)
   return syn_group_vect_[syn_group-1]->GetNParam();
 }
 
-std::vector<std::string> NeuronGPU::GetSynGroupParamNames(int syn_group)
+std::vector<std::string> NESTGPU::GetSynGroupParamNames(int syn_group)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -157,7 +167,7 @@ std::vector<std::string> NeuronGPU::GetSynGroupParamNames(int syn_group)
   return syn_group_vect_[syn_group-1]->GetParamNames();
 }
 
-bool NeuronGPU::IsSynGroupParam(int syn_group, std::string param_name)
+bool NESTGPU::IsSynGroupParam(int syn_group, std::string param_name)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -166,7 +176,7 @@ bool NeuronGPU::IsSynGroupParam(int syn_group, std::string param_name)
   return syn_group_vect_[syn_group-1]->IsParam(param_name);
 }
 
-int NeuronGPU::GetSynGroupParamIdx(int syn_group, std::string param_name)
+int NESTGPU::GetSynGroupParamIdx(int syn_group, std::string param_name)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -175,7 +185,7 @@ int NeuronGPU::GetSynGroupParamIdx(int syn_group, std::string param_name)
   return syn_group_vect_[syn_group-1]->GetParamIdx(param_name);
 }
 
-float NeuronGPU::GetSynGroupParam(int syn_group, std::string param_name)
+float NESTGPU::GetSynGroupParam(int syn_group, std::string param_name)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
     throw ngpu_exception("Unrecognized synapse group");
@@ -184,7 +194,7 @@ float NeuronGPU::GetSynGroupParam(int syn_group, std::string param_name)
   return syn_group_vect_[syn_group-1]->GetParam(param_name);
 }
 
-int NeuronGPU::SetSynGroupParam(int syn_group, std::string param_name,
+int NESTGPU::SetSynGroupParam(int syn_group, std::string param_name,
 				float val)
 {
   if (syn_group<1 || syn_group>(int)syn_group_vect_.size()) {
@@ -195,7 +205,7 @@ int NeuronGPU::SetSynGroupParam(int syn_group, std::string param_name,
 }
 
 
-int NeuronGPU::SynGroupCalibrate()
+int NESTGPU::SynGroupCalibrate()
 {
   int n_group = syn_group_vect_.size();
   int *h_SynGroupTypeMap = new int[n_group];

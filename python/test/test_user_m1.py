@@ -1,5 +1,5 @@
 import sys
-import neurongpu as ngpu
+import nestgpu as ngpu
 
 neuron = ngpu.Create('user_m1', 1, 3)
 ngpu.SetStatus(neuron, {"V_peak": 0.0, "a": 4.0, "b":80.5,

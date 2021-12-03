@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = 1.4 no-dependencies foreign
 ACLOCAL_AMFLAGS = -I m4
 
 #SUBDIRS=pythonlib
-python_PYTHON = $(top_srcdir)/pythonlib/neurongpu.py
+python_PYTHON = $(top_srcdir)/pythonlib/nestgpu.py
 #dist_data_DATA=autogen.sh
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -44,8 +44,8 @@ $(top_srcdir)/src/get_spike.h \
 $(top_srcdir)/src/multimeter.h \
 $(top_srcdir)/src/nested_loop.h \
 $(top_srcdir)/src/neuron_models.h \
-$(top_srcdir)/src/neurongpu.h \
-$(top_srcdir)/src/neurongpu_C.h \
+$(top_srcdir)/src/nestgpu.h \
+$(top_srcdir)/src/nestgpu_C.h \
 $(top_srcdir)/src/ngpu_exception.h \
 $(top_srcdir)/src/node_group.h \
 $(top_srcdir)/src/parrot_neuron.h \
@@ -101,8 +101,8 @@ $(top_srcdir)/src/get_spike.cu \
 $(top_srcdir)/src/multimeter.cu \
 $(top_srcdir)/src/nested_loop.cu \
 $(top_srcdir)/src/neuron_models.cu \
-$(top_srcdir)/src/neurongpu.cu \
-$(top_srcdir)/src/neurongpu_C.cpp \
+$(top_srcdir)/src/nestgpu.cu \
+$(top_srcdir)/src/nestgpu_C.cpp \
 $(top_srcdir)/src/node_group.cu \
 $(top_srcdir)/src/parrot_neuron.cu \
 $(top_srcdir)/src/poiss_gen.cu \
@@ -140,10 +140,10 @@ CUDA_FLAGS= -arch $(GPU_ARCH) --ptxas-options=-v --maxrregcount=55 --relocatable
 CUDA_LIBS= -lm -lcurand
 #-lomp
 
-libneurongpu.la: $(ngpu_src_files) $(ngpu_h_files)
+libnestgpu.la: $(ngpu_src_files) $(ngpu_h_files)
 	$(NVCC) -ccbin=$(MPICXX) --compiler-options  "$(COMPILER_FLAGS)" -I . $(CUDA_FLAGS) --shared -o $@ $(ngpu_src_files) $(CUDA_LIBS)
 
-lib_LTLIBRARIES = libneurongpu.la
+lib_LTLIBRARIES = libnestgpu.la
 
 clean-local:
 	rm -f *.so

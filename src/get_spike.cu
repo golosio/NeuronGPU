@@ -1,28 +1,38 @@
 /*
-Copyright (C) 2020 Bruno Golosio
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *  This file is part of NESTGPU.
+ *
+ *  Copyright (C) 2021 The NEST Initiative
+ *
+ *  NESTGPU is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NESTGPU is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NESTGPU.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
+
 
 #include <config.h>
 #include <stdio.h>
 
-#include "neurongpu.h"
+#include "nestgpu.h"
 #include "node_group.h"
 #include "send_spike.h"
 #include "spike_buffer.h"
 #include "cuda_error.h"
 
-extern __constant__ long long NeuronGPUTimeIdx;
-extern __constant__ float NeuronGPUTimeResolution;
+extern __constant__ long long NESTGPUTimeIdx;
+extern __constant__ float NESTGPUTimeResolution;
 extern __constant__ NodeGroupStruct NodeGroupArray[];
 extern __device__ signed char *NodeGroupMap;
 
@@ -72,13 +82,13 @@ __device__ void NestedLoopFunction0(int i_spike, int i_syn)
   atomicAddDouble(&NodeGroupArray[i_group].get_spike_array_[i], d_val);
   if (syn_group>0) {
     ConnectionGroupTargetSpikeTime[i_conn*NSpikeBuffer+i_source][i_syn]
-      = (unsigned short)(NeuronGPUTimeIdx & 0xffff);
+      = (unsigned short)(NESTGPUTimeIdx & 0xffff);
     
-    long long Dt_int = NeuronGPUTimeIdx - LastRevSpikeTimeIdx[i_target];
+    long long Dt_int = NESTGPUTimeIdx - LastRevSpikeTimeIdx[i_target];
      if (Dt_int>0 && Dt_int<MAX_SYN_DT) {
        SynapseUpdate(syn_group, &ConnectionGroupTargetWeight
 		    [i_conn*NSpikeBuffer+i_source][i_syn],
-		     -NeuronGPUTimeResolution*Dt_int);
+		     -NESTGPUTimeResolution*Dt_int);
     }
   }
   ////////////////////////////////////////////////////////////////
@@ -140,7 +150,7 @@ __global__ void GetSpikes(double *spike_array, int array_size, int n_port,
 }
 
 
-int NeuronGPU::ClearGetSpikeArrays()
+int NESTGPU::ClearGetSpikeArrays()
 {
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     BaseNeuron *bn = node_vect_[i];
@@ -153,7 +163,7 @@ int NeuronGPU::ClearGetSpikeArrays()
   return 0;
 }
 
-int NeuronGPU::FreeGetSpikeArrays()
+int NESTGPU::FreeGetSpikeArrays()
 {
   for (unsigned int i=0; i<node_vect_.size(); i++) {
     BaseNeuron *bn = node_vect_[i];

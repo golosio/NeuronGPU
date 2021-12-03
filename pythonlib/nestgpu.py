@@ -1,4 +1,4 @@
-""" Python interface for NeuronGPU"""
+""" Python interface for NESTGPU"""
 import sys, platform
 import ctypes, ctypes.util
 import os
@@ -6,16 +6,14 @@ import unicodedata
 import gc
 
 print('-----------------------------------------------------------------')
-print('NeuronGPU')
+print('NESTGPU')
 print('A GPU-MPI library for simulation of large-scale networks')
 print(' of spiking neurons')
 print('Homepage: https://github.com/golosio/NeuronGPU') 
-print('Author: B. Golosio, University of Cagliari')
-print('email: golosio@unica.it')
 print('-----------------------------------------------------------------')
 
-lib_path="/usr/local/lib/libneurongpu.so"
-_neurongpu=ctypes.CDLL(lib_path)
+lib_path="/usr/local/lib/libnestgpu.so"
+_nestgpu=ctypes.CDLL(lib_path)
 
 c_float_p = ctypes.POINTER(ctypes.c_float)
 c_int_p = ctypes.POINTER(ctypes.c_int)
@@ -94,104 +92,104 @@ def waitenter(val):
 conn_rule_name = ("one_to_one", "all_to_all", "fixed_total_number",
                   "fixed_indegree", "fixed_outdegree")
     
-NeuronGPU_GetErrorMessage = _neurongpu.NeuronGPU_GetErrorMessage
-NeuronGPU_GetErrorMessage.restype = ctypes.POINTER(ctypes.c_char)
+NESTGPU_GetErrorMessage = _nestgpu.NESTGPU_GetErrorMessage
+NESTGPU_GetErrorMessage.restype = ctypes.POINTER(ctypes.c_char)
 def GetErrorMessage():
-    "Get error message from NeuronGPU exception"
-    message = ctypes.cast(NeuronGPU_GetErrorMessage(), ctypes.c_char_p).value
+    "Get error message from NESTGPU exception"
+    message = ctypes.cast(NESTGPU_GetErrorMessage(), ctypes.c_char_p).value
     return message
  
-NeuronGPU_GetErrorCode = _neurongpu.NeuronGPU_GetErrorCode
-NeuronGPU_GetErrorCode.restype = ctypes.c_ubyte
+NESTGPU_GetErrorCode = _nestgpu.NESTGPU_GetErrorCode
+NESTGPU_GetErrorCode.restype = ctypes.c_ubyte
 def GetErrorCode():
-    "Get error code from NeuronGPU exception"
-    return NeuronGPU_GetErrorCode()
+    "Get error code from NESTGPU exception"
+    return NESTGPU_GetErrorCode()
  
-NeuronGPU_SetOnException = _neurongpu.NeuronGPU_SetOnException
-NeuronGPU_SetOnException.argtypes = (ctypes.c_int,)
+NESTGPU_SetOnException = _nestgpu.NESTGPU_SetOnException
+NESTGPU_SetOnException.argtypes = (ctypes.c_int,)
 def SetOnException(on_exception):
     "Define whether handle exceptions (1) or exit (0) in case of errors"
-    return NeuronGPU_SetOnException(ctypes.c_int(on_exception))
+    return NESTGPU_SetOnException(ctypes.c_int(on_exception))
 
 SetOnException(1)
 
-NeuronGPU_SetRandomSeed = _neurongpu.NeuronGPU_SetRandomSeed
-NeuronGPU_SetRandomSeed.argtypes = (ctypes.c_ulonglong,)
-NeuronGPU_SetRandomSeed.restype = ctypes.c_int
+NESTGPU_SetRandomSeed = _nestgpu.NESTGPU_SetRandomSeed
+NESTGPU_SetRandomSeed.argtypes = (ctypes.c_ulonglong,)
+NESTGPU_SetRandomSeed.restype = ctypes.c_int
 def SetRandomSeed(seed):
     "Set seed for random number generation"
-    ret = NeuronGPU_SetRandomSeed(ctypes.c_ulonglong(seed))
+    ret = NESTGPU_SetRandomSeed(ctypes.c_ulonglong(seed))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SetTimeResolution = _neurongpu.NeuronGPU_SetTimeResolution
-NeuronGPU_SetTimeResolution.argtypes = (ctypes.c_float,)
-NeuronGPU_SetTimeResolution.restype = ctypes.c_int
+NESTGPU_SetTimeResolution = _nestgpu.NESTGPU_SetTimeResolution
+NESTGPU_SetTimeResolution.argtypes = (ctypes.c_float,)
+NESTGPU_SetTimeResolution.restype = ctypes.c_int
 def SetTimeResolution(time_res):
     "Set time resolution in ms"
-    ret = NeuronGPU_SetTimeResolution(ctypes.c_float(time_res))
+    ret = NESTGPU_SetTimeResolution(ctypes.c_float(time_res))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetTimeResolution = _neurongpu.NeuronGPU_GetTimeResolution
-NeuronGPU_GetTimeResolution.restype = ctypes.c_float
+NESTGPU_GetTimeResolution = _nestgpu.NESTGPU_GetTimeResolution
+NESTGPU_GetTimeResolution.restype = ctypes.c_float
 def GetTimeResolution():
     "Get time resolution in ms"
-    ret = NeuronGPU_GetTimeResolution()
+    ret = NESTGPU_GetTimeResolution()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SetMaxSpikeBufferSize = _neurongpu.NeuronGPU_SetMaxSpikeBufferSize
-NeuronGPU_SetMaxSpikeBufferSize.argtypes = (ctypes.c_int,)
-NeuronGPU_SetMaxSpikeBufferSize.restype = ctypes.c_int
+NESTGPU_SetMaxSpikeBufferSize = _nestgpu.NESTGPU_SetMaxSpikeBufferSize
+NESTGPU_SetMaxSpikeBufferSize.argtypes = (ctypes.c_int,)
+NESTGPU_SetMaxSpikeBufferSize.restype = ctypes.c_int
 def SetMaxSpikeBufferSize(max_size):
     "Set maximum size of spike buffer per node"
-    ret = NeuronGPU_SetMaxSpikeBufferSize(ctypes.c_int(max_size))
+    ret = NESTGPU_SetMaxSpikeBufferSize(ctypes.c_int(max_size))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_GetMaxSpikeBufferSize = _neurongpu.NeuronGPU_GetMaxSpikeBufferSize
-NeuronGPU_GetMaxSpikeBufferSize.restype = ctypes.c_int
+NESTGPU_GetMaxSpikeBufferSize = _nestgpu.NESTGPU_GetMaxSpikeBufferSize
+NESTGPU_GetMaxSpikeBufferSize.restype = ctypes.c_int
 def GetMaxSpikeBufferSize():
     "Get maximum size of spike buffer per node"
-    ret = NeuronGPU_GetMaxSpikeBufferSize()
+    ret = NESTGPU_GetMaxSpikeBufferSize()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SetSimTime = _neurongpu.NeuronGPU_SetSimTime
-NeuronGPU_SetSimTime.argtypes = (ctypes.c_float,)
-NeuronGPU_SetSimTime.restype = ctypes.c_int
+NESTGPU_SetSimTime = _nestgpu.NESTGPU_SetSimTime
+NESTGPU_SetSimTime.argtypes = (ctypes.c_float,)
+NESTGPU_SetSimTime.restype = ctypes.c_int
 def SetSimTime(sim_time):
     "Set neural activity simulated time in ms"
-    ret = NeuronGPU_SetSimTime(ctypes.c_float(sim_time))
+    ret = NESTGPU_SetSimTime(ctypes.c_float(sim_time))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SetVerbosityLevel = _neurongpu.NeuronGPU_SetVerbosityLevel
-NeuronGPU_SetVerbosityLevel.argtypes = (ctypes.c_int,)
-NeuronGPU_SetVerbosityLevel.restype = ctypes.c_int
+NESTGPU_SetVerbosityLevel = _nestgpu.NESTGPU_SetVerbosityLevel
+NESTGPU_SetVerbosityLevel.argtypes = (ctypes.c_int,)
+NESTGPU_SetVerbosityLevel.restype = ctypes.c_int
 def SetVerbosityLevel(verbosity_level):
     "Set verbosity level"
-    ret = NeuronGPU_SetVerbosityLevel(ctypes.c_int(verbosity_level))
+    ret = NESTGPU_SetVerbosityLevel(ctypes.c_int(verbosity_level))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_Create = _neurongpu.NeuronGPU_Create
-NeuronGPU_Create.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int)
-NeuronGPU_Create.restype = ctypes.c_int
+NESTGPU_Create = _nestgpu.NESTGPU_Create
+NESTGPU_Create.argtypes = (c_char_p, ctypes.c_int, ctypes.c_int)
+NESTGPU_Create.restype = ctypes.c_int
 def Create(model_name, n_node=1, n_ports=1, status_dict=None):
     "Create a neuron group"
     if (type(status_dict)==dict):
@@ -203,28 +201,28 @@ def Create(model_name, n_node=1, n_ports=1, status_dict=None):
         raise ValueError("Wrong argument in Create")
     
     c_model_name = ctypes.create_string_buffer(to_byte_str(model_name), len(model_name)+1)
-    i_node =NeuronGPU_Create(c_model_name, ctypes.c_int(n_node), ctypes.c_int(n_ports))
+    i_node =NESTGPU_Create(c_model_name, ctypes.c_int(n_node), ctypes.c_int(n_ports))
     ret = NodeSeq(i_node, n_node)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_CreatePoissonGenerator = _neurongpu.NeuronGPU_CreatePoissonGenerator
-NeuronGPU_CreatePoissonGenerator.argtypes = (ctypes.c_int, ctypes.c_float)
-NeuronGPU_CreatePoissonGenerator.restype = ctypes.c_int
+NESTGPU_CreatePoissonGenerator = _nestgpu.NESTGPU_CreatePoissonGenerator
+NESTGPU_CreatePoissonGenerator.argtypes = (ctypes.c_int, ctypes.c_float)
+NESTGPU_CreatePoissonGenerator.restype = ctypes.c_int
 def CreatePoissonGenerator(n_node, rate):
     "Create a poisson-distributed spike generator"
-    i_node = NeuronGPU_CreatePoissonGenerator(ctypes.c_int(n_node), ctypes.c_float(rate)) 
+    i_node = NESTGPU_CreatePoissonGenerator(ctypes.c_int(n_node), ctypes.c_float(rate)) 
     ret = NodeSeq(i_node, n_node)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_CreateRecord = _neurongpu.NeuronGPU_CreateRecord
-NeuronGPU_CreateRecord.argtypes = (c_char_p, ctypes.POINTER(c_char_p), c_int_p, c_int_p, ctypes.c_int)
-NeuronGPU_CreateRecord.restype = ctypes.c_int
+NESTGPU_CreateRecord = _nestgpu.NESTGPU_CreateRecord
+NESTGPU_CreateRecord.argtypes = (c_char_p, ctypes.POINTER(c_char_p), c_int_p, c_int_p, ctypes.c_int)
+NESTGPU_CreateRecord.restype = ctypes.c_int
 def CreateRecord(file_name, var_name_list, i_node_list, i_port_list):
     "Create a record of neuron variables"
     n_node = len(i_node_list)
@@ -236,7 +234,7 @@ def CreateRecord(file_name, var_name_list, i_node_list, i_port_list):
         c_var_name = ctypes.create_string_buffer(to_byte_str(var_name_list[i]), len(var_name_list[i])+1)
         c_var_name_list.append(c_var_name)
 
-    ret = NeuronGPU_CreateRecord(c_file_name,
+    ret = NESTGPU_CreateRecord(c_file_name,
                                  array_char_pt_type(*c_var_name_list),
                                  array_int_type(*i_node_list),
                                  array_int_type(*i_port_list),
@@ -246,34 +244,34 @@ def CreateRecord(file_name, var_name_list, i_node_list, i_port_list):
     return ret
 
 
-NeuronGPU_GetRecordDataRows = _neurongpu.NeuronGPU_GetRecordDataRows
-NeuronGPU_GetRecordDataRows.argtypes = (ctypes.c_int,)
-NeuronGPU_GetRecordDataRows.restype = ctypes.c_int
+NESTGPU_GetRecordDataRows = _nestgpu.NESTGPU_GetRecordDataRows
+NESTGPU_GetRecordDataRows.argtypes = (ctypes.c_int,)
+NESTGPU_GetRecordDataRows.restype = ctypes.c_int
 def GetRecordDataRows(i_record):
     "Get record n. of rows"
-    ret = NeuronGPU_GetRecordDataRows(ctypes.c_int(i_record))
+    ret = NESTGPU_GetRecordDataRows(ctypes.c_int(i_record))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_GetRecordDataColumns = _neurongpu.NeuronGPU_GetRecordDataColumns
-NeuronGPU_GetRecordDataColumns.argtypes = (ctypes.c_int,)
-NeuronGPU_GetRecordDataColumns.restype = ctypes.c_int
+NESTGPU_GetRecordDataColumns = _nestgpu.NESTGPU_GetRecordDataColumns
+NESTGPU_GetRecordDataColumns.argtypes = (ctypes.c_int,)
+NESTGPU_GetRecordDataColumns.restype = ctypes.c_int
 def GetRecordDataColumns(i_record):
     "Get record n. of columns"
-    ret = NeuronGPU_GetRecordDataColumns(ctypes.c_int(i_record))
+    ret = NESTGPU_GetRecordDataColumns(ctypes.c_int(i_record))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_GetRecordData = _neurongpu.NeuronGPU_GetRecordData
-NeuronGPU_GetRecordData.argtypes = (ctypes.c_int,)
-NeuronGPU_GetRecordData.restype = ctypes.POINTER(c_float_p)
+NESTGPU_GetRecordData = _nestgpu.NESTGPU_GetRecordData
+NESTGPU_GetRecordData.argtypes = (ctypes.c_int,)
+NESTGPU_GetRecordData.restype = ctypes.POINTER(c_float_p)
 def GetRecordData(i_record):
     "Get record data"
-    data_arr_pt = NeuronGPU_GetRecordData(ctypes.c_int(i_record))
+    data_arr_pt = NESTGPU_GetRecordData(ctypes.c_int(i_record))
     nr = GetRecordDataRows(i_record)
     nc = GetRecordDataColumns(i_record)
     data_list = []
@@ -290,14 +288,14 @@ def GetRecordData(i_record):
     return ret
 
 
-NeuronGPU_SetNeuronScalParam = _neurongpu.NeuronGPU_SetNeuronScalParam
-NeuronGPU_SetNeuronScalParam.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_SetNeuronScalParam = _nestgpu.NESTGPU_SetNeuronScalParam
+NESTGPU_SetNeuronScalParam.argtypes = (ctypes.c_int, ctypes.c_int,
                                          c_char_p, ctypes.c_float)
-NeuronGPU_SetNeuronScalParam.restype = ctypes.c_int
+NESTGPU_SetNeuronScalParam.restype = ctypes.c_int
 def SetNeuronScalParam(i_node, n_node, param_name, val):
     "Set neuron scalar parameter value"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = NeuronGPU_SetNeuronScalParam(ctypes.c_int(i_node),
+    ret = NESTGPU_SetNeuronScalParam(ctypes.c_int(i_node),
                                        ctypes.c_int(n_node), c_param_name,
                                        ctypes.c_float(val)) 
     if GetErrorCode() != 0:
@@ -305,16 +303,16 @@ def SetNeuronScalParam(i_node, n_node, param_name, val):
     return ret
 
 
-NeuronGPU_SetNeuronArrayParam = _neurongpu.NeuronGPU_SetNeuronArrayParam
-NeuronGPU_SetNeuronArrayParam.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_SetNeuronArrayParam = _nestgpu.NESTGPU_SetNeuronArrayParam
+NESTGPU_SetNeuronArrayParam.argtypes = (ctypes.c_int, ctypes.c_int,
                                           c_char_p, c_float_p, ctypes.c_int)
-NeuronGPU_SetNeuronArrayParam.restype = ctypes.c_int
+NESTGPU_SetNeuronArrayParam.restype = ctypes.c_int
 def SetNeuronArrayParam(i_node, n_node, param_name, param_list):
     "Set neuron array parameter value"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
     array_size = len(param_list)
     array_float_type = ctypes.c_float * array_size
-    ret = NeuronGPU_SetNeuronArrayParam(ctypes.c_int(i_node),
+    ret = NESTGPU_SetNeuronArrayParam(ctypes.c_int(i_node),
                                        ctypes.c_int(n_node), c_param_name,
                                        array_float_type(*param_list),
                                        ctypes.c_int(array_size))  
@@ -323,17 +321,17 @@ def SetNeuronArrayParam(i_node, n_node, param_name, param_list):
     return ret
 
 
-NeuronGPU_SetNeuronPtScalParam = _neurongpu.NeuronGPU_SetNeuronPtScalParam
-NeuronGPU_SetNeuronPtScalParam.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_SetNeuronPtScalParam = _nestgpu.NESTGPU_SetNeuronPtScalParam
+NESTGPU_SetNeuronPtScalParam.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                            c_char_p, ctypes.c_float)
-NeuronGPU_SetNeuronPtScalParam.restype = ctypes.c_int
+NESTGPU_SetNeuronPtScalParam.restype = ctypes.c_int
 def SetNeuronPtScalParam(nodes, param_name, val):
     "Set neuron list scalar parameter value"
     n_node = len(nodes)
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
     node_arr = (ctypes.c_int * len(nodes))(*nodes)
     node_pt = ctypes.cast(node_arr, ctypes.c_void_p)
-    ret = NeuronGPU_SetNeuronPtScalParam(node_pt,
+    ret = NESTGPU_SetNeuronPtScalParam(node_pt,
                                          ctypes.c_int(n_node), c_param_name,
                                          ctypes.c_float(val)) 
     if GetErrorCode() != 0:
@@ -341,11 +339,11 @@ def SetNeuronPtScalParam(nodes, param_name, val):
     return ret
 
 
-NeuronGPU_SetNeuronPtArrayParam = _neurongpu.NeuronGPU_SetNeuronPtArrayParam
-NeuronGPU_SetNeuronPtArrayParam.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_SetNeuronPtArrayParam = _nestgpu.NESTGPU_SetNeuronPtArrayParam
+NESTGPU_SetNeuronPtArrayParam.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                            c_char_p, c_float_p,
                                            ctypes.c_int)
-NeuronGPU_SetNeuronPtArrayParam.restype = ctypes.c_int
+NESTGPU_SetNeuronPtArrayParam.restype = ctypes.c_int
 def SetNeuronPtArrayParam(nodes, param_name, param_list):
     "Set neuron list array parameter value"
     n_node = len(nodes)
@@ -355,7 +353,7 @@ def SetNeuronPtArrayParam(nodes, param_name, param_list):
     
     array_size = len(param_list)
     array_float_type = ctypes.c_float * array_size
-    ret = NeuronGPU_SetNeuronPtArrayParam(node_pt,
+    ret = NESTGPU_SetNeuronPtArrayParam(node_pt,
                                           ctypes.c_int(n_node),
                                           c_param_name,
                                           array_float_type(*param_list),
@@ -365,62 +363,62 @@ def SetNeuronPtArrayParam(nodes, param_name, param_list):
     return ret
 
 
-NeuronGPU_IsNeuronScalParam = _neurongpu.NeuronGPU_IsNeuronScalParam
-NeuronGPU_IsNeuronScalParam.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_IsNeuronScalParam.restype = ctypes.c_int
+NESTGPU_IsNeuronScalParam = _nestgpu.NESTGPU_IsNeuronScalParam
+NESTGPU_IsNeuronScalParam.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_IsNeuronScalParam.restype = ctypes.c_int
 def IsNeuronScalParam(i_node, param_name):
     "Check name of neuron scalar parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = (NeuronGPU_IsNeuronScalParam(ctypes.c_int(i_node), c_param_name)!=0) 
+    ret = (NESTGPU_IsNeuronScalParam(ctypes.c_int(i_node), c_param_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_IsNeuronPortParam = _neurongpu.NeuronGPU_IsNeuronPortParam
-NeuronGPU_IsNeuronPortParam.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_IsNeuronPortParam.restype = ctypes.c_int
+NESTGPU_IsNeuronPortParam = _nestgpu.NESTGPU_IsNeuronPortParam
+NESTGPU_IsNeuronPortParam.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_IsNeuronPortParam.restype = ctypes.c_int
 def IsNeuronPortParam(i_node, param_name):
     "Check name of neuron scalar parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = (NeuronGPU_IsNeuronPortParam(ctypes.c_int(i_node), c_param_name)!= 0) 
+    ret = (NESTGPU_IsNeuronPortParam(ctypes.c_int(i_node), c_param_name)!= 0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_IsNeuronArrayParam = _neurongpu.NeuronGPU_IsNeuronArrayParam
-NeuronGPU_IsNeuronArrayParam.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_IsNeuronArrayParam.restype = ctypes.c_int
+NESTGPU_IsNeuronArrayParam = _nestgpu.NESTGPU_IsNeuronArrayParam
+NESTGPU_IsNeuronArrayParam.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_IsNeuronArrayParam.restype = ctypes.c_int
 def IsNeuronArrayParam(i_node, param_name):
     "Check name of neuron scalar parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = (NeuronGPU_IsNeuronArrayParam(ctypes.c_int(i_node), c_param_name)!=0) 
+    ret = (NESTGPU_IsNeuronArrayParam(ctypes.c_int(i_node), c_param_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_IsNeuronGroupParam = _neurongpu.NeuronGPU_IsNeuronGroupParam
-NeuronGPU_IsNeuronGroupParam.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_IsNeuronGroupParam.restype = ctypes.c_int
+NESTGPU_IsNeuronGroupParam = _nestgpu.NESTGPU_IsNeuronGroupParam
+NESTGPU_IsNeuronGroupParam.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_IsNeuronGroupParam.restype = ctypes.c_int
 def IsNeuronGroupParam(i_node, param_name):
     "Check name of neuron scalar parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = (NeuronGPU_IsNeuronGroupParam(ctypes.c_int(i_node), c_param_name)!=0) 
+    ret = (NESTGPU_IsNeuronGroupParam(ctypes.c_int(i_node), c_param_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SetNeuronIntVar = _neurongpu.NeuronGPU_SetNeuronIntVar
-NeuronGPU_SetNeuronIntVar.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_SetNeuronIntVar = _nestgpu.NESTGPU_SetNeuronIntVar
+NESTGPU_SetNeuronIntVar.argtypes = (ctypes.c_int, ctypes.c_int,
                                          c_char_p, ctypes.c_int)
-NeuronGPU_SetNeuronIntVar.restype = ctypes.c_int
+NESTGPU_SetNeuronIntVar.restype = ctypes.c_int
 def SetNeuronIntVar(i_node, n_node, var_name, val):
     "Set neuron integer variable value"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name), len(var_name)+1)
-    ret = NeuronGPU_SetNeuronIntVar(ctypes.c_int(i_node),
+    ret = NESTGPU_SetNeuronIntVar(ctypes.c_int(i_node),
                                        ctypes.c_int(n_node), c_var_name,
                                        ctypes.c_int(val)) 
     if GetErrorCode() != 0:
@@ -428,14 +426,14 @@ def SetNeuronIntVar(i_node, n_node, var_name, val):
     return ret
 
 
-NeuronGPU_SetNeuronScalVar = _neurongpu.NeuronGPU_SetNeuronScalVar
-NeuronGPU_SetNeuronScalVar.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_SetNeuronScalVar = _nestgpu.NESTGPU_SetNeuronScalVar
+NESTGPU_SetNeuronScalVar.argtypes = (ctypes.c_int, ctypes.c_int,
                                          c_char_p, ctypes.c_float)
-NeuronGPU_SetNeuronScalVar.restype = ctypes.c_int
+NESTGPU_SetNeuronScalVar.restype = ctypes.c_int
 def SetNeuronScalVar(i_node, n_node, var_name, val):
     "Set neuron scalar variable value"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name), len(var_name)+1)
-    ret = NeuronGPU_SetNeuronScalVar(ctypes.c_int(i_node),
+    ret = NESTGPU_SetNeuronScalVar(ctypes.c_int(i_node),
                                        ctypes.c_int(n_node), c_var_name,
                                        ctypes.c_float(val)) 
     if GetErrorCode() != 0:
@@ -443,16 +441,16 @@ def SetNeuronScalVar(i_node, n_node, var_name, val):
     return ret
 
 
-NeuronGPU_SetNeuronArrayVar = _neurongpu.NeuronGPU_SetNeuronArrayVar
-NeuronGPU_SetNeuronArrayVar.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_SetNeuronArrayVar = _nestgpu.NESTGPU_SetNeuronArrayVar
+NESTGPU_SetNeuronArrayVar.argtypes = (ctypes.c_int, ctypes.c_int,
                                           c_char_p, c_float_p, ctypes.c_int)
-NeuronGPU_SetNeuronArrayVar.restype = ctypes.c_int
+NESTGPU_SetNeuronArrayVar.restype = ctypes.c_int
 def SetNeuronArrayVar(i_node, n_node, var_name, var_list):
     "Set neuron array variable value"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name), len(var_name)+1)
     array_size = len(var_list)
     array_float_type = ctypes.c_float * array_size
-    ret = NeuronGPU_SetNeuronArrayVar(ctypes.c_int(i_node),
+    ret = NESTGPU_SetNeuronArrayVar(ctypes.c_int(i_node),
                                        ctypes.c_int(n_node), c_var_name,
                                        array_float_type(*var_list),
                                        ctypes.c_int(array_size))  
@@ -461,10 +459,10 @@ def SetNeuronArrayVar(i_node, n_node, var_name, var_list):
     return ret
 
 
-NeuronGPU_SetNeuronPtIntVar = _neurongpu.NeuronGPU_SetNeuronPtIntVar
-NeuronGPU_SetNeuronPtIntVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_SetNeuronPtIntVar = _nestgpu.NESTGPU_SetNeuronPtIntVar
+NESTGPU_SetNeuronPtIntVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                            c_char_p, ctypes.c_int)
-NeuronGPU_SetNeuronPtIntVar.restype = ctypes.c_int
+NESTGPU_SetNeuronPtIntVar.restype = ctypes.c_int
 def SetNeuronPtIntVar(nodes, var_name, val):
     "Set neuron list integer variable value"
     n_node = len(nodes)
@@ -472,7 +470,7 @@ def SetNeuronPtIntVar(nodes, var_name, val):
     node_arr = (ctypes.c_int * len(nodes))(*nodes)
     node_pt = ctypes.cast(node_arr, ctypes.c_void_p)
 
-    ret = NeuronGPU_SetNeuronPtIntVar(node_pt,
+    ret = NESTGPU_SetNeuronPtIntVar(node_pt,
                                        ctypes.c_int(n_node), c_var_name,
                                        ctypes.c_int(val)) 
     if GetErrorCode() != 0:
@@ -480,10 +478,10 @@ def SetNeuronPtIntVar(nodes, var_name, val):
     return ret
 
 
-NeuronGPU_SetNeuronPtScalVar = _neurongpu.NeuronGPU_SetNeuronPtScalVar
-NeuronGPU_SetNeuronPtScalVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_SetNeuronPtScalVar = _nestgpu.NESTGPU_SetNeuronPtScalVar
+NESTGPU_SetNeuronPtScalVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                            c_char_p, ctypes.c_float)
-NeuronGPU_SetNeuronPtScalVar.restype = ctypes.c_int
+NESTGPU_SetNeuronPtScalVar.restype = ctypes.c_int
 def SetNeuronPtScalVar(nodes, var_name, val):
     "Set neuron list scalar variable value"
     n_node = len(nodes)
@@ -491,7 +489,7 @@ def SetNeuronPtScalVar(nodes, var_name, val):
     node_arr = (ctypes.c_int * len(nodes))(*nodes)
     node_pt = ctypes.cast(node_arr, ctypes.c_void_p)
 
-    ret = NeuronGPU_SetNeuronPtScalVar(node_pt,
+    ret = NESTGPU_SetNeuronPtScalVar(node_pt,
                                        ctypes.c_int(n_node), c_var_name,
                                        ctypes.c_float(val)) 
     if GetErrorCode() != 0:
@@ -499,11 +497,11 @@ def SetNeuronPtScalVar(nodes, var_name, val):
     return ret
 
 
-NeuronGPU_SetNeuronPtArrayVar = _neurongpu.NeuronGPU_SetNeuronPtArrayVar
-NeuronGPU_SetNeuronPtArrayVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_SetNeuronPtArrayVar = _nestgpu.NESTGPU_SetNeuronPtArrayVar
+NESTGPU_SetNeuronPtArrayVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                            c_char_p, c_float_p,
                                            ctypes.c_int)
-NeuronGPU_SetNeuronPtArrayVar.restype = ctypes.c_int
+NESTGPU_SetNeuronPtArrayVar.restype = ctypes.c_int
 def SetNeuronPtArrayVar(nodes, var_name, var_list):
     "Set neuron list array variable value"
     n_node = len(nodes)
@@ -514,7 +512,7 @@ def SetNeuronPtArrayVar(nodes, var_name, var_list):
 
     array_size = len(var_list)
     array_float_type = ctypes.c_float * array_size
-    ret = NeuronGPU_SetNeuronPtArrayVar(node_pt,
+    ret = NESTGPU_SetNeuronPtArrayVar(node_pt,
                                         ctypes.c_int(n_node),
                                         c_var_name,
                                         array_float_type(*var_list),
@@ -524,76 +522,76 @@ def SetNeuronPtArrayVar(nodes, var_name, var_list):
     return ret
 
 
-NeuronGPU_IsNeuronIntVar = _neurongpu.NeuronGPU_IsNeuronIntVar
-NeuronGPU_IsNeuronIntVar.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_IsNeuronIntVar.restype = ctypes.c_int
+NESTGPU_IsNeuronIntVar = _nestgpu.NESTGPU_IsNeuronIntVar
+NESTGPU_IsNeuronIntVar.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_IsNeuronIntVar.restype = ctypes.c_int
 def IsNeuronIntVar(i_node, var_name):
     "Check name of neuron integer variable"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
                                                len(var_name)+1)
-    ret = (NeuronGPU_IsNeuronIntVar(ctypes.c_int(i_node), c_var_name)!=0) 
+    ret = (NESTGPU_IsNeuronIntVar(ctypes.c_int(i_node), c_var_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_IsNeuronScalVar = _neurongpu.NeuronGPU_IsNeuronScalVar
-NeuronGPU_IsNeuronScalVar.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_IsNeuronScalVar.restype = ctypes.c_int
+NESTGPU_IsNeuronScalVar = _nestgpu.NESTGPU_IsNeuronScalVar
+NESTGPU_IsNeuronScalVar.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_IsNeuronScalVar.restype = ctypes.c_int
 def IsNeuronScalVar(i_node, var_name):
     "Check name of neuron scalar variable"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
                                                len(var_name)+1)
-    ret = (NeuronGPU_IsNeuronScalVar(ctypes.c_int(i_node), c_var_name)!=0) 
+    ret = (NESTGPU_IsNeuronScalVar(ctypes.c_int(i_node), c_var_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_IsNeuronPortVar = _neurongpu.NeuronGPU_IsNeuronPortVar
-NeuronGPU_IsNeuronPortVar.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_IsNeuronPortVar.restype = ctypes.c_int
+NESTGPU_IsNeuronPortVar = _nestgpu.NESTGPU_IsNeuronPortVar
+NESTGPU_IsNeuronPortVar.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_IsNeuronPortVar.restype = ctypes.c_int
 def IsNeuronPortVar(i_node, var_name):
     "Check name of neuron scalar variable"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name), len(var_name)+1)
-    ret = (NeuronGPU_IsNeuronPortVar(ctypes.c_int(i_node), c_var_name)!= 0) 
+    ret = (NESTGPU_IsNeuronPortVar(ctypes.c_int(i_node), c_var_name)!= 0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_IsNeuronArrayVar = _neurongpu.NeuronGPU_IsNeuronArrayVar
-NeuronGPU_IsNeuronArrayVar.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_IsNeuronArrayVar.restype = ctypes.c_int
+NESTGPU_IsNeuronArrayVar = _nestgpu.NESTGPU_IsNeuronArrayVar
+NESTGPU_IsNeuronArrayVar.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_IsNeuronArrayVar.restype = ctypes.c_int
 def IsNeuronArrayVar(i_node, var_name):
     "Check name of neuron array variable"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name), len(var_name)+1)
-    ret = (NeuronGPU_IsNeuronArrayVar(ctypes.c_int(i_node), c_var_name)!=0) 
+    ret = (NESTGPU_IsNeuronArrayVar(ctypes.c_int(i_node), c_var_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_GetNeuronParamSize = _neurongpu.NeuronGPU_GetNeuronParamSize
-NeuronGPU_GetNeuronParamSize.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_GetNeuronParamSize.restype = ctypes.c_int
+NESTGPU_GetNeuronParamSize = _nestgpu.NESTGPU_GetNeuronParamSize
+NESTGPU_GetNeuronParamSize.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_GetNeuronParamSize.restype = ctypes.c_int
 def GetNeuronParamSize(i_node, param_name):
     "Get neuron parameter array size"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = NeuronGPU_GetNeuronParamSize(ctypes.c_int(i_node), c_param_name) 
+    ret = NESTGPU_GetNeuronParamSize(ctypes.c_int(i_node), c_param_name) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_GetNeuronParam = _neurongpu.NeuronGPU_GetNeuronParam
-NeuronGPU_GetNeuronParam.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_GetNeuronParam = _nestgpu.NESTGPU_GetNeuronParam
+NESTGPU_GetNeuronParam.argtypes = (ctypes.c_int, ctypes.c_int,
                                      c_char_p)
-NeuronGPU_GetNeuronParam.restype = c_float_p
+NESTGPU_GetNeuronParam.restype = c_float_p
 def GetNeuronParam(i_node, n_node, param_name):
     "Get neuron parameter value"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    data_pt = NeuronGPU_GetNeuronParam(ctypes.c_int(i_node),
+    data_pt = NESTGPU_GetNeuronParam(ctypes.c_int(i_node),
                                        ctypes.c_int(n_node), c_param_name)
 
     array_size = GetNeuronParamSize(i_node, param_name)
@@ -614,10 +612,10 @@ def GetNeuronParam(i_node, n_node, param_name):
     return ret
 
 
-NeuronGPU_GetNeuronPtParam = _neurongpu.NeuronGPU_GetNeuronPtParam
-NeuronGPU_GetNeuronPtParam.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_GetNeuronPtParam = _nestgpu.NESTGPU_GetNeuronPtParam
+NESTGPU_GetNeuronPtParam.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                            c_char_p)
-NeuronGPU_GetNeuronPtParam.restype = c_float_p
+NESTGPU_GetNeuronPtParam.restype = c_float_p
 def GetNeuronPtParam(nodes, param_name):
     "Get neuron list scalar parameter value"
     n_node = len(nodes)
@@ -625,7 +623,7 @@ def GetNeuronPtParam(nodes, param_name):
                                                len(param_name)+1)
     node_arr = (ctypes.c_int * len(nodes))(*nodes)
     node_pt = ctypes.cast(node_arr, ctypes.c_void_p)
-    data_pt = NeuronGPU_GetNeuronPtParam(node_pt,
+    data_pt = NESTGPU_GetNeuronPtParam(node_pt,
                                          ctypes.c_int(n_node), c_param_name)
     array_size = GetNeuronParamSize(nodes[0], param_name)
 
@@ -645,9 +643,9 @@ def GetNeuronPtParam(nodes, param_name):
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetArrayParam = _neurongpu.NeuronGPU_GetArrayParam
-NeuronGPU_GetArrayParam.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_GetArrayParam.restype = c_float_p
+NESTGPU_GetArrayParam = _nestgpu.NESTGPU_GetArrayParam
+NESTGPU_GetArrayParam.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_GetArrayParam.restype = c_float_p
 def GetArrayParam(i_node, n_node, param_name):
     "Get neuron array parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
@@ -656,7 +654,7 @@ def GetArrayParam(i_node, n_node, param_name):
     for j_node in range(n_node):
         i_node1 = i_node + j_node
         row_list = []
-        data_pt = NeuronGPU_GetArrayParam(ctypes.c_int(i_node1), c_param_name)
+        data_pt = NESTGPU_GetArrayParam(ctypes.c_int(i_node1), c_param_name)
         array_size = GetNeuronParamSize(i_node1, param_name)
         for i in range(array_size):
             row_list.append(data_pt[i])
@@ -675,7 +673,7 @@ def GetNeuronListArrayParam(node_list, param_name):
     data_list = []
     for i_node in node_list:
         row_list = []
-        data_pt = NeuronGPU_GetArrayParam(ctypes.c_int(i_node), c_param_name)
+        data_pt = NESTGPU_GetArrayParam(ctypes.c_int(i_node), c_param_name)
         array_size = GetNeuronParamSize(i_node, param_name)
         for i in range(array_size):
             row_list.append(data_pt[i])
@@ -688,14 +686,14 @@ def GetNeuronListArrayParam(node_list, param_name):
     return ret
 
 
-NeuronGPU_GetNeuronGroupParam = _neurongpu.NeuronGPU_GetNeuronGroupParam
-NeuronGPU_GetNeuronGroupParam.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_GetNeuronGroupParam.restype = ctypes.c_float
+NESTGPU_GetNeuronGroupParam = _nestgpu.NESTGPU_GetNeuronGroupParam
+NESTGPU_GetNeuronGroupParam.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_GetNeuronGroupParam.restype = ctypes.c_float
 def GetNeuronGroupParam(i_node, param_name):
     "Check name of neuron group parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = NeuronGPU_GetNeuronGroupParam(ctypes.c_int(i_node), c_param_name)
+    ret = NESTGPU_GetNeuronGroupParam(ctypes.c_int(i_node), c_param_name)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
@@ -703,27 +701,27 @@ def GetNeuronGroupParam(i_node, param_name):
 
 
 #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-NeuronGPU_GetNeuronVarSize = _neurongpu.NeuronGPU_GetNeuronVarSize
-NeuronGPU_GetNeuronVarSize.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_GetNeuronVarSize.restype = ctypes.c_int
+NESTGPU_GetNeuronVarSize = _nestgpu.NESTGPU_GetNeuronVarSize
+NESTGPU_GetNeuronVarSize.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_GetNeuronVarSize.restype = ctypes.c_int
 def GetNeuronVarSize(i_node, var_name):
     "Get neuron variable array size"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name), len(var_name)+1)
-    ret = NeuronGPU_GetNeuronVarSize(ctypes.c_int(i_node), c_var_name)
+    ret = NESTGPU_GetNeuronVarSize(ctypes.c_int(i_node), c_var_name)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_GetNeuronIntVar = _neurongpu.NeuronGPU_GetNeuronIntVar
-NeuronGPU_GetNeuronIntVar.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_GetNeuronIntVar = _nestgpu.NESTGPU_GetNeuronIntVar
+NESTGPU_GetNeuronIntVar.argtypes = (ctypes.c_int, ctypes.c_int,
                                       c_char_p)
-NeuronGPU_GetNeuronIntVar.restype = c_int_p
+NESTGPU_GetNeuronIntVar.restype = c_int_p
 def GetNeuronIntVar(i_node, n_node, var_name):
     "Get neuron integer variable value"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
                                                len(var_name)+1)
-    data_pt = NeuronGPU_GetNeuronIntVar(ctypes.c_int(i_node),
+    data_pt = NESTGPU_GetNeuronIntVar(ctypes.c_int(i_node),
                                         ctypes.c_int(n_node), c_var_name)
 
     data_list = []
@@ -737,15 +735,15 @@ def GetNeuronIntVar(i_node, n_node, var_name):
     return ret
 
 
-NeuronGPU_GetNeuronVar = _neurongpu.NeuronGPU_GetNeuronVar
-NeuronGPU_GetNeuronVar.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_GetNeuronVar = _nestgpu.NESTGPU_GetNeuronVar
+NESTGPU_GetNeuronVar.argtypes = (ctypes.c_int, ctypes.c_int,
                                      c_char_p)
-NeuronGPU_GetNeuronVar.restype = c_float_p
+NESTGPU_GetNeuronVar.restype = c_float_p
 def GetNeuronVar(i_node, n_node, var_name):
     "Get neuron variable value"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
                                                len(var_name)+1)
-    data_pt = NeuronGPU_GetNeuronVar(ctypes.c_int(i_node),
+    data_pt = NESTGPU_GetNeuronVar(ctypes.c_int(i_node),
                                        ctypes.c_int(n_node), c_var_name)
 
     array_size = GetNeuronVarSize(i_node, var_name)
@@ -767,10 +765,10 @@ def GetNeuronVar(i_node, n_node, var_name):
     return ret
 
 
-NeuronGPU_GetNeuronPtIntVar = _neurongpu.NeuronGPU_GetNeuronPtIntVar
-NeuronGPU_GetNeuronPtIntVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_GetNeuronPtIntVar = _nestgpu.NESTGPU_GetNeuronPtIntVar
+NESTGPU_GetNeuronPtIntVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                         c_char_p)
-NeuronGPU_GetNeuronPtIntVar.restype = c_int_p
+NESTGPU_GetNeuronPtIntVar.restype = c_int_p
 def GetNeuronPtIntVar(nodes, var_name):
     "Get neuron list integer variable value"
     n_node = len(nodes)
@@ -778,7 +776,7 @@ def GetNeuronPtIntVar(nodes, var_name):
                                                len(var_name)+1)
     node_arr = (ctypes.c_int * len(nodes))(*nodes)
     node_pt = ctypes.cast(node_arr, ctypes.c_void_p)
-    data_pt = NeuronGPU_GetNeuronPtIntVar(node_pt,
+    data_pt = NESTGPU_GetNeuronPtIntVar(node_pt,
                                           ctypes.c_int(n_node), c_var_name)
     data_list = []
     for i_node in range(n_node):
@@ -790,10 +788,10 @@ def GetNeuronPtIntVar(nodes, var_name):
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetNeuronPtVar = _neurongpu.NeuronGPU_GetNeuronPtVar
-NeuronGPU_GetNeuronPtVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_GetNeuronPtVar = _nestgpu.NESTGPU_GetNeuronPtVar
+NESTGPU_GetNeuronPtVar.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                            c_char_p)
-NeuronGPU_GetNeuronPtVar.restype = c_float_p
+NESTGPU_GetNeuronPtVar.restype = c_float_p
 def GetNeuronPtVar(nodes, var_name):
     "Get neuron list scalar variable value"
     n_node = len(nodes)
@@ -801,7 +799,7 @@ def GetNeuronPtVar(nodes, var_name):
                                                len(var_name)+1)
     node_arr = (ctypes.c_int * len(nodes))(*nodes)
     node_pt = ctypes.cast(node_arr, ctypes.c_void_p)
-    data_pt = NeuronGPU_GetNeuronPtVar(node_pt,
+    data_pt = NESTGPU_GetNeuronPtVar(node_pt,
                                        ctypes.c_int(n_node), c_var_name)
     array_size = GetNeuronVarSize(nodes[0], var_name)
 
@@ -822,9 +820,9 @@ def GetNeuronPtVar(nodes, var_name):
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetArrayVar = _neurongpu.NeuronGPU_GetArrayVar
-NeuronGPU_GetArrayVar.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_GetArrayVar.restype = c_float_p
+NESTGPU_GetArrayVar = _nestgpu.NESTGPU_GetArrayVar
+NESTGPU_GetArrayVar.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_GetArrayVar.restype = c_float_p
 def GetArrayVar(i_node, n_node, var_name):
     "Get neuron array variable"
     c_var_name = ctypes.create_string_buffer(to_byte_str(var_name),
@@ -833,7 +831,7 @@ def GetArrayVar(i_node, n_node, var_name):
     for j_node in range(n_node):
         i_node1 = i_node + j_node
         row_list = []
-        data_pt = NeuronGPU_GetArrayVar(ctypes.c_int(i_node1), c_var_name)
+        data_pt = NESTGPU_GetArrayVar(ctypes.c_int(i_node1), c_var_name)
         array_size = GetNeuronVarSize(i_node1, var_name)
         for i in range(array_size):
             row_list.append(data_pt[i])
@@ -853,7 +851,7 @@ def GetNeuronListArrayVar(node_list, var_name):
     data_list = []
     for i_node in node_list:
         row_list = []
-        data_pt = NeuronGPU_GetArrayVar(ctypes.c_int(i_node), c_var_name)
+        data_pt = NESTGPU_GetArrayVar(ctypes.c_int(i_node), c_var_name)
         array_size = GetNeuronVarSize(i_node, var_name)
         for i in range(array_size):
             row_list.append(data_pt[i])
@@ -911,33 +909,33 @@ def GetNeuronStatus(nodes, var_name):
     return ret
 
 
-NeuronGPU_GetNIntVar = _neurongpu.NeuronGPU_GetNIntVar
-NeuronGPU_GetNIntVar.argtypes = (ctypes.c_int,)
-NeuronGPU_GetNIntVar.restype = ctypes.c_int
+NESTGPU_GetNIntVar = _nestgpu.NESTGPU_GetNIntVar
+NESTGPU_GetNIntVar.argtypes = (ctypes.c_int,)
+NESTGPU_GetNIntVar.restype = ctypes.c_int
 def GetNIntVar(i_node):
     "Get number of integer variables for a given node"
-    ret = NeuronGPU_GetNIntVar(ctypes.c_int(i_node))
+    ret = NESTGPU_GetNIntVar(ctypes.c_int(i_node))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetNScalVar = _neurongpu.NeuronGPU_GetNScalVar
-NeuronGPU_GetNScalVar.argtypes = (ctypes.c_int,)
-NeuronGPU_GetNScalVar.restype = ctypes.c_int
+NESTGPU_GetNScalVar = _nestgpu.NESTGPU_GetNScalVar
+NESTGPU_GetNScalVar.argtypes = (ctypes.c_int,)
+NESTGPU_GetNScalVar.restype = ctypes.c_int
 def GetNScalVar(i_node):
     "Get number of scalar variables for a given node"
-    ret = NeuronGPU_GetNScalVar(ctypes.c_int(i_node))
+    ret = NESTGPU_GetNScalVar(ctypes.c_int(i_node))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetIntVarNames = _neurongpu.NeuronGPU_GetIntVarNames
-NeuronGPU_GetIntVarNames.argtypes = (ctypes.c_int,)
-NeuronGPU_GetIntVarNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetIntVarNames = _nestgpu.NESTGPU_GetIntVarNames
+NESTGPU_GetIntVarNames.argtypes = (ctypes.c_int,)
+NESTGPU_GetIntVarNames.restype = ctypes.POINTER(c_char_p)
 def GetIntVarNames(i_node):
     "Get list of scalar variable names"
     n_var = GetNIntVar(i_node)
-    var_name_pp = ctypes.cast(NeuronGPU_GetIntVarNames(ctypes.c_int(i_node)),
+    var_name_pp = ctypes.cast(NESTGPU_GetIntVarNames(ctypes.c_int(i_node)),
                                ctypes.POINTER(c_char_p))
     var_name_list = []
     for i in range(n_var):
@@ -948,13 +946,13 @@ def GetIntVarNames(i_node):
         raise ValueError(GetErrorMessage())
     return var_name_list
 
-NeuronGPU_GetScalVarNames = _neurongpu.NeuronGPU_GetScalVarNames
-NeuronGPU_GetScalVarNames.argtypes = (ctypes.c_int,)
-NeuronGPU_GetScalVarNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetScalVarNames = _nestgpu.NESTGPU_GetScalVarNames
+NESTGPU_GetScalVarNames.argtypes = (ctypes.c_int,)
+NESTGPU_GetScalVarNames.restype = ctypes.POINTER(c_char_p)
 def GetScalVarNames(i_node):
     "Get list of scalar variable names"
     n_var = GetNScalVar(i_node)
-    var_name_pp = ctypes.cast(NeuronGPU_GetScalVarNames(ctypes.c_int(i_node)),
+    var_name_pp = ctypes.cast(NESTGPU_GetScalVarNames(ctypes.c_int(i_node)),
                                ctypes.POINTER(c_char_p))
     var_name_list = []
     for i in range(n_var):
@@ -965,23 +963,23 @@ def GetScalVarNames(i_node):
         raise ValueError(GetErrorMessage())
     return var_name_list
 
-NeuronGPU_GetNPortVar = _neurongpu.NeuronGPU_GetNPortVar
-NeuronGPU_GetNPortVar.argtypes = (ctypes.c_int,)
-NeuronGPU_GetNPortVar.restype = ctypes.c_int
+NESTGPU_GetNPortVar = _nestgpu.NESTGPU_GetNPortVar
+NESTGPU_GetNPortVar.argtypes = (ctypes.c_int,)
+NESTGPU_GetNPortVar.restype = ctypes.c_int
 def GetNPortVar(i_node):
     "Get number of scalar variables for a given node"
-    ret = NeuronGPU_GetNPortVar(ctypes.c_int(i_node))
+    ret = NESTGPU_GetNPortVar(ctypes.c_int(i_node))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetPortVarNames = _neurongpu.NeuronGPU_GetPortVarNames
-NeuronGPU_GetPortVarNames.argtypes = (ctypes.c_int,)
-NeuronGPU_GetPortVarNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetPortVarNames = _nestgpu.NESTGPU_GetPortVarNames
+NESTGPU_GetPortVarNames.argtypes = (ctypes.c_int,)
+NESTGPU_GetPortVarNames.restype = ctypes.POINTER(c_char_p)
 def GetPortVarNames(i_node):
     "Get list of scalar variable names"
     n_var = GetNPortVar(i_node)
-    var_name_pp = ctypes.cast(NeuronGPU_GetPortVarNames(ctypes.c_int(i_node)),
+    var_name_pp = ctypes.cast(NESTGPU_GetPortVarNames(ctypes.c_int(i_node)),
                                ctypes.POINTER(c_char_p))
     var_name_list = []
     for i in range(n_var):
@@ -994,23 +992,23 @@ def GetPortVarNames(i_node):
     return var_name_list
 
 
-NeuronGPU_GetNScalParam = _neurongpu.NeuronGPU_GetNScalParam
-NeuronGPU_GetNScalParam.argtypes = (ctypes.c_int,)
-NeuronGPU_GetNScalParam.restype = ctypes.c_int
+NESTGPU_GetNScalParam = _nestgpu.NESTGPU_GetNScalParam
+NESTGPU_GetNScalParam.argtypes = (ctypes.c_int,)
+NESTGPU_GetNScalParam.restype = ctypes.c_int
 def GetNScalParam(i_node):
     "Get number of scalar parameters for a given node"
-    ret = NeuronGPU_GetNScalParam(ctypes.c_int(i_node))
+    ret = NESTGPU_GetNScalParam(ctypes.c_int(i_node))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetScalParamNames = _neurongpu.NeuronGPU_GetScalParamNames
-NeuronGPU_GetScalParamNames.argtypes = (ctypes.c_int,)
-NeuronGPU_GetScalParamNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetScalParamNames = _nestgpu.NESTGPU_GetScalParamNames
+NESTGPU_GetScalParamNames.argtypes = (ctypes.c_int,)
+NESTGPU_GetScalParamNames.restype = ctypes.POINTER(c_char_p)
 def GetScalParamNames(i_node):
     "Get list of scalar parameter names"
     n_param = GetNScalParam(i_node)
-    param_name_pp = ctypes.cast(NeuronGPU_GetScalParamNames(
+    param_name_pp = ctypes.cast(NESTGPU_GetScalParamNames(
         ctypes.c_int(i_node)), ctypes.POINTER(c_char_p))
     param_name_list = []
     for i in range(n_param):
@@ -1022,23 +1020,23 @@ def GetScalParamNames(i_node):
         raise ValueError(GetErrorMessage())
     return param_name_list
 
-NeuronGPU_GetNPortParam = _neurongpu.NeuronGPU_GetNPortParam
-NeuronGPU_GetNPortParam.argtypes = (ctypes.c_int,)
-NeuronGPU_GetNPortParam.restype = ctypes.c_int
+NESTGPU_GetNPortParam = _nestgpu.NESTGPU_GetNPortParam
+NESTGPU_GetNPortParam.argtypes = (ctypes.c_int,)
+NESTGPU_GetNPortParam.restype = ctypes.c_int
 def GetNPortParam(i_node):
     "Get number of scalar parameters for a given node"
-    ret = NeuronGPU_GetNPortParam(ctypes.c_int(i_node))
+    ret = NESTGPU_GetNPortParam(ctypes.c_int(i_node))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetPortParamNames = _neurongpu.NeuronGPU_GetPortParamNames
-NeuronGPU_GetPortParamNames.argtypes = (ctypes.c_int,)
-NeuronGPU_GetPortParamNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetPortParamNames = _nestgpu.NESTGPU_GetPortParamNames
+NESTGPU_GetPortParamNames.argtypes = (ctypes.c_int,)
+NESTGPU_GetPortParamNames.restype = ctypes.POINTER(c_char_p)
 def GetPortParamNames(i_node):
     "Get list of scalar parameter names"
     n_param = GetNPortParam(i_node)
-    param_name_pp = ctypes.cast(NeuronGPU_GetPortParamNames(
+    param_name_pp = ctypes.cast(NESTGPU_GetPortParamNames(
         ctypes.c_int(i_node)), ctypes.POINTER(c_char_p))
     param_name_list = []
     for i in range(n_param):
@@ -1051,23 +1049,23 @@ def GetPortParamNames(i_node):
     return param_name_list
 
 
-NeuronGPU_GetNArrayParam = _neurongpu.NeuronGPU_GetNArrayParam
-NeuronGPU_GetNArrayParam.argtypes = (ctypes.c_int,)
-NeuronGPU_GetNArrayParam.restype = ctypes.c_int
+NESTGPU_GetNArrayParam = _nestgpu.NESTGPU_GetNArrayParam
+NESTGPU_GetNArrayParam.argtypes = (ctypes.c_int,)
+NESTGPU_GetNArrayParam.restype = ctypes.c_int
 def GetNArrayParam(i_node):
     "Get number of scalar parameters for a given node"
-    ret = NeuronGPU_GetNArrayParam(ctypes.c_int(i_node))
+    ret = NESTGPU_GetNArrayParam(ctypes.c_int(i_node))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetArrayParamNames = _neurongpu.NeuronGPU_GetArrayParamNames
-NeuronGPU_GetArrayParamNames.argtypes = (ctypes.c_int,)
-NeuronGPU_GetArrayParamNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetArrayParamNames = _nestgpu.NESTGPU_GetArrayParamNames
+NESTGPU_GetArrayParamNames.argtypes = (ctypes.c_int,)
+NESTGPU_GetArrayParamNames.restype = ctypes.POINTER(c_char_p)
 def GetArrayParamNames(i_node):
     "Get list of scalar parameter names"
     n_param = GetNArrayParam(i_node)
-    param_name_pp = ctypes.cast(NeuronGPU_GetArrayParamNames(
+    param_name_pp = ctypes.cast(NESTGPU_GetArrayParamNames(
         ctypes.c_int(i_node)), ctypes.POINTER(c_char_p))
     param_name_list = []
     for i in range(n_param):
@@ -1080,23 +1078,23 @@ def GetArrayParamNames(i_node):
     return param_name_list
 
 
-NeuronGPU_GetNGroupParam = _neurongpu.NeuronGPU_GetNGroupParam
-NeuronGPU_GetNGroupParam.argtypes = (ctypes.c_int,)
-NeuronGPU_GetNGroupParam.restype = ctypes.c_int
+NESTGPU_GetNGroupParam = _nestgpu.NESTGPU_GetNGroupParam
+NESTGPU_GetNGroupParam.argtypes = (ctypes.c_int,)
+NESTGPU_GetNGroupParam.restype = ctypes.c_int
 def GetNGroupParam(i_node):
     "Get number of scalar parameters for a given node"
-    ret = NeuronGPU_GetNGroupParam(ctypes.c_int(i_node))
+    ret = NESTGPU_GetNGroupParam(ctypes.c_int(i_node))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetGroupParamNames = _neurongpu.NeuronGPU_GetGroupParamNames
-NeuronGPU_GetGroupParamNames.argtypes = (ctypes.c_int,)
-NeuronGPU_GetGroupParamNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetGroupParamNames = _nestgpu.NESTGPU_GetGroupParamNames
+NESTGPU_GetGroupParamNames.argtypes = (ctypes.c_int,)
+NESTGPU_GetGroupParamNames.restype = ctypes.POINTER(c_char_p)
 def GetGroupParamNames(i_node):
     "Get list of scalar parameter names"
     n_param = GetNGroupParam(i_node)
-    param_name_pp = ctypes.cast(NeuronGPU_GetGroupParamNames(
+    param_name_pp = ctypes.cast(NESTGPU_GetGroupParamNames(
         ctypes.c_int(i_node)), ctypes.POINTER(c_char_p))
     param_name_list = []
     for i in range(n_param):
@@ -1108,23 +1106,23 @@ def GetGroupParamNames(i_node):
         raise ValueError(GetErrorMessage())
     return param_name_list
 
-NeuronGPU_GetNArrayVar = _neurongpu.NeuronGPU_GetNArrayVar
-NeuronGPU_GetNArrayVar.argtypes = (ctypes.c_int,)
-NeuronGPU_GetNArrayVar.restype = ctypes.c_int
+NESTGPU_GetNArrayVar = _nestgpu.NESTGPU_GetNArrayVar
+NESTGPU_GetNArrayVar.argtypes = (ctypes.c_int,)
+NESTGPU_GetNArrayVar.restype = ctypes.c_int
 def GetNArrayVar(i_node):
     "Get number of scalar variables for a given node"
-    ret = NeuronGPU_GetNArrayVar(ctypes.c_int(i_node))
+    ret = NESTGPU_GetNArrayVar(ctypes.c_int(i_node))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetArrayVarNames = _neurongpu.NeuronGPU_GetArrayVarNames
-NeuronGPU_GetArrayVarNames.argtypes = (ctypes.c_int,)
-NeuronGPU_GetArrayVarNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetArrayVarNames = _nestgpu.NESTGPU_GetArrayVarNames
+NESTGPU_GetArrayVarNames.argtypes = (ctypes.c_int,)
+NESTGPU_GetArrayVarNames.restype = ctypes.POINTER(c_char_p)
 def GetArrayVarNames(i_node):
     "Get list of scalar variable names"
     n_var = GetNArrayVar(i_node)
-    var_name_pp = ctypes.cast(NeuronGPU_GetArrayVarNames(ctypes.c_int(i_node)),
+    var_name_pp = ctypes.cast(NESTGPU_GetArrayVarNames(ctypes.c_int(i_node)),
                                ctypes.POINTER(c_char_p))
     var_name_list = []
     for i in range(n_var):
@@ -1186,30 +1184,30 @@ def SetNeuronStatus(nodes, var_name, val):
             raise ValueError("Unknown neuron variable or parameter")
 
 
-NeuronGPU_Calibrate = _neurongpu.NeuronGPU_Calibrate
-NeuronGPU_Calibrate.restype = ctypes.c_int
+NESTGPU_Calibrate = _nestgpu.NESTGPU_Calibrate
+NESTGPU_Calibrate.restype = ctypes.c_int
 def Calibrate():
     "Calibrate simulation"
-    ret = NeuronGPU_Calibrate()
+    ret = NESTGPU_Calibrate()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_Simulate = _neurongpu.NeuronGPU_Simulate
-NeuronGPU_Simulate.restype = ctypes.c_int
+NESTGPU_Simulate = _nestgpu.NESTGPU_Simulate
+NESTGPU_Simulate.restype = ctypes.c_int
 def Simulate(sim_time=1000.0):
     "Simulate neural activity"
     SetSimTime(sim_time)
-    ret = NeuronGPU_Simulate()
+    ret = NESTGPU_Simulate()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_ConnectMpiInit = _neurongpu.NeuronGPU_ConnectMpiInit
-NeuronGPU_ConnectMpiInit.argtypes = (ctypes.c_int, ctypes.POINTER(c_char_p))
-NeuronGPU_ConnectMpiInit.restype = ctypes.c_int
+NESTGPU_ConnectMpiInit = _nestgpu.NESTGPU_ConnectMpiInit
+NESTGPU_ConnectMpiInit.argtypes = (ctypes.c_int, ctypes.POINTER(c_char_p))
+NESTGPU_ConnectMpiInit.restype = ctypes.c_int
 def ConnectMpiInit():
     "Initialize MPI connections"
     from mpi4py import MPI
@@ -1219,18 +1217,18 @@ def ConnectMpiInit():
     for i in range(argc):
         c_arg = ctypes.create_string_buffer(to_byte_str(sys.argv[i]), 100)
         c_var_name_list.append(c_arg)        
-    ret = NeuronGPU_ConnectMpiInit(ctypes.c_int(argc),
+    ret = NESTGPU_ConnectMpiInit(ctypes.c_int(argc),
                                    array_char_pt_type(*c_var_name_list))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_MpiId = _neurongpu.NeuronGPU_MpiId
-NeuronGPU_MpiId.restype = ctypes.c_int
+NESTGPU_MpiId = _nestgpu.NESTGPU_MpiId
+NESTGPU_MpiId.restype = ctypes.c_int
 def MpiId():
     "Get MPI Id"
-    ret = NeuronGPU_MpiId()
+    ret = NESTGPU_MpiId()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
@@ -1239,77 +1237,77 @@ def Rank():
     "Get MPI rank"
     return MpiId()
 
-NeuronGPU_MpiNp = _neurongpu.NeuronGPU_MpiNp
-NeuronGPU_MpiNp.restype = ctypes.c_int
+NESTGPU_MpiNp = _nestgpu.NESTGPU_MpiNp
+NESTGPU_MpiNp.restype = ctypes.c_int
 def MpiNp():
     "Get MPI Np"
-    ret = NeuronGPU_MpiNp()
+    ret = NESTGPU_MpiNp()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_ProcMaster = _neurongpu.NeuronGPU_ProcMaster
-NeuronGPU_ProcMaster.restype = ctypes.c_int
+NESTGPU_ProcMaster = _nestgpu.NESTGPU_ProcMaster
+NESTGPU_ProcMaster.restype = ctypes.c_int
 def ProcMaster():
     "Get MPI ProcMaster"
-    ret = NeuronGPU_ProcMaster()
+    ret = NESTGPU_ProcMaster()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_MpiFinalize = _neurongpu.NeuronGPU_MpiFinalize
-NeuronGPU_MpiFinalize.restype = ctypes.c_int
+NESTGPU_MpiFinalize = _nestgpu.NESTGPU_MpiFinalize
+NESTGPU_MpiFinalize.restype = ctypes.c_int
 def MpiFinalize():
     "Finalize MPI"
-    ret = NeuronGPU_MpiFinalize()
+    ret = NESTGPU_MpiFinalize()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_RandomInt = _neurongpu.NeuronGPU_RandomInt
-NeuronGPU_RandomInt.argtypes = (ctypes.c_size_t,)
-NeuronGPU_RandomInt.restype = ctypes.POINTER(ctypes.c_uint)
+NESTGPU_RandomInt = _nestgpu.NESTGPU_RandomInt
+NESTGPU_RandomInt.argtypes = (ctypes.c_size_t,)
+NESTGPU_RandomInt.restype = ctypes.POINTER(ctypes.c_uint)
 def RandomInt(n):
     "Generate n random integers in CUDA memory"
-    ret = NeuronGPU_RandomInt(ctypes.c_size_t(n))
+    ret = NESTGPU_RandomInt(ctypes.c_size_t(n))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_RandomUniform = _neurongpu.NeuronGPU_RandomUniform
-NeuronGPU_RandomUniform.argtypes = (ctypes.c_size_t,)
-NeuronGPU_RandomUniform.restype = c_float_p
+NESTGPU_RandomUniform = _nestgpu.NESTGPU_RandomUniform
+NESTGPU_RandomUniform.argtypes = (ctypes.c_size_t,)
+NESTGPU_RandomUniform.restype = c_float_p
 def RandomUniform(n):
     "Generate n random floats with uniform distribution in (0,1) in CUDA memory"
-    ret = NeuronGPU_RandomUniform(ctypes.c_size_t(n))
+    ret = NESTGPU_RandomUniform(ctypes.c_size_t(n))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_RandomNormal = _neurongpu.NeuronGPU_RandomNormal
-NeuronGPU_RandomNormal.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float)
-NeuronGPU_RandomNormal.restype = c_float_p
+NESTGPU_RandomNormal = _nestgpu.NESTGPU_RandomNormal
+NESTGPU_RandomNormal.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float)
+NESTGPU_RandomNormal.restype = c_float_p
 def RandomNormal(n, mean, stddev):
     "Generate n random floats with normal distribution in CUDA memory"
-    ret = NeuronGPU_RandomNormal(ctypes.c_size_t(n), ctypes.c_float(mean),
+    ret = NESTGPU_RandomNormal(ctypes.c_size_t(n), ctypes.c_float(mean),
                                  ctypes.c_float(stddev))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_RandomNormalClipped = _neurongpu.NeuronGPU_RandomNormalClipped
-NeuronGPU_RandomNormalClipped.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float, ctypes.c_float,
+NESTGPU_RandomNormalClipped = _nestgpu.NESTGPU_RandomNormalClipped
+NESTGPU_RandomNormalClipped.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float, ctypes.c_float,
                                           ctypes.c_float, ctypes.c_float)
-NeuronGPU_RandomNormalClipped.restype = c_float_p
+NESTGPU_RandomNormalClipped.restype = c_float_p
 def RandomNormalClipped(n, mean, stddev, vmin, vmax, vstep=0):
     "Generate n random floats with normal clipped distribution in CUDA memory"
-    ret = NeuronGPU_RandomNormalClipped(ctypes.c_size_t(n),
+    ret = NESTGPU_RandomNormalClipped(ctypes.c_size_t(n),
                                         ctypes.c_float(mean),
                                         ctypes.c_float(stddev),
                                         ctypes.c_float(vmin),
@@ -1320,9 +1318,9 @@ def RandomNormalClipped(n, mean, stddev, vmin, vmax, vstep=0):
     return ret
 
 
-NeuronGPU_ConnectMpiInit = _neurongpu.NeuronGPU_ConnectMpiInit
-NeuronGPU_ConnectMpiInit.argtypes = (ctypes.c_int, ctypes.POINTER(c_char_p))
-NeuronGPU_ConnectMpiInit.restype = ctypes.c_int
+NESTGPU_ConnectMpiInit = _nestgpu.NESTGPU_ConnectMpiInit
+NESTGPU_ConnectMpiInit.argtypes = (ctypes.c_int, ctypes.POINTER(c_char_p))
+NESTGPU_ConnectMpiInit.restype = ctypes.c_int
 def ConnectMpiInit():
     "Initialize MPI connections"
     from mpi4py import MPI
@@ -1332,19 +1330,19 @@ def ConnectMpiInit():
     for i in range(argc):
         c_arg = ctypes.create_string_buffer(to_byte_str(sys.argv[i]), 100)
         c_var_name_list.append(c_arg)        
-    ret = NeuronGPU_ConnectMpiInit(ctypes.c_int(argc),
+    ret = NESTGPU_ConnectMpiInit(ctypes.c_int(argc),
                                    array_char_pt_type(*c_var_name_list))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_Connect = _neurongpu.NeuronGPU_Connect
-NeuronGPU_Connect.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_ubyte, ctypes.c_float, ctypes.c_float)
-NeuronGPU_Connect.restype = ctypes.c_int
+NESTGPU_Connect = _nestgpu.NESTGPU_Connect
+NESTGPU_Connect.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_ubyte, ctypes.c_float, ctypes.c_float)
+NESTGPU_Connect.restype = ctypes.c_int
 def SingleConnect(i_source_node, i_target_node, i_port, weight, delay):
     "Connect two nodes"
-    ret = NeuronGPU_Connect(ctypes.c_int(i_source_node),
+    ret = NESTGPU_Connect(ctypes.c_int(i_source_node),
                             ctypes.c_int(i_target_node),
                             ctypes.c_ubyte(i_port), ctypes.c_float(weight),
                             ctypes.c_float(delay))
@@ -1353,117 +1351,117 @@ def SingleConnect(i_source_node, i_target_node, i_port, weight, delay):
     return ret
 
 
-NeuronGPU_ConnSpecInit = _neurongpu.NeuronGPU_ConnSpecInit
-NeuronGPU_ConnSpecInit.restype = ctypes.c_int
+NESTGPU_ConnSpecInit = _nestgpu.NESTGPU_ConnSpecInit
+NESTGPU_ConnSpecInit.restype = ctypes.c_int
 def ConnSpecInit():
     "Initialize connection rules specification"
-    ret = NeuronGPU_ConnSpecInit()
+    ret = NESTGPU_ConnSpecInit()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SetConnSpecParam = _neurongpu.NeuronGPU_SetConnSpecParam
-NeuronGPU_SetConnSpecParam.argtypes = (c_char_p, ctypes.c_int)
-NeuronGPU_SetConnSpecParam.restype = ctypes.c_int
+NESTGPU_SetConnSpecParam = _nestgpu.NESTGPU_SetConnSpecParam
+NESTGPU_SetConnSpecParam.argtypes = (c_char_p, ctypes.c_int)
+NESTGPU_SetConnSpecParam.restype = ctypes.c_int
 def SetConnSpecParam(param_name, val):
     "Set connection parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = NeuronGPU_SetConnSpecParam(c_param_name, ctypes.c_int(val))
+    ret = NESTGPU_SetConnSpecParam(c_param_name, ctypes.c_int(val))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_ConnSpecIsParam = _neurongpu.NeuronGPU_ConnSpecIsParam
-NeuronGPU_ConnSpecIsParam.argtypes = (c_char_p,)
-NeuronGPU_ConnSpecIsParam.restype = ctypes.c_int
+NESTGPU_ConnSpecIsParam = _nestgpu.NESTGPU_ConnSpecIsParam
+NESTGPU_ConnSpecIsParam.argtypes = (c_char_p,)
+NESTGPU_ConnSpecIsParam.restype = ctypes.c_int
 def ConnSpecIsParam(param_name):
     "Check name of connection parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = (NeuronGPU_ConnSpecIsParam(c_param_name) != 0)
+    ret = (NESTGPU_ConnSpecIsParam(c_param_name) != 0)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SynSpecInit = _neurongpu.NeuronGPU_SynSpecInit
-NeuronGPU_SynSpecInit.restype = ctypes.c_int
+NESTGPU_SynSpecInit = _nestgpu.NESTGPU_SynSpecInit
+NESTGPU_SynSpecInit.restype = ctypes.c_int
 def SynSpecInit():
     "Initializa synapse specification"
-    ret = NeuronGPU_SynSpecInit()
+    ret = NESTGPU_SynSpecInit()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_SetSynSpecIntParam = _neurongpu.NeuronGPU_SetSynSpecIntParam
-NeuronGPU_SetSynSpecIntParam.argtypes = (c_char_p, ctypes.c_int)
-NeuronGPU_SetSynSpecIntParam.restype = ctypes.c_int
+NESTGPU_SetSynSpecIntParam = _nestgpu.NESTGPU_SetSynSpecIntParam
+NESTGPU_SetSynSpecIntParam.argtypes = (c_char_p, ctypes.c_int)
+NESTGPU_SetSynSpecIntParam.restype = ctypes.c_int
 def SetSynSpecIntParam(param_name, val):
     "Set synapse int parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = NeuronGPU_SetSynSpecIntParam(c_param_name, ctypes.c_int(val))
+    ret = NESTGPU_SetSynSpecIntParam(c_param_name, ctypes.c_int(val))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_SetSynSpecFloatParam = _neurongpu.NeuronGPU_SetSynSpecFloatParam
-NeuronGPU_SetSynSpecFloatParam.argtypes = (c_char_p, ctypes.c_float)
-NeuronGPU_SetSynSpecFloatParam.restype = ctypes.c_int
+NESTGPU_SetSynSpecFloatParam = _nestgpu.NESTGPU_SetSynSpecFloatParam
+NESTGPU_SetSynSpecFloatParam.argtypes = (c_char_p, ctypes.c_float)
+NESTGPU_SetSynSpecFloatParam.restype = ctypes.c_int
 def SetSynSpecFloatParam(param_name, val):
     "Set synapse float parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = NeuronGPU_SetSynSpecFloatParam(c_param_name, ctypes.c_float(val))
+    ret = NESTGPU_SetSynSpecFloatParam(c_param_name, ctypes.c_float(val))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_SetSynSpecFloatPtParam = _neurongpu.NeuronGPU_SetSynSpecFloatPtParam
-NeuronGPU_SetSynSpecFloatPtParam.argtypes = (c_char_p, ctypes.c_void_p)
-NeuronGPU_SetSynSpecFloatPtParam.restype = ctypes.c_int
+NESTGPU_SetSynSpecFloatPtParam = _nestgpu.NESTGPU_SetSynSpecFloatPtParam
+NESTGPU_SetSynSpecFloatPtParam.argtypes = (c_char_p, ctypes.c_void_p)
+NESTGPU_SetSynSpecFloatPtParam.restype = ctypes.c_int
 def SetSynSpecFloatPtParam(param_name, arr):
     "Set synapse pointer to float parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
     if (type(arr) is list)  | (type(arr) is tuple):
         arr = (ctypes.c_float * len(arr))(*arr)
     arr_pt = ctypes.cast(arr, ctypes.c_void_p)
-    ret = NeuronGPU_SetSynSpecFloatPtParam(c_param_name, arr_pt)
+    ret = NESTGPU_SetSynSpecFloatPtParam(c_param_name, arr_pt)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SynSpecIsIntParam = _neurongpu.NeuronGPU_SynSpecIsIntParam
-NeuronGPU_SynSpecIsIntParam.argtypes = (c_char_p,)
-NeuronGPU_SynSpecIsIntParam.restype = ctypes.c_int
+NESTGPU_SynSpecIsIntParam = _nestgpu.NESTGPU_SynSpecIsIntParam
+NESTGPU_SynSpecIsIntParam.argtypes = (c_char_p,)
+NESTGPU_SynSpecIsIntParam.restype = ctypes.c_int
 def SynSpecIsIntParam(param_name):
     "Check name of synapse int parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = (NeuronGPU_SynSpecIsIntParam(c_param_name) != 0)
+    ret = (NESTGPU_SynSpecIsIntParam(c_param_name) != 0)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SynSpecIsFloatParam = _neurongpu.NeuronGPU_SynSpecIsFloatParam
-NeuronGPU_SynSpecIsFloatParam.argtypes = (c_char_p,)
-NeuronGPU_SynSpecIsFloatParam.restype = ctypes.c_int
+NESTGPU_SynSpecIsFloatParam = _nestgpu.NESTGPU_SynSpecIsFloatParam
+NESTGPU_SynSpecIsFloatParam.argtypes = (c_char_p,)
+NESTGPU_SynSpecIsFloatParam.restype = ctypes.c_int
 def SynSpecIsFloatParam(param_name):
     "Check name of synapse float parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = (NeuronGPU_SynSpecIsFloatParam(c_param_name) != 0)
+    ret = (NESTGPU_SynSpecIsFloatParam(c_param_name) != 0)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_SynSpecIsFloatPtParam = _neurongpu.NeuronGPU_SynSpecIsFloatPtParam
-NeuronGPU_SynSpecIsFloatPtParam.argtypes = (c_char_p,)
-NeuronGPU_SynSpecIsFloatPtParam.restype = ctypes.c_int
+NESTGPU_SynSpecIsFloatPtParam = _nestgpu.NESTGPU_SynSpecIsFloatPtParam
+NESTGPU_SynSpecIsFloatPtParam.argtypes = (c_char_p,)
+NESTGPU_SynSpecIsFloatPtParam.restype = ctypes.c_int
 def SynSpecIsFloatPtParam(param_name):
     "Check name of synapse pointer to float parameter"
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name), len(param_name)+1)
-    ret = (NeuronGPU_SynSpecIsFloatPtParam(c_param_name) != 0)
+    ret = (NESTGPU_SynSpecIsFloatPtParam(c_param_name) != 0)
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
@@ -1541,25 +1539,25 @@ def SetSynParamFromArray(param_name, par_dict, array_size):
     SetSynSpecFloatPtParam(arr_param_name, array_pt)
 
     
-NeuronGPU_ConnectSeqSeq = _neurongpu.NeuronGPU_ConnectSeqSeq
-NeuronGPU_ConnectSeqSeq.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int,
+NESTGPU_ConnectSeqSeq = _nestgpu.NESTGPU_ConnectSeqSeq
+NESTGPU_ConnectSeqSeq.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int,
                                     ctypes.c_int)
-NeuronGPU_ConnectSeqSeq.restype = ctypes.c_int
+NESTGPU_ConnectSeqSeq.restype = ctypes.c_int
 
-NeuronGPU_ConnectSeqGroup = _neurongpu.NeuronGPU_ConnectSeqGroup
-NeuronGPU_ConnectSeqGroup.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_ConnectSeqGroup = _nestgpu.NESTGPU_ConnectSeqGroup
+NESTGPU_ConnectSeqGroup.argtypes = (ctypes.c_int, ctypes.c_int,
                                       ctypes.c_void_p, ctypes.c_int)
-NeuronGPU_ConnectSeqGroup.restype = ctypes.c_int
+NESTGPU_ConnectSeqGroup.restype = ctypes.c_int
 
-NeuronGPU_ConnectGroupSeq = _neurongpu.NeuronGPU_ConnectGroupSeq
-NeuronGPU_ConnectGroupSeq.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_ConnectGroupSeq = _nestgpu.NESTGPU_ConnectGroupSeq
+NESTGPU_ConnectGroupSeq.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                       ctypes.c_int, ctypes.c_int)
-NeuronGPU_ConnectGroupSeq.restype = ctypes.c_int
+NESTGPU_ConnectGroupSeq.restype = ctypes.c_int
 
-NeuronGPU_ConnectGroupGroup = _neurongpu.NeuronGPU_ConnectGroupGroup
-NeuronGPU_ConnectGroupGroup.argtypes = (ctypes.c_void_p, ctypes.c_int,
+NESTGPU_ConnectGroupGroup = _nestgpu.NESTGPU_ConnectGroupGroup
+NESTGPU_ConnectGroupGroup.argtypes = (ctypes.c_void_p, ctypes.c_int,
                                         ctypes.c_void_p, ctypes.c_int)
-NeuronGPU_ConnectGroupGroup.restype = ctypes.c_int
+NESTGPU_ConnectGroupGroup.restype = ctypes.c_int
 
 def Connect(source, target, conn_dict, syn_dict): 
     "Connect two node groups"
@@ -1605,7 +1603,7 @@ def Connect(source, target, conn_dict, syn_dict):
         else:
             raise ValueError("Unknown synapse parameter")
     if (type(source)==NodeSeq) & (type(target)==NodeSeq) :
-        ret = NeuronGPU_ConnectSeqSeq(source.i0, source.n, target.i0, target.n)
+        ret = NESTGPU_ConnectSeqSeq(source.i0, source.n, target.i0, target.n)
     else:
         if type(source)!=NodeSeq:
             source_arr = (ctypes.c_int * len(source))(*source) 
@@ -1614,13 +1612,13 @@ def Connect(source, target, conn_dict, syn_dict):
             target_arr = (ctypes.c_int * len(target))(*target) 
             target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
         if (type(source)==NodeSeq) & (type(target)!=NodeSeq):
-            ret = NeuronGPU_ConnectSeqGroup(source.i0, source.n, target_arr_pt,
+            ret = NESTGPU_ConnectSeqGroup(source.i0, source.n, target_arr_pt,
                                             len(target))
         elif (type(source)!=NodeSeq) & (type(target)==NodeSeq):
-            ret = NeuronGPU_ConnectGroupSeq(source_arr_pt, len(source),
+            ret = NESTGPU_ConnectGroupSeq(source_arr_pt, len(source),
                                             target.i0, target.n)
         else:
-            ret = NeuronGPU_ConnectGroupGroup(source_arr_pt, len(source),
+            ret = NESTGPU_ConnectGroupGroup(source_arr_pt, len(source),
                                               target_arr_pt, len(target))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
@@ -1628,29 +1626,29 @@ def Connect(source, target, conn_dict, syn_dict):
     return ret
 
 
-NeuronGPU_RemoteConnectSeqSeq = _neurongpu.NeuronGPU_RemoteConnectSeqSeq
-NeuronGPU_RemoteConnectSeqSeq.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_RemoteConnectSeqSeq = _nestgpu.NESTGPU_RemoteConnectSeqSeq
+NESTGPU_RemoteConnectSeqSeq.argtypes = (ctypes.c_int, ctypes.c_int,
                                           ctypes.c_int, ctypes.c_int,
                                           ctypes.c_int, ctypes.c_int)
-NeuronGPU_RemoteConnectSeqSeq.restype = ctypes.c_int
+NESTGPU_RemoteConnectSeqSeq.restype = ctypes.c_int
 
-NeuronGPU_RemoteConnectSeqGroup = _neurongpu.NeuronGPU_RemoteConnectSeqGroup
-NeuronGPU_RemoteConnectSeqGroup.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_RemoteConnectSeqGroup = _nestgpu.NESTGPU_RemoteConnectSeqGroup
+NESTGPU_RemoteConnectSeqGroup.argtypes = (ctypes.c_int, ctypes.c_int,
                                             ctypes.c_int, ctypes.c_int,
                                             ctypes.c_void_p, ctypes.c_int)
-NeuronGPU_RemoteConnectSeqGroup.restype = ctypes.c_int
+NESTGPU_RemoteConnectSeqGroup.restype = ctypes.c_int
 
-NeuronGPU_RemoteConnectGroupSeq = _neurongpu.NeuronGPU_RemoteConnectGroupSeq
-NeuronGPU_RemoteConnectGroupSeq.argtypes = (ctypes.c_int, ctypes.c_void_p,
+NESTGPU_RemoteConnectGroupSeq = _nestgpu.NESTGPU_RemoteConnectGroupSeq
+NESTGPU_RemoteConnectGroupSeq.argtypes = (ctypes.c_int, ctypes.c_void_p,
                                             ctypes.c_int, ctypes.c_int,
                                             ctypes.c_int, ctypes.c_int)
-NeuronGPU_RemoteConnectGroupSeq.restype = ctypes.c_int
+NESTGPU_RemoteConnectGroupSeq.restype = ctypes.c_int
 
-NeuronGPU_RemoteConnectGroupGroup = _neurongpu.NeuronGPU_RemoteConnectGroupGroup
-NeuronGPU_RemoteConnectGroupGroup.argtypes = (ctypes.c_int, ctypes.c_void_p,
+NESTGPU_RemoteConnectGroupGroup = _nestgpu.NESTGPU_RemoteConnectGroupGroup
+NESTGPU_RemoteConnectGroupGroup.argtypes = (ctypes.c_int, ctypes.c_void_p,
                                               ctypes.c_int, ctypes.c_int,
                                               ctypes.c_void_p, ctypes.c_int)
-NeuronGPU_RemoteConnectGroupGroup.restype = ctypes.c_int
+NESTGPU_RemoteConnectGroupGroup.restype = ctypes.c_int
 
 def RemoteConnect(i_source_host, source, i_target_host, target,
                   conn_dict, syn_dict): 
@@ -1696,7 +1694,7 @@ def RemoteConnect(i_source_host, source, i_target_host, target,
         else:
             raise ValueError("Unknown synapse parameter")
     if (type(source)==NodeSeq) & (type(target)==NodeSeq) :
-        ret = NeuronGPU_RemoteConnectSeqSeq(i_source_host, source.i0, source.n,
+        ret = NESTGPU_RemoteConnectSeqSeq(i_source_host, source.i0, source.n,
                                             i_target_host, target.i0, target.n)
 
     else:
@@ -1707,16 +1705,16 @@ def RemoteConnect(i_source_host, source, i_target_host, target,
             target_arr = (ctypes.c_int * len(target))(*target) 
             target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
         if (type(source)==NodeSeq) & (type(target)!=NodeSeq):
-            ret = NeuronGPU_RemoteConnectSeqGroup(i_source_host, source.i0,
+            ret = NESTGPU_RemoteConnectSeqGroup(i_source_host, source.i0,
                                                   source.n, i_target_host,
                                                   target_arr_pt, len(target))
         elif (type(source)!=NodeSeq) & (type(target)==NodeSeq):
-            ret = NeuronGPU_RemoteConnectGroupSeq(i_source_host, source_arr_pt,
+            ret = NESTGPU_RemoteConnectGroupSeq(i_source_host, source_arr_pt,
                                                   len(source),
                                                   i_target_host, target.i0,
                                                   target.n)
         else:
-            ret = NeuronGPU_RemoteConnectGroupGroup(i_source_host,
+            ret = NESTGPU_RemoteConnectGroupGroup(i_source_host,
                                                     source_arr_pt,
                                                     len(source),
                                                     i_target_host,
@@ -1762,29 +1760,29 @@ def SetStatus(gen_object, params, val=None):
 
 #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-NeuronGPU_GetSeqSeqConnections = _neurongpu.NeuronGPU_GetSeqSeqConnections
-NeuronGPU_GetSeqSeqConnections.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_GetSeqSeqConnections = _nestgpu.NESTGPU_GetSeqSeqConnections
+NESTGPU_GetSeqSeqConnections.argtypes = (ctypes.c_int, ctypes.c_int,
                                            ctypes.c_int, ctypes.c_int,
                                            ctypes.c_int, c_int_p)
-NeuronGPU_GetSeqSeqConnections.restype = c_int_p
+NESTGPU_GetSeqSeqConnections.restype = c_int_p
 
-NeuronGPU_GetSeqGroupConnections = _neurongpu.NeuronGPU_GetSeqGroupConnections
-NeuronGPU_GetSeqGroupConnections.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_GetSeqGroupConnections = _nestgpu.NESTGPU_GetSeqGroupConnections
+NESTGPU_GetSeqGroupConnections.argtypes = (ctypes.c_int, ctypes.c_int,
                                              c_void_p, ctypes.c_int,
                                              ctypes.c_int, c_int_p)
-NeuronGPU_GetSeqGroupConnections.restype = c_int_p
+NESTGPU_GetSeqGroupConnections.restype = c_int_p
 
-NeuronGPU_GetGroupSeqConnections = _neurongpu.NeuronGPU_GetGroupSeqConnections
-NeuronGPU_GetGroupSeqConnections.argtypes = (c_void_p, ctypes.c_int,
+NESTGPU_GetGroupSeqConnections = _nestgpu.NESTGPU_GetGroupSeqConnections
+NESTGPU_GetGroupSeqConnections.argtypes = (c_void_p, ctypes.c_int,
                                              ctypes.c_int, ctypes.c_int,
                                              ctypes.c_int, c_int_p)
-NeuronGPU_GetGroupSeqConnections.restype = c_int_p
+NESTGPU_GetGroupSeqConnections.restype = c_int_p
 
-NeuronGPU_GetGroupGroupConnections = _neurongpu.NeuronGPU_GetGroupGroupConnections
-NeuronGPU_GetGroupGroupConnections.argtypes = (c_void_p, ctypes.c_int,
+NESTGPU_GetGroupGroupConnections = _nestgpu.NESTGPU_GetGroupGroupConnections
+NESTGPU_GetGroupGroupConnections.argtypes = (c_void_p, ctypes.c_int,
                                                c_void_p, ctypes.c_int,
                                                ctypes.c_int, c_int_p)
-NeuronGPU_GetGroupGroupConnections.restype = c_int_p
+NESTGPU_GetGroupGroupConnections.restype = c_int_p
 
 def GetConnections(source=None, target=None, syn_group=-1): 
     "Get connections between two node groups"
@@ -1803,7 +1801,7 @@ def GetConnections(source=None, target=None, syn_group=-1):
     
     n_conn = ctypes.c_int(0)
     if (type(source)==NodeSeq) & (type(target)==NodeSeq) :
-        conn_arr = NeuronGPU_GetSeqSeqConnections(source.i0, source.n,
+        conn_arr = NESTGPU_GetSeqSeqConnections(source.i0, source.n,
                                                   target.i0, target.n,
                                                   syn_group,
                                                   ctypes.byref(n_conn))
@@ -1815,19 +1813,19 @@ def GetConnections(source=None, target=None, syn_group=-1):
             target_arr = (ctypes.c_int * len(target))(*target) 
             target_arr_pt = ctypes.cast(target_arr, ctypes.c_void_p)    
         if (type(source)==NodeSeq) & (type(target)!=NodeSeq):
-            conn_arr = NeuronGPU_GetSeqGroupConnections(source.i0, source.n,
+            conn_arr = NESTGPU_GetSeqGroupConnections(source.i0, source.n,
                                                         target_arr_pt,
                                                         len(target),
                                                         syn_group,
                                                         ctypes.byref(n_conn))
         elif (type(source)!=NodeSeq) & (type(target)==NodeSeq):
-            conn_arr = NeuronGPU_GetGroupSeqConnections(source_arr_pt,
+            conn_arr = NESTGPU_GetGroupSeqConnections(source_arr_pt,
                                                         len(source),
                                                         target.i0, target.n,
                                                         syn_group,
                                                         ctypes.byref(n_conn))
         else:
-            conn_arr = NeuronGPU_GetGroupGroupConnections(source_arr_pt,
+            conn_arr = NESTGPU_GetGroupGroupConnections(source_arr_pt,
                                                           len(source),
                                                           target_arr_pt,
                                                           len(target),
@@ -1847,12 +1845,12 @@ def GetConnections(source=None, target=None, syn_group=-1):
     return ret
 
  
-NeuronGPU_GetConnectionStatus = _neurongpu.NeuronGPU_GetConnectionStatus
-NeuronGPU_GetConnectionStatus.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_GetConnectionStatus = _nestgpu.NESTGPU_GetConnectionStatus
+NESTGPU_GetConnectionStatus.argtypes = (ctypes.c_int, ctypes.c_int,
                                          ctypes.c_int, c_int_p,
                                          c_char_p, c_char_p,
                                          c_float_p, c_float_p)
-NeuronGPU_GetConnectionStatus.restype = ctypes.c_int
+NESTGPU_GetConnectionStatus.restype = ctypes.c_int
 
 def GetConnectionStatus(conn_id):
     i_source = conn_id.i_source
@@ -1865,7 +1863,7 @@ def GetConnectionStatus(conn_id):
     delay = ctypes.c_float(0.0)
     weight = ctypes.c_float(0.0)
 
-    NeuronGPU_GetConnectionStatus(i_source, i_group, i_conn,
+    NESTGPU_GetConnectionStatus(i_source, i_group, i_conn,
                                   ctypes.byref(i_target),
                                   ctypes.byref(i_port),
                                   ctypes.byref(i_syn),
@@ -1934,9 +1932,9 @@ def GetStatus(gen_object, var_key=None):
 
 
 
-NeuronGPU_CreateSynGroup = _neurongpu.NeuronGPU_CreateSynGroup
-NeuronGPU_CreateSynGroup.argtypes = (c_char_p,)
-NeuronGPU_CreateSynGroup.restype = ctypes.c_int
+NESTGPU_CreateSynGroup = _nestgpu.NESTGPU_CreateSynGroup
+NESTGPU_CreateSynGroup.argtypes = (c_char_p,)
+NESTGPU_CreateSynGroup.restype = ctypes.c_int
 def CreateSynGroup(model_name, status_dict=None):
     "Create a synapse group"
     if (type(status_dict)==dict):
@@ -1948,30 +1946,30 @@ def CreateSynGroup(model_name, status_dict=None):
 
     c_model_name = ctypes.create_string_buffer(to_byte_str(model_name), \
                                                len(model_name)+1)
-    i_syn_group = NeuronGPU_CreateSynGroup(c_model_name) 
+    i_syn_group = NESTGPU_CreateSynGroup(c_model_name) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return SynGroup(i_syn_group)
 
   
-NeuronGPU_GetSynGroupNParam = _neurongpu.NeuronGPU_GetSynGroupNParam
-NeuronGPU_GetSynGroupNParam.argtypes = (ctypes.c_int,)
-NeuronGPU_GetSynGroupNParam.restype = ctypes.c_int
+NESTGPU_GetSynGroupNParam = _nestgpu.NESTGPU_GetSynGroupNParam
+NESTGPU_GetSynGroupNParam.argtypes = (ctypes.c_int,)
+NESTGPU_GetSynGroupNParam.restype = ctypes.c_int
 def GetSynGroupNParam(syn_group):
     "Get number of synapse parameters for a given synapse group"
     if type(syn_group)!=SynGroup:
         raise ValueError("Wrong argument type in GetSynGroupNParam")
     i_syn_group = syn_group.i_syn_group
     
-    ret = NeuronGPU_GetSynGroupNParam(ctypes.c_int(i_syn_group))
+    ret = NESTGPU_GetSynGroupNParam(ctypes.c_int(i_syn_group))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
   
-NeuronGPU_GetSynGroupParamNames = _neurongpu.NeuronGPU_GetSynGroupParamNames
-NeuronGPU_GetSynGroupParamNames.argtypes = (ctypes.c_int,)
-NeuronGPU_GetSynGroupParamNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetSynGroupParamNames = _nestgpu.NESTGPU_GetSynGroupParamNames
+NESTGPU_GetSynGroupParamNames.argtypes = (ctypes.c_int,)
+NESTGPU_GetSynGroupParamNames.restype = ctypes.POINTER(c_char_p)
 def GetSynGroupParamNames(syn_group):
     "Get list of synapse group parameter names"
     if type(syn_group)!=SynGroup:
@@ -1979,7 +1977,7 @@ def GetSynGroupParamNames(syn_group):
     i_syn_group = syn_group.i_syn_group
 
     n_param = GetSynGroupNParam(syn_group)
-    param_name_pp = ctypes.cast(NeuronGPU_GetSynGroupParamNames(
+    param_name_pp = ctypes.cast(NESTGPU_GetSynGroupParamNames(
         ctypes.c_int(i_syn_group)), ctypes.POINTER(c_char_p))
     param_name_list = []
     for i in range(n_param):
@@ -1992,9 +1990,9 @@ def GetSynGroupParamNames(syn_group):
     return param_name_list
 
 
-NeuronGPU_IsSynGroupParam = _neurongpu.NeuronGPU_IsSynGroupParam
-NeuronGPU_IsSynGroupParam.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_IsSynGroupParam.restype = ctypes.c_int
+NESTGPU_IsSynGroupParam = _nestgpu.NESTGPU_IsSynGroupParam
+NESTGPU_IsSynGroupParam.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_IsSynGroupParam.restype = ctypes.c_int
 def IsSynGroupParam(syn_group, param_name):
     "Check name of synapse group parameter"
     if type(syn_group)!=SynGroup:
@@ -2003,16 +2001,16 @@ def IsSynGroupParam(syn_group, param_name):
 
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = (NeuronGPU_IsSynGroupParam(ctypes.c_int(i_syn_group), \
+    ret = (NESTGPU_IsSynGroupParam(ctypes.c_int(i_syn_group), \
                                      c_param_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
     
-NeuronGPU_GetSynGroupParam = _neurongpu.NeuronGPU_GetSynGroupParam
-NeuronGPU_GetSynGroupParam.argtypes = (ctypes.c_int, c_char_p)
-NeuronGPU_GetSynGroupParam.restype = ctypes.c_float
+NESTGPU_GetSynGroupParam = _nestgpu.NESTGPU_GetSynGroupParam
+NESTGPU_GetSynGroupParam.argtypes = (ctypes.c_int, c_char_p)
+NESTGPU_GetSynGroupParam.restype = ctypes.c_float
 def GetSynGroupParam(syn_group, param_name):
     "Get synapse group parameter value"
     if type(syn_group)!=SynGroup:
@@ -2022,7 +2020,7 @@ def GetSynGroupParam(syn_group, param_name):
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
 
-    ret = NeuronGPU_GetSynGroupParam(ctypes.c_int(i_syn_group),
+    ret = NESTGPU_GetSynGroupParam(ctypes.c_int(i_syn_group),
                                          c_param_name)
     
     if GetErrorCode() != 0:
@@ -2030,10 +2028,10 @@ def GetSynGroupParam(syn_group, param_name):
     return ret
 
   
-NeuronGPU_SetSynGroupParam = _neurongpu.NeuronGPU_SetSynGroupParam
-NeuronGPU_SetSynGroupParam.argtypes = (ctypes.c_int, c_char_p,
+NESTGPU_SetSynGroupParam = _nestgpu.NESTGPU_SetSynGroupParam
+NESTGPU_SetSynGroupParam.argtypes = (ctypes.c_int, c_char_p,
                                        ctypes.c_float)
-NeuronGPU_SetSynGroupParam.restype = ctypes.c_int
+NESTGPU_SetSynGroupParam.restype = ctypes.c_int
 def SetSynGroupParam(syn_group, param_name, val):
     "Set synapse group parameter value"
     if type(syn_group)!=SynGroup:
@@ -2042,7 +2040,7 @@ def SetSynGroupParam(syn_group, param_name, val):
 
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = NeuronGPU_SetSynGroupParam(ctypes.c_int(i_syn_group),
+    ret = NESTGPU_SetSynGroupParam(ctypes.c_int(i_syn_group),
                                          c_param_name, ctypes.c_float(val))
     
     if GetErrorCode() != 0:
@@ -2086,15 +2084,15 @@ def SetSynGroupStatus(syn_group, params, val=None):
         raise ValueError(GetErrorMessage())
 
 
-NeuronGPU_ActivateSpikeCount = _neurongpu.NeuronGPU_ActivateSpikeCount
-NeuronGPU_ActivateSpikeCount.argtypes = (ctypes.c_int, ctypes.c_int)
-NeuronGPU_ActivateSpikeCount.restype = ctypes.c_int
+NESTGPU_ActivateSpikeCount = _nestgpu.NESTGPU_ActivateSpikeCount
+NESTGPU_ActivateSpikeCount.argtypes = (ctypes.c_int, ctypes.c_int)
+NESTGPU_ActivateSpikeCount.restype = ctypes.c_int
 def ActivateSpikeCount(nodes):
     "Activate spike count for node group"
     if type(nodes)!=NodeSeq:
         raise ValueError("Argument type of ActivateSpikeCount must be NodeSeq")
 
-    ret = NeuronGPU_ActivateSpikeCount(ctypes.c_int(nodes.i0),
+    ret = NESTGPU_ActivateSpikeCount(ctypes.c_int(nodes.i0),
                                        ctypes.c_int(nodes.n))
 
     if GetErrorCode() != 0:
@@ -2102,16 +2100,16 @@ def ActivateSpikeCount(nodes):
     return ret
 
 
-NeuronGPU_ActivateRecSpikeTimes = _neurongpu.NeuronGPU_ActivateRecSpikeTimes
-NeuronGPU_ActivateRecSpikeTimes.argtypes = (ctypes.c_int, ctypes.c_int, \
+NESTGPU_ActivateRecSpikeTimes = _nestgpu.NESTGPU_ActivateRecSpikeTimes
+NESTGPU_ActivateRecSpikeTimes.argtypes = (ctypes.c_int, ctypes.c_int, \
                                             ctypes.c_int)
-NeuronGPU_ActivateRecSpikeTimes.restype = ctypes.c_int
+NESTGPU_ActivateRecSpikeTimes.restype = ctypes.c_int
 def ActivateRecSpikeTimes(nodes, max_n_rec_spike_times):
     "Activate spike time recording for node group"
     if type(nodes)!=NodeSeq:
         raise ValueError("Argument type of ActivateRecSpikeTimes must be NodeSeq")
 
-    ret = NeuronGPU_ActivateRecSpikeTimes(ctypes.c_int(nodes.i0),
+    ret = NESTGPU_ActivateRecSpikeTimes(ctypes.c_int(nodes.i0),
                                           ctypes.c_int(nodes.n),
                                           ctypes.c_int(max_n_rec_spike_times))
 
@@ -2120,26 +2118,26 @@ def ActivateRecSpikeTimes(nodes, max_n_rec_spike_times):
     return ret
 
 
-NeuronGPU_GetNRecSpikeTimes = _neurongpu.NeuronGPU_GetNRecSpikeTimes
-NeuronGPU_GetNRecSpikeTimes.argtypes = (ctypes.c_int,)
-NeuronGPU_GetNRecSpikeTimes.restype = ctypes.c_int
+NESTGPU_GetNRecSpikeTimes = _nestgpu.NESTGPU_GetNRecSpikeTimes
+NESTGPU_GetNRecSpikeTimes.argtypes = (ctypes.c_int,)
+NESTGPU_GetNRecSpikeTimes.restype = ctypes.c_int
 def GetNRecSpikeTimes(i_node):
     "Get number of recorded spike times for node"
 
-    ret = NeuronGPU_GetNRecSpikeTimes(ctypes.c_int(i_node))
+    ret = NESTGPU_GetNRecSpikeTimes(ctypes.c_int(i_node))
 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
-NeuronGPU_GetRecSpikeTimes = _neurongpu.NeuronGPU_GetRecSpikeTimes
-NeuronGPU_GetRecSpikeTimes.argtypes = (ctypes.c_int,)
-NeuronGPU_GetRecSpikeTimes.restype = c_float_p
+NESTGPU_GetRecSpikeTimes = _nestgpu.NESTGPU_GetRecSpikeTimes
+NESTGPU_GetRecSpikeTimes.argtypes = (ctypes.c_int,)
+NESTGPU_GetRecSpikeTimes.restype = c_float_p
 def GetRecSpikeTimes(i_node):
     "Get recorded spike times for node"
 
     spike_time_list = []
-    data_pt = NeuronGPU_GetRecSpikeTimes(ctypes.c_int(i_node))
+    data_pt = NESTGPU_GetRecSpikeTimes(ctypes.c_int(i_node))
     array_size = GetNRecSpikeTimes(i_node)
     for i in range(array_size):
         spike_time_list.append(data_pt[i])
@@ -2151,10 +2149,10 @@ def GetRecSpikeTimes(i_node):
     return ret
 
 
-NeuronGPU_SetNeuronGroupParam = _neurongpu.NeuronGPU_SetNeuronGroupParam
-NeuronGPU_SetNeuronGroupParam.argtypes = (ctypes.c_int, ctypes.c_int,
+NESTGPU_SetNeuronGroupParam = _nestgpu.NESTGPU_SetNeuronGroupParam
+NESTGPU_SetNeuronGroupParam.argtypes = (ctypes.c_int, ctypes.c_int,
                                           c_char_p, ctypes.c_float)
-NeuronGPU_SetNeuronGroupParam.restype = ctypes.c_int
+NESTGPU_SetNeuronGroupParam.restype = ctypes.c_int
 def SetNeuronGroupParam(nodes, param_name, val):
     "Set neuron group parameter value"
     if type(nodes)!=NodeSeq:
@@ -2162,7 +2160,7 @@ def SetNeuronGroupParam(nodes, param_name, val):
 
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = NeuronGPU_SetNeuronGroupParam(ctypes.c_int(nodes.i0),
+    ret = NESTGPU_SetNeuronGroupParam(ctypes.c_int(nodes.i0),
                                         ctypes.c_int(nodes.n),
                                         c_param_name, ctypes.c_float(val))
     if GetErrorCode() != 0:
@@ -2170,24 +2168,24 @@ def SetNeuronGroupParam(nodes, param_name, val):
     return ret
 
 
-NeuronGPU_GetNFloatParam = _neurongpu.NeuronGPU_GetNFloatParam
-NeuronGPU_GetNFloatParam.restype = ctypes.c_int
+NESTGPU_GetNFloatParam = _nestgpu.NESTGPU_GetNFloatParam
+NESTGPU_GetNFloatParam.restype = ctypes.c_int
 def GetNFloatParam():
     "Get number of kernel float parameters"
     
-    ret = NeuronGPU_GetNFloatParam()
+    ret = NESTGPU_GetNFloatParam()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_GetFloatParamNames = _neurongpu.NeuronGPU_GetFloatParamNames
-NeuronGPU_GetFloatParamNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetFloatParamNames = _nestgpu.NESTGPU_GetFloatParamNames
+NESTGPU_GetFloatParamNames.restype = ctypes.POINTER(c_char_p)
 def GetFloatParamNames():
     "Get list of kernel float parameter names"
 
     n_param = GetNFloatParam()
-    param_name_pp = ctypes.cast(NeuronGPU_GetFloatParamNames(),
+    param_name_pp = ctypes.cast(NESTGPU_GetFloatParamNames(),
                                 ctypes.POINTER(c_char_p))
     param_name_list = []
     for i in range(n_param):
@@ -2200,69 +2198,69 @@ def GetFloatParamNames():
     return param_name_list
 
 
-NeuronGPU_IsFloatParam = _neurongpu.NeuronGPU_IsFloatParam
-NeuronGPU_IsFloatParam.argtypes = (c_char_p,)
-NeuronGPU_IsFloatParam.restype = ctypes.c_int
+NESTGPU_IsFloatParam = _nestgpu.NESTGPU_IsFloatParam
+NESTGPU_IsFloatParam.argtypes = (c_char_p,)
+NESTGPU_IsFloatParam.restype = ctypes.c_int
 def IsFloatParam(param_name):
     "Check name of kernel float parameter"
 
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = (NeuronGPU_IsFloatParam(c_param_name)!=0) 
+    ret = (NESTGPU_IsFloatParam(c_param_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
     
-NeuronGPU_GetFloatParam = _neurongpu.NeuronGPU_GetFloatParam
-NeuronGPU_GetFloatParam.argtypes = (c_char_p,)
-NeuronGPU_GetFloatParam.restype = ctypes.c_float
+NESTGPU_GetFloatParam = _nestgpu.NESTGPU_GetFloatParam
+NESTGPU_GetFloatParam.argtypes = (c_char_p,)
+NESTGPU_GetFloatParam.restype = ctypes.c_float
 def GetFloatParam(param_name):
     "Get kernel float parameter value"
 
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
 
-    ret = NeuronGPU_GetFloatParam(c_param_name)
+    ret = NESTGPU_GetFloatParam(c_param_name)
     
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
   
-NeuronGPU_SetFloatParam = _neurongpu.NeuronGPU_SetFloatParam
-NeuronGPU_SetFloatParam.argtypes = (c_char_p, ctypes.c_float)
-NeuronGPU_SetFloatParam.restype = ctypes.c_int
+NESTGPU_SetFloatParam = _nestgpu.NESTGPU_SetFloatParam
+NESTGPU_SetFloatParam.argtypes = (c_char_p, ctypes.c_float)
+NESTGPU_SetFloatParam.restype = ctypes.c_int
 def SetFloatParam(param_name, val):
     "Set kernel float parameter value"
 
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = NeuronGPU_SetFloatParam(c_param_name, ctypes.c_float(val))
+    ret = NESTGPU_SetFloatParam(c_param_name, ctypes.c_float(val))
     
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_GetNIntParam = _neurongpu.NeuronGPU_GetNIntParam
-NeuronGPU_GetNIntParam.restype = ctypes.c_int
+NESTGPU_GetNIntParam = _nestgpu.NESTGPU_GetNIntParam
+NESTGPU_GetNIntParam.restype = ctypes.c_int
 def GetNIntParam():
     "Get number of kernel int parameters"
     
-    ret = NeuronGPU_GetNIntParam()
+    ret = NESTGPU_GetNIntParam()
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
 
-NeuronGPU_GetIntParamNames = _neurongpu.NeuronGPU_GetIntParamNames
-NeuronGPU_GetIntParamNames.restype = ctypes.POINTER(c_char_p)
+NESTGPU_GetIntParamNames = _nestgpu.NESTGPU_GetIntParamNames
+NESTGPU_GetIntParamNames.restype = ctypes.POINTER(c_char_p)
 def GetIntParamNames():
     "Get list of kernel int parameter names"
 
     n_param = GetNIntParam()
-    param_name_pp = ctypes.cast(NeuronGPU_GetIntParamNames(),
+    param_name_pp = ctypes.cast(NESTGPU_GetIntParamNames(),
                                 ctypes.POINTER(c_char_p))
     param_name_list = []
     for i in range(n_param):
@@ -2275,45 +2273,45 @@ def GetIntParamNames():
     return param_name_list
 
 
-NeuronGPU_IsIntParam = _neurongpu.NeuronGPU_IsIntParam
-NeuronGPU_IsIntParam.argtypes = (c_char_p,)
-NeuronGPU_IsIntParam.restype = ctypes.c_int
+NESTGPU_IsIntParam = _nestgpu.NESTGPU_IsIntParam
+NESTGPU_IsIntParam.argtypes = (c_char_p,)
+NESTGPU_IsIntParam.restype = ctypes.c_int
 def IsIntParam(param_name):
     "Check name of kernel int parameter"
 
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = (NeuronGPU_IsIntParam(c_param_name)!=0) 
+    ret = (NESTGPU_IsIntParam(c_param_name)!=0) 
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
     
-NeuronGPU_GetIntParam = _neurongpu.NeuronGPU_GetIntParam
-NeuronGPU_GetIntParam.argtypes = (c_char_p,)
-NeuronGPU_GetIntParam.restype = ctypes.c_int
+NESTGPU_GetIntParam = _nestgpu.NESTGPU_GetIntParam
+NESTGPU_GetIntParam.argtypes = (c_char_p,)
+NESTGPU_GetIntParam.restype = ctypes.c_int
 def GetIntParam(param_name):
     "Get kernel int parameter value"
 
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
 
-    ret = NeuronGPU_GetIntParam(c_param_name)
+    ret = NESTGPU_GetIntParam(c_param_name)
     
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
 
   
-NeuronGPU_SetIntParam = _neurongpu.NeuronGPU_SetIntParam
-NeuronGPU_SetIntParam.argtypes = (c_char_p, ctypes.c_int)
-NeuronGPU_SetIntParam.restype = ctypes.c_int
+NESTGPU_SetIntParam = _nestgpu.NESTGPU_SetIntParam
+NESTGPU_SetIntParam.argtypes = (c_char_p, ctypes.c_int)
+NESTGPU_SetIntParam.restype = ctypes.c_int
 def SetIntParam(param_name, val):
     "Set kernel int parameter value"
 
     c_param_name = ctypes.create_string_buffer(to_byte_str(param_name),
                                                len(param_name)+1)
-    ret = NeuronGPU_SetIntParam(c_param_name, ctypes.c_int(val))
+    ret = NESTGPU_SetIntParam(c_param_name, ctypes.c_int(val))
     
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
@@ -2362,10 +2360,10 @@ def SetKernelStatus(params, val=None):
         raise ValueError(GetErrorMessage())
 
 
-NeuronGPU_RemoteCreate = _neurongpu.NeuronGPU_RemoteCreate
-NeuronGPU_RemoteCreate.argtypes = (ctypes.c_int, c_char_p, ctypes.c_int,
+NESTGPU_RemoteCreate = _nestgpu.NESTGPU_RemoteCreate
+NESTGPU_RemoteCreate.argtypes = (ctypes.c_int, c_char_p, ctypes.c_int,
                                    ctypes.c_int)
-NeuronGPU_Create.restype = ctypes.c_int
+NESTGPU_Create.restype = ctypes.c_int
 def RemoteCreate(i_host, model_name, n_node=1, n_ports=1, status_dict=None):
     "Create a remote neuron group"
     if (type(status_dict)==dict):
@@ -2377,7 +2375,7 @@ def RemoteCreate(i_host, model_name, n_node=1, n_ports=1, status_dict=None):
         raise ValueError("Wrong argument in RemoteCreate")
     
     c_model_name = ctypes.create_string_buffer(to_byte_str(model_name), len(model_name)+1)
-    i_node = NeuronGPU_RemoteCreate(ctypes.c_int(i_host), c_model_name, ctypes.c_int(n_node),
+    i_node = NESTGPU_RemoteCreate(ctypes.c_int(i_host), c_model_name, ctypes.c_int(n_node),
                                     ctypes.c_int(n_ports))
     node_seq = NodeSeq(i_node, n_node)
     ret = RemoteNodeSeq(i_host, node_seq)

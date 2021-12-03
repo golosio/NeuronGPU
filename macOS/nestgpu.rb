@@ -1,10 +1,10 @@
-cask 'neurongpu' do
+cask 'nestgpu' do
   version '1.2.2'
   sha256 :no_check
 
-  url "http://0.0.0.0:8000/NeuronGPU-macOS-1.2.0.tgz"
+  url "http://0.0.0.0:8000/NESTGPU-macOS-1.2.0.tgz"
   name 'Neurongpu'
-  homepage 'https://github.com/golosio/NeuronGPU/wiki'
+  homepage 'https://github.com/golosio/NESTGPU/wiki'
 
   depends_on macos: [
                       :sierra,
@@ -16,12 +16,12 @@ cask 'neurongpu' do
   depends_on formula: 'openmpi'
 
   installer script: {
-                      executable: "#{staged_path}/NeuronGPU/macOS/install.sh",
+                      executable: "#{staged_path}/NESTGPU/macOS/install.sh",
                       args: ["#{staged_path}"],
                       sudo:       true,
                     }
   uninstall script: {
-                      executable: "#{staged_path}/NeuronGPU/macOS/uninstall.sh",
+                      executable: "#{staged_path}/NESTGPU/macOS/uninstall.sh",
                       sudo:       true,
                     }
   caveats "If you have not already done so, for using this software"

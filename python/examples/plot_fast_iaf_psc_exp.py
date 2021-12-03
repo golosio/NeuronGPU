@@ -1,5 +1,5 @@
 import sys
-import neurongpu as ngpu
+import nestgpu as ngpu
 import numpy as np
 tolerance = 0.0005
 
@@ -58,7 +58,7 @@ import matplotlib.pyplot as plt
 
 fig1 = plt.figure(1)
 plt.plot(t, V_m)
-fig1.suptitle("NeuronGPU")
+fig1.suptitle("NESTGPU")
 fig2 = plt.figure(2)
 plt.plot(t1, V_m1)
 fig2.suptitle("NEST")

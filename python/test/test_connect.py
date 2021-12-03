@@ -1,5 +1,5 @@
 import ctypes
-import neurongpu as ngpu
+import nestgpu as ngpu
 
 N = 5
 

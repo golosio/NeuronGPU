@@ -1,6 +1,6 @@
 import sys
 import math
-import neurongpu as ngpu
+import nestgpu as ngpu
 
 def STDPUpdate(w, Dt, tau_plus, tau_minus, Wplus, alpha, mu_plus, mu_minus, \
                Wmax):

@@ -9,33 +9,33 @@ version=1.4.6~$1
 
 #define source and target directories
 srcdir=..
-tgdir=neurongpu_$version
+tgdir=nestgpu_$version
 
 # create installation directory if it doesn't exist and clean it
-mkdir -p $tgdir/usr/local/neurongpu
-rm -fr $tgdir/usr/local/neurongpu/*
+mkdir -p $tgdir/usr/local/nestgpu
+rm -fr $tgdir/usr/local/nestgpu/*
 mkdir -p $tgdir/usr/local/lib
 
 # copy subdirectories
-cp -r $srcdir/src $tgdir/usr/local/neurongpu
-cp -r $srcdir/python $tgdir/usr/local/neurongpu
-cp -r $srcdir/c++ $tgdir/usr/local/neurongpu
-cp -r $srcdir/deb/lib $tgdir/usr/local/neurongpu
+cp -r $srcdir/src $tgdir/usr/local/nestgpu
+cp -r $srcdir/python $tgdir/usr/local/nestgpu
+cp -r $srcdir/c++ $tgdir/usr/local/nestgpu
+cp -r $srcdir/deb/lib $tgdir/usr/local/nestgpu
 
 #create include directory and copy header file
-mkdir $tgdir/usr/local/neurongpu/include
-cp $srcdir/src/neurongpu.h $tgdir/usr/local/neurongpu/include/
+mkdir $tgdir/usr/local/nestgpu/include
+cp $srcdir/src/nestgpu.h $tgdir/usr/local/nestgpu/include/
 
 # create python package directory
 mkdir -p $tgdir/usr/lib/python2.7/dist-packages/
 mkdir -p $tgdir/usr/lib/python3/dist-packages/
 
-# copy the neurongpu python module
-cp $srcdir/pythonlib/neurongpu.py $tgdir/usr/lib/python2.7/dist-packages/
-cp $srcdir/pythonlib/neurongpu.py $tgdir/usr/lib/python3/dist-packages/
+# copy the nestgpu python module
+cp $srcdir/pythonlib/nestgpu.py $tgdir/usr/lib/python2.7/dist-packages/
+cp $srcdir/pythonlib/nestgpu.py $tgdir/usr/lib/python3/dist-packages/
 
 # create a symbolic link in /usr/local/lib to the dynamic-link library
-ln -s /usr/local/neurongpu/lib/libneurongpu.so $tgdir/usr/local/lib/libneurongpu.so
+ln -s /usr/local/nestgpu/lib/libnestgpu.so $tgdir/usr/local/lib/libnestgpu.so
 
 # create dependency list
 depends=$(./depends.sh)

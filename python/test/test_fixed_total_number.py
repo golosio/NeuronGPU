@@ -1,7 +1,7 @@
 import sys
 import math
 import ctypes
-import neurongpu as ngpu
+import nestgpu as ngpu
 from random import randrange
 import numpy as np
 

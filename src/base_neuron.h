@@ -1,16 +1,26 @@
 /*
-Copyright (C) 2020 Bruno Golosio
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *  This file is part of NESTGPU.
+ *
+ *  Copyright (C) 2021 The NEST Initiative
+ *
+ *  NESTGPU is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NESTGPU is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NESTGPU.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
+
 
 #ifndef BASENEURONH
 #define BASENEURONH
@@ -20,12 +30,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "dir_connect.h"
 #include <stdint.h>
 
-class NeuronGPU;
+class NESTGPU;
 
 class BaseNeuron
 {
  protected:
-  friend class NeuronGPU;
+  friend class NESTGPU;
   int node_type_;
   bool ext_neuron_flag_;
   int i_node_0_;

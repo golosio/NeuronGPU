@@ -1,16 +1,26 @@
 /*
-Copyright (C) 2021 Bruno Golosio
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *  This file is part of NESTGPU.
+ *
+ *  Copyright (C) 2021 The NEST Initiative
+ *
+ *  NESTGPU is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NESTGPU is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NESTGPU.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
+
 
 #ifndef NEURONGPUCLASSH
 #define NEURONGPUCLASSH
@@ -91,7 +101,7 @@ class RemoteNodeSeq
 
 enum {ON_EXCEPTION_EXIT=0, ON_EXCEPTION_HANDLE};
 
-class NeuronGPU
+class NESTGPU
 {
   float time_resolution_; // time resolution in ms
   curandGenerator_t *random_generator_;
@@ -250,9 +260,9 @@ class NeuronGPU
   bool first_simulation_flag_;
 
  public:
-  NeuronGPU();
+  NESTGPU();
 
-  ~NeuronGPU();
+  ~NESTGPU();
 
   int SetRandomSeed(unsigned long long seed);
 

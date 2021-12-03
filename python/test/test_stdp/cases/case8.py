@@ -1,4 +1,4 @@
-import neurongpu as ngpu
+import nestgpu as ngpu
 import math
 import matplotlib.pyplot as plt
 

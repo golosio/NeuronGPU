@@ -1,16 +1,26 @@
 /*
-Copyright (C) 2020 Bruno Golosio
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *  This file is part of NESTGPU.
+ *
+ *  Copyright (C) 2021 The NEST Initiative
+ *
+ *  NESTGPU is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NESTGPU is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NESTGPU.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
+
 
 #include <config.h>
 #include <stdio.h>
@@ -21,8 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SPIKE_TIME_DIFF_GUARD 15000 // must be less than 16384
 #define SPIKE_TIME_DIFF_THR 10000 // must be less than GUARD
 
-extern __constant__ long long NeuronGPUTimeIdx;
-extern __constant__ float NeuronGPUTimeResolution;
+extern __constant__ long long NESTGPUTimeIdx;
+extern __constant__ float NESTGPUTimeResolution;
 
 unsigned int *d_RevSpikeNum;
 unsigned int *d_RevSpikeTarget;
@@ -46,10 +56,10 @@ __device__ void NestedLoopFunction1(int i_spike, int i_target_rev_conn)
   if (syn_group>0) {
     float *weight = &ConnectionWeight[i_conn];
     unsigned short spike_time_idx = ConnectionSpikeTime[i_conn];
-    unsigned short time_idx = (unsigned short)(NeuronGPUTimeIdx & 0xffff);
+    unsigned short time_idx = (unsigned short)(NESTGPUTimeIdx & 0xffff);
     unsigned short Dt_int = time_idx - spike_time_idx;
     if (Dt_int<MAX_SYN_DT) {
-      SynapseUpdate(syn_group, weight, NeuronGPUTimeResolution*Dt_int);
+      SynapseUpdate(syn_group, weight, NESTGPUTimeResolution*Dt_int);
     }
   }
 }
@@ -63,7 +73,7 @@ __global__ void RevSpikeBufferUpdate(unsigned int n_node)
   }
   long long target_spike_time_idx = LastRevSpikeTimeIdx[i_node];
   // Check if a spike reached the input synapses now
-  if (target_spike_time_idx!=NeuronGPUTimeIdx) {
+  if (target_spike_time_idx!=NESTGPUTimeIdx) {
     return;
   }
   int n_conn = TargetRevConnectionSize[i_node];

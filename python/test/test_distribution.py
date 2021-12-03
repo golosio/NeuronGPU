@@ -1,4 +1,4 @@
-import neurongpu as ngpu
+import nestgpu as ngpu
 import numpy as np
 
 neuron = ngpu.Create("aeif_cond_beta",100000)

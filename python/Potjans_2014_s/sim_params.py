@@ -43,7 +43,7 @@ sim_dict = {
     'rec_dev': ['spike_detector'],
     # path to save the output data
     'data_path': os.path.join(os.getcwd(), 'data/'),
-    # masterseed for NeuronGPU and NumPy
+    # masterseed for NESTGPU and NumPy
     'master_seed': 12349, #55,
     # number of threads per MPI process
     'local_num_threads': 1,

@@ -16,13 +16,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include "neurongpu.h"
+#include "nestgpu.h"
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-  NeuronGPU neural_gpu;
+  NESTGPU neural_gpu;
   neural_gpu.ConnectMpiInit(argc, argv);
   int mpi_np = neural_gpu.MpiNp();
   if (mpi_np < 2) {

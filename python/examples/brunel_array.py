@@ -1,6 +1,6 @@
 import sys
 import ctypes
-import neurongpu as ngpu
+import nestgpu as ngpu
 from random import randrange
 
 if len(sys.argv) != 2:

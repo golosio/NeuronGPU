@@ -1,4 +1,4 @@
-# NeuronGPU
+# NESTGPU
 A GPU-MPI library for simulation of large-scale networks of spiking neurons.
 Can be used in Python, in C++ and in C.
 
@@ -8,5 +8,5 @@ The python interface is very similar to that of the NEST simulator: the most use
 
 To start using it,, have a look at the examples in the python/examples and c++/examples folders.
 
-* **[Download and installation instructions](https://github.com/golosio/NeuronGPU/wiki/Installation-instructions)**
-* **[User guide](https://github.com/golosio/NeuronGPU/wiki)**
+* **[Download and installation instructions](https://github.com/golosio/NESTGPU/wiki/Installation-instructions)**
+* **[User guide](https://github.com/golosio/NESTGPU/wiki)**

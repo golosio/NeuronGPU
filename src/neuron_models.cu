@@ -1,16 +1,26 @@
 /*
-Copyright (C) 2020 Bruno Golosio
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *  This file is part of NESTGPU.
+ *
+ *  Copyright (C) 2021 The NEST Initiative
+ *
+ *  NESTGPU is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NESTGPU is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NESTGPU.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
+
 
 #include <config.h>
 #include <iostream>
@@ -19,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ngpu_exception.h"
 #include "cuda_error.h"
 #include "neuron_models.h"
-#include "neurongpu.h"
+#include "nestgpu.h"
 #include "iaf_psc_exp.h"
 #include "iaf_psc_exp_hc.h"
 #include "iaf_psc_exp_g.h"
@@ -41,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "user_m1.h"
 #include "user_m2.h"
 
-NodeSeq NeuronGPU::Create(std::string model_name, int n_node /*=1*/,
+NodeSeq NESTGPU::Create(std::string model_name, int n_node /*=1*/,
 			  int n_port /*=1*/)
 {
   CheckUncalibrated("Nodes cannot be created after calibration");

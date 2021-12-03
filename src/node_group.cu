@@ -1,23 +1,33 @@
 /*
-Copyright (C) 2020 Bruno Golosio
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *  This file is part of NESTGPU.
+ *
+ *  Copyright (C) 2021 The NEST Initiative
+ *
+ *  NESTGPU is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NESTGPU is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NESTGPU.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
+
 
 #include <config.h>
 #include <iostream>
 
 #include "cuda_error.h"
 #include "node_group.h"
-#include "neurongpu.h"
+#include "nestgpu.h"
 
 __constant__ NodeGroupStruct NodeGroupArray[MAX_N_NODE_GROUPS];
 __device__ signed char *NodeGroupMap;
@@ -28,7 +38,7 @@ void NodeGroupMapInit(signed char *node_group_map)
   NodeGroupMap = node_group_map;
 }
 
-int NeuronGPU::NodeGroupArrayInit()
+int NESTGPU::NodeGroupArrayInit()
 {
   gpuErrchk(cudaMalloc(&d_node_group_map_,
 		       node_group_map_.size()*sizeof(signed char)));
@@ -62,7 +72,7 @@ int NeuronGPU::NodeGroupArrayInit()
   return 0;
 }
 
-double *NeuronGPU::InitGetSpikeArray (int n_node, int n_port)
+double *NESTGPU::InitGetSpikeArray (int n_node, int n_port)
 {
   double *d_get_spike_array = NULL;
   if (n_node*n_port > 0) {
@@ -73,7 +83,7 @@ double *NeuronGPU::InitGetSpikeArray (int n_node, int n_port)
   return d_get_spike_array;
 }
 
-int NeuronGPU::FreeNodeGroupMap()
+int NESTGPU::FreeNodeGroupMap()
 {
   gpuErrchk(cudaFree(d_node_group_map_));
 	    

@@ -1,5 +1,5 @@
 import sys
-import neurongpu as ngpu
+import nestgpu as ngpu
 
 spike = ngpu.Create("spike_generator", 4)
 spike0 = spike[0:2]

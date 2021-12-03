@@ -1,7 +1,7 @@
 HOW TO PREPARE A NEW VERSION FOR MACOS HOMEBREW REPOSITORY
-Go to the neurongpu git repository folder:
-cd ~/NeuronGPU
-Update the version number in configure.ac and in macOS/neurongpu.rb if necessary. Type:
+Go to the nestgpu git repository folder:
+cd ~/NESTGPU
+Update the version number in configure.ac and in macOS/nestgpu.rb if necessary. Type:
 autoreconf -i
 mkdir build
 cd build
@@ -10,15 +10,15 @@ make
 sudo make install
 To test the installation from source:
 Go to the folder python/test and test the software running the scripts:
-(if necessary set the PYTHONPATH environment variable to the location of the neurongpu.py module)
+(if necessary set the PYTHONPATH environment variable to the location of the nestgpu.py module)
 ./test_all.sh
 ./testp3_all.sh
 ./test_mpi.sh
 ./testp3_mpi.sh
 (unset the PYTHONPATH environment variable if you have defined it before)
 Go to the folder MacOS.
-cp /usr/local/lib/libneurongpu.so lib/
-cp ../pythonlib/neurongpu.py pythonlib/
+cp /usr/local/lib/libnestgpu.so lib/
+cp ../pythonlib/nestgpu.py pythonlib/
 cd ../build
 sudo make uninstall
 cd ..
@@ -35,20 +35,20 @@ cd ../python/test
 cd ../../MacOS
 sudo ./uninstall.sh
 cd ../../..
-tar -cvzf NeuronGPU_v1.2.2-macOS.tgz NeuronGPU/
+tar -cvzf NESTGPU_v1.2.2-macOS.tgz NESTGPU/
 (change the version appropriately)
 Get the file checksum and take note of it:
-shasum -a 256 NeuronGPU_v1.2.2-macOS.tgz
+shasum -a 256 NESTGPU_v1.2.2-macOS.tgz
 Open the github page with a browser. Click on "Releases"
 Draft a new release. Write version (example v1.2.2-macOS) and upload the tarball.
 Go to the homebrew-science/ git repository
 cd ~/homebrew-science/
-open the file Casks/neurongpu.rb
-emacs Casks/neurongpu.rb
+open the file Casks/nestgpu.rb
+emacs Casks/nestgpu.rb
 and change the version, the sha256, the url of the tarball.
 push the changes:
-git add Casks/neurongpu.rb
+git add Casks/nestgpu.rb
 git commit -m 'Version 1.2.2'
 git push
 Try to install it:
-brew cask install neurongpu
+brew cask install nestgpu

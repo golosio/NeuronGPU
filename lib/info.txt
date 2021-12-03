@@ -1,1 +1,1 @@
-Dinamic library libneurongpu should be produced in this directory.
+Dinamic library libnestgpu should be produced in this directory.

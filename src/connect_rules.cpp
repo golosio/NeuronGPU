@@ -1,23 +1,33 @@
 /*
-Copyright (C) 2020 Bruno Golosio
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *  This file is part of NESTGPU.
+ *
+ *  Copyright (C) 2021 The NEST Initiative
+ *
+ *  NESTGPU is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NESTGPU is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NESTGPU.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
+
 
 
 #include <config.h>
 #include <iostream>
 #include "ngpu_exception.h"
 #include "connect.h"
-#include "neurongpu.h"
+#include "nestgpu.h"
 #include "connect_rules.h"
 
 int ConnSpec::Init()
@@ -248,7 +258,7 @@ bool SynSpec::IsFloatPtParam(std::string param_name)
   }
 }
 
-int NeuronGPU::Connect(int i_source_node, int i_target_node,
+int NESTGPU::Connect(int i_source_node, int i_target_node,
 		       unsigned char port, unsigned char syn_group,
 		       float weight, float delay)
 {
@@ -260,7 +270,7 @@ int NeuronGPU::Connect(int i_source_node, int i_target_node,
 }
 
 template<>
-int NeuronGPU::_SingleConnect<int, int>
+int NESTGPU::_SingleConnect<int, int>
 (int i_source0, int i_source, int i_target0,
  int i_target, float weight, float delay,
  int i_array, SynSpec &syn_spec)
@@ -271,7 +281,7 @@ int NeuronGPU::_SingleConnect<int, int>
 }
 
 template<>
-int NeuronGPU::_SingleConnect<int, int*>
+int NESTGPU::_SingleConnect<int, int*>
 (int i_source0, int i_source,
  int *i_target0, int i_target,
  float weight, float delay,
@@ -284,7 +294,7 @@ int NeuronGPU::_SingleConnect<int, int*>
 }
 
 template<>
-int NeuronGPU::_SingleConnect<int*, int>
+int NESTGPU::_SingleConnect<int*, int>
 (int *i_source0, int i_source,
  int i_target0, int i_target,
  float weight, float delay,
@@ -297,7 +307,7 @@ int NeuronGPU::_SingleConnect<int*, int>
 }
 
 template<>
-int NeuronGPU::_SingleConnect<int*, int*>
+int NESTGPU::_SingleConnect<int*, int*>
 (int *i_source0, int i_source,
  int *i_target0, int i_target,
  float weight, float delay,
@@ -311,7 +321,7 @@ int NeuronGPU::_SingleConnect<int*, int*>
 
 
 template<>
-int NeuronGPU::_RemoteSingleConnect<int>
+int NESTGPU::_RemoteSingleConnect<int>
 (int i_source, int i_target0,
  int i_target, float weight, float delay,
  int i_array, SynSpec &syn_spec)
@@ -325,7 +335,7 @@ int NeuronGPU::_RemoteSingleConnect<int>
 }
 
 template<>
-int NeuronGPU::_RemoteSingleConnect<int*>
+int NESTGPU::_RemoteSingleConnect<int*>
 (int i_source,
  int *i_target0, int i_target,
  float weight, float delay,
@@ -338,61 +348,61 @@ int NeuronGPU::_RemoteSingleConnect<int*>
     return 0;
 }
 
-int NeuronGPU::Connect(int i_source, int n_source, int i_target, int n_target,
+int NESTGPU::Connect(int i_source, int n_source, int i_target, int n_target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   return _Connect<int, int>(i_source, n_source, i_target, n_target,
 			    conn_spec, syn_spec);
 }
 
-int NeuronGPU::Connect(int i_source, int n_source, int* target, int n_target,
+int NESTGPU::Connect(int i_source, int n_source, int* target, int n_target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   return _Connect<int, int*>(i_source, n_source, target, n_target,
 			     conn_spec, syn_spec);
 }
-int NeuronGPU::Connect(int* source, int n_source, int i_target, int n_target,
+int NESTGPU::Connect(int* source, int n_source, int i_target, int n_target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   return _Connect<int*, int>(source, n_source, i_target, n_target,
 			     conn_spec, syn_spec);
 }
-int NeuronGPU::Connect(int* source, int n_source, int* target, int n_target,
+int NESTGPU::Connect(int* source, int n_source, int* target, int n_target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   return _Connect<int*, int*>(source, n_source, target, n_target,
 			conn_spec, syn_spec);
 }
 
-int NeuronGPU::Connect(NodeSeq source, NodeSeq target,
+int NESTGPU::Connect(NodeSeq source, NodeSeq target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   return _Connect<int, int>(source.i0, source.n, target.i0, target.n,
 			    conn_spec, syn_spec);
 }
 
-int NeuronGPU::Connect(NodeSeq source, std::vector<int> target,
+int NESTGPU::Connect(NodeSeq source, std::vector<int> target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   return _Connect<int, int*>(source.i0, source.n, target.data(),
 			     target.size(), conn_spec, syn_spec);
 }
 
-int NeuronGPU::Connect(std::vector<int> source, NodeSeq target,
+int NESTGPU::Connect(std::vector<int> source, NodeSeq target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   return _Connect<int*, int>(source.data(), source.size(), target.i0,
 			     target.n, conn_spec, syn_spec);
 }
 
-int NeuronGPU::Connect(std::vector<int> source, std::vector<int> target,
+int NESTGPU::Connect(std::vector<int> source, std::vector<int> target,
 		       ConnSpec &conn_spec, SynSpec &syn_spec)
 {
   return _Connect<int*, int*>(source.data(), source.size(), target.data(),
 			target.size(), conn_spec, syn_spec);
 }
 
-int NeuronGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
+int NESTGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
 			     int i_target_host, int i_target, int n_target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
@@ -406,7 +416,7 @@ int NeuronGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
 #endif
 }
 
-int NeuronGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
+int NESTGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
 			     int i_target_host, int* target, int n_target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
@@ -419,7 +429,7 @@ int NeuronGPU::RemoteConnect(int i_source_host, int i_source, int n_source,
   throw ngpu_exception("MPI is not available in your build");
 #endif
 }
-int NeuronGPU::RemoteConnect(int i_source_host, int* source, int n_source,
+int NESTGPU::RemoteConnect(int i_source_host, int* source, int n_source,
 			     int i_target_host, int i_target, int n_target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
@@ -433,7 +443,7 @@ int NeuronGPU::RemoteConnect(int i_source_host, int* source, int n_source,
   throw ngpu_exception("MPI is not available in your build");
 #endif
 }
-int NeuronGPU::RemoteConnect(int i_source_host, int* source, int n_source,
+int NESTGPU::RemoteConnect(int i_source_host, int* source, int n_source,
 			     int i_target_host, int* target, int n_target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
@@ -448,7 +458,7 @@ int NeuronGPU::RemoteConnect(int i_source_host, int* source, int n_source,
 #endif
 }
 
-int NeuronGPU::RemoteConnect(int i_source_host, NodeSeq source,
+int NESTGPU::RemoteConnect(int i_source_host, NodeSeq source,
 			     int i_target_host, NodeSeq target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
@@ -463,7 +473,7 @@ int NeuronGPU::RemoteConnect(int i_source_host, NodeSeq source,
 #endif
 }
 
-int NeuronGPU::RemoteConnect(int i_source_host, NodeSeq source,
+int NESTGPU::RemoteConnect(int i_source_host, NodeSeq source,
 			     int i_target_host, std::vector<int> target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
@@ -477,7 +487,7 @@ int NeuronGPU::RemoteConnect(int i_source_host, NodeSeq source,
 #endif
 }
 
-int NeuronGPU::RemoteConnect(int i_source_host, std::vector<int> source,
+int NESTGPU::RemoteConnect(int i_source_host, std::vector<int> source,
 			     int i_target_host, NodeSeq target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {
@@ -491,7 +501,7 @@ int NeuronGPU::RemoteConnect(int i_source_host, std::vector<int> source,
 #endif
 }
 
-int NeuronGPU::RemoteConnect(int i_source_host, std::vector<int> source,
+int NESTGPU::RemoteConnect(int i_source_host, std::vector<int> source,
 			     int i_target_host, std::vector<int> target,
 			     ConnSpec &conn_spec, SynSpec &syn_spec)
 {

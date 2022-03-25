@@ -1,4 +1,5 @@
 # **This repository has been discontinued. NeuronGPU is currently being integrated in the NEST Initiative as NEST GPU**
+https://github.com/nest/nest-gpu
 
 # NeuronGPU
 A GPU-MPI library for simulation of large-scale networks of spiking neurons.
